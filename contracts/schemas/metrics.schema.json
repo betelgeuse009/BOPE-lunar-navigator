@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "metrics.schema.json",
+  "title": "metrics/<site_id>_<period_id>.json: summary numbers for one site over one period",
+  "description": "Every metric is {value, uncertainty}. Windows give exact start/end times so the FE can show 'sunset in 41 h' without computing anything.",
+  "allOf": [{ "$ref": "common.schema.json#/$defs/header" }],
+  "type": "object",
+  "required": ["site_id", "period_id", "sun_threshold_frac", "metrics", "sun_windows", "earth_windows"],
+  "properties": {
+    "contract_version": true, "generated_at": true, "source": true,
+    "site_id": { "$ref": "common.schema.json#/$defs/id" },
+    "period_id": { "$ref": "common.schema.json#/$defs/id" },
+    "sun_threshold_frac": { "$ref": "common.schema.json#/$defs/frac", "description": "sun_visible_frac above which a step counts as 'sunlit' (e.g. 0.5)" },
+    "metrics": {
+      "type": "object",
+      "required": ["sunlit_frac", "earth_visible_frac", "both_frac", "longest_dark_h", "longest_no_earth_h"],
+      "properties": {
+        "sunlit_frac": { "$ref": "common.schema.json#/$defs/metric" },
+        "earth_visible_frac": { "$ref": "common.schema.json#/$defs/metric" },
+        "both_frac": { "$ref": "common.schema.json#/$defs/metric" },
+        "longest_dark_h": { "$ref": "common.schema.json#/$defs/metric" },
+        "longest_no_earth_h": { "$ref": "common.schema.json#/$defs/metric" },
+        "mean_sun_el_when_lit_deg": { "$ref": "common.schema.json#/$defs/metric" },
+        "dsn_available_frac": { "$ref": "common.schema.json#/$defs/metric", "description": "LATER: Earth visible AND a DSN station sees the Moon" },
+        "battery_needed_wh": { "$ref": "common.schema.json#/$defs/metric", "description": "LATER: energy to survive longest_dark_h; load assumption in source.notes" }
+      },
+      "additionalProperties": false
+    },
+    "sun_windows": { "type": "array", "items": { "$ref": "common.schema.json#/$defs/window" } },
+    "earth_windows": { "type": "array", "items": { "$ref": "common.schema.json#/$defs/window" } },
+    "dsn_windows": { "type": "array", "items": { "$ref": "common.schema.json#/$defs/window" }, "description": "LATER" },
+    "mast_curve": {
+      "type": "array", "description": "LATER: sunlit fraction vs mast height",
+      "items": {
+        "type": "object",
+        "required": ["height_m", "sunlit_frac"],
+        "properties": {
+          "height_m": { "type": "number", "minimum": 0 },
+          "sunlit_frac": { "$ref": "common.schema.json#/$defs/metric" }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

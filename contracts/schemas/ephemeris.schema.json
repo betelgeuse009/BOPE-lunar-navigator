@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "ephemeris.schema.json",
+  "title": "ephemeris/<site_id>_<period_id>.json: Sun and Earth seen from the site over time",
+  "description": "Parallel arrays, one entry per time step. Az/el are topocentric, geometric (no terrain). Visibility fields DO include the terrain horizon, so the FE never compares elevations itself.",
+  "allOf": [{ "$ref": "common.schema.json#/$defs/header" }],
+  "type": "object",
+  "required": [
+    "site_id", "period_id", "aberration_correction", "time_utc",
+    "sun_az_deg", "sun_el_deg", "sun_visible_frac",
+    "earth_az_deg", "earth_el_deg", "earth_visible_frac"
+  ],
+  "properties": {
+    "contract_version": true, "generated_at": true, "source": true,
+    "site_id": { "$ref": "common.schema.json#/$defs/id" },
+    "period_id": { "$ref": "common.schema.json#/$defs/id" },
+    "aberration_correction": { "type": "string", "description": "e.g. SPICE 'LT+S' or 'NONE'" },
+    "time_utc": { "type": "array", "minItems": 2, "items": { "$ref": "common.schema.json#/$defs/time_utc" }, "description": "strictly increasing, uniform step" },
+    "sun_az_deg": { "type": "array", "items": { "type": "number", "minimum": 0, "exclusiveMaximum": 360 } },
+    "sun_el_deg": { "type": "array", "items": { "type": "number", "minimum": -90, "maximum": 90 } },
+    "sun_visible_frac": {
+      "type": "array", "items": { "$ref": "common.schema.json#/$defs/frac" },
+      "description": "fraction of the solar disk above the terrain horizon (0..1). A center-only model may use exactly 0 or 1; say so in source.notes."
+    },
+    "earth_az_deg": { "type": "array", "items": { "type": "number", "minimum": 0, "exclusiveMaximum": 360 } },
+    "earth_el_deg": { "type": "array", "items": { "type": "number", "minimum": -90, "maximum": 90 } },
+    "earth_visible_frac": {
+      "type": "array", "items": { "$ref": "common.schema.json#/$defs/frac" },
+      "description": "fraction of the Earth disk above the terrain horizon (0..1)"
+    },
+    "sun_dir_mcmf": {
+      "type": "array", "description": "OPTIONAL, for the 3D view: unit vector site->Sun in the Moon-fixed frame, one [x,y,z] per step",
+      "items": { "type": "array", "items": { "type": "number" }, "minItems": 3, "maxItems": 3 }
+    },
+    "earth_dir_mcmf": {
+      "type": "array", "description": "OPTIONAL, for the 3D view: unit vector site->Earth in the Moon-fixed frame",
+      "items": { "type": "array", "items": { "type": "number" }, "minItems": 3, "maxItems": 3 }
+    }
+  },
+  "additionalProperties": false
+}

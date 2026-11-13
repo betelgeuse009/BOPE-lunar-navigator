@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "horizon.schema.json",
+  "title": "horizon/<site_id>.json: terrain horizon mask seen from the site",
+  "description": "For each azimuth, the elevation angle of the highest terrain along that line of sight, including lunar curvature. Azimuth and elevation are in the site's topocentric frame (see contracts/README.md, Conventions).",
+  "allOf": [{ "$ref": "common.schema.json#/$defs/header" }],
+  "type": "object",
+  "required": ["site_id", "observer_height_m", "dem", "azimuth_deg", "horizon_elev_deg"],
+  "properties": {
+    "contract_version": true, "generated_at": true, "source": true,
+    "site_id": { "$ref": "common.schema.json#/$defs/id" },
+    "observer_height_m": { "type": "number", "minimum": 0, "description": "eye height above local terrain used for the mask" },
+    "dem": {
+      "type": "object",
+      "required": ["product", "resolution_m"],
+      "properties": {
+        "product": { "type": "string" },
+        "resolution_m": { "type": "number", "exclusiveMinimum": 0 },
+        "max_range_km": { "type": "number", "exclusiveMinimum": 0, "description": "how far out terrain was considered" }
+      },
+      "additionalProperties": false
+    },
+    "azimuth_deg": {
+      "type": "array", "minItems": 4,
+      "items": { "type": "number", "minimum": 0, "exclusiveMaximum": 360 },
+      "description": "strictly increasing, uniform step recommended (e.g. 0.5 or 1 deg)"
+    },
+    "horizon_elev_deg": {
+      "type": "array", "minItems": 4,
+      "items": { "type": "number", "minimum": -90, "maximum": 90 },
+      "description": "same length as azimuth_deg"
+    },
+    "horizon_elev_uncertainty_deg": {
+      "type": ["number", "null"], "minimum": 0,
+      "description": "optional single +/- value for the whole mask"
+    }
+  },
+  "additionalProperties": false
+}

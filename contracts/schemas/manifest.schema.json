@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "manifest.schema.json",
+  "title": "manifest.json: index of everything in data/processed/",
+  "description": "The FE loads this first to know which periods exist and which site x period files are available.",
+  "allOf": [{ "$ref": "common.schema.json#/$defs/header" }],
+  "type": "object",
+  "required": ["periods", "available"],
+  "properties": {
+    "contract_version": true, "generated_at": true, "source": true,
+    "periods": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "start_utc", "end_utc", "step_s"],
+        "properties": {
+          "id": { "$ref": "common.schema.json#/$defs/id", "description": "e.g. 2027-01" },
+          "label": { "type": "string" },
+          "start_utc": { "$ref": "common.schema.json#/$defs/time_utc" },
+          "end_utc": { "$ref": "common.schema.json#/$defs/time_utc" },
+          "step_s": { "type": "number", "exclusiveMinimum": 0 }
+        },
+        "additionalProperties": false
+      }
+    },
+    "available": {
+      "type": "array",
+      "description": "One entry per site; lists the periods for which ephemeris/ and metrics/ files exist.",
+      "items": {
+        "type": "object",
+        "required": ["site_id", "has_horizon", "period_ids"],
+        "properties": {
+          "site_id": { "$ref": "common.schema.json#/$defs/id" },
+          "has_horizon": { "type": "boolean" },
+          "period_ids": { "type": "array", "items": { "$ref": "common.schema.json#/$defs/id" } }
+        },
+        "additionalProperties": false
+      }
+    },
+    "has_matrix": { "type": "boolean" }
+  },
+  "additionalProperties": false
+}
