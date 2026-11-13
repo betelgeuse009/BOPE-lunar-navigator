@@ -6,7 +6,7 @@ Hackathon: Sat Nov 14 – Sun Nov 15, 2026. Submission deadline is on the offici
 This file is read by **every** Claude Code session in this repo, for both teammates.
 It defines who we are, who owns what, and how our two Claude sessions stay in sync through git.
 Personal context lives in `team/<github-username>.md`. Read the one for the current user.
-
+Follow the karpathy-guidelines.md
 ---
 
 ## 1. Who is working with you (do this first in every session)
