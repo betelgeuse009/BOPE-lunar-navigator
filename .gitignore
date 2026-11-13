@@ -1,0 +1,23 @@
+# secrets
+.env.local
+.env*.local
+
+# big downloads (AERO)
+data/raw/*
+!data/raw/.gitkeep
+
+# python
+__pycache__/
+*.pyc
+.venv/
+.ipynb_checkpoints/
+
+# node / frontend
+node_modules/
+dist/
+*.log
+
+# os / editors
+.DS_Store
+.vscode/
+.idea/
