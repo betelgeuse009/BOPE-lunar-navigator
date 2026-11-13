@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "common.schema.json",
+  "title": "Shared definitions for all BOPE data files",
+  "$defs": {
+    "contract_version": { "type": "string", "const": "0.1" },
+    "generated_at": { "type": "string", "format": "date-time", "description": "UTC, ISO 8601, e.g. 2026-11-14T15:40:00Z" },
+    "id": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$", "description": "kebab-case; no underscores, because '_' separates site and period in file names" },
+    "time_utc": { "type": "string", "format": "date-time", "pattern": "Z$" },
+    "frac": { "type": "number", "minimum": 0, "maximum": 1 },
+    "dataset": {
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "name": { "type": "string", "description": "e.g. LOLA DEM product name, SPICE kernel file name" },
+        "version": { "type": "string" },
+        "url": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "source": {
+      "type": "object",
+      "required": ["datasets", "tool"],
+      "properties": {
+        "datasets": { "type": "array", "items": { "$ref": "#/$defs/dataset" }, "minItems": 1 },
+        "tool": { "type": "string", "description": "script/notebook + git commit that produced the file, e.g. analysis/horizon.py@a1b2c3d" },
+        "notes": { "type": "string", "description": "assumptions and limitations, shown in the provenance panel" }
+      },
+      "additionalProperties": false
+    },
+    "metric": {
+      "type": "object",
+      "description": "A number shown to users. uncertainty is +/- in the same unit; null means not yet estimated (FE shows 'uncertainty unknown').",
+      "required": ["value", "uncertainty"],
+      "properties": {
+        "value": { "type": ["number", "null"] },
+        "uncertainty": { "type": ["number", "null"], "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "window": {
+      "type": "object",
+      "required": ["start_utc", "end_utc"],
+      "properties": {
+        "start_utc": { "$ref": "#/$defs/time_utc" },
+        "end_utc": { "$ref": "#/$defs/time_utc" }
+      },
+      "additionalProperties": false
+    },
+    "header": {
+      "type": "object",
+      "required": ["contract_version", "generated_at", "source"],
+      "properties": {
+        "contract_version": { "$ref": "#/$defs/contract_version" },
+        "generated_at": { "$ref": "#/$defs/generated_at" },
+        "source": { "$ref": "#/$defs/source" }
+      }
+    }
+  }
+}
