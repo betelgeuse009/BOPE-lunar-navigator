@@ -16,7 +16,7 @@ Two people, two separate Claude Code sessions, one repo.
 | GitHub username | Role | Background | Personal file |
 |---|---|---|---|
 | `betelgeuse009` | Front end + integration ("FE") | Computer engineering MSc, comfortable with git | `team/betelgeuse009.md` |
-| `<AERO_USERNAME>` | Analysis + physics model ("AERO") | Aerospace engineering MSc, **new to git/GitHub** | `team/<AERO_USERNAME>.md` |
+| Gabri275 | Analysis + physics model ("AERO") | Aerospace engineering MSc, **new to git/GitHub** | `team/Gabri275.md` |
 
 At the start of every session:
 1. Run `git config user.name` and `gh api user -q .login` (if `gh` is set up) to identify the user.
