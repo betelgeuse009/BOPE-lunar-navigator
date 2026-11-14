@@ -414,3 +414,29 @@ fieldset.requirements { margin-top: 0; }
 .mission-card p { margin: 0; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 6; line-clamp: 6; overflow: hidden; }
 .mission-card small { font-size: 11.5px; color: var(--text-2); }
 @media (max-width: 900px) { .mission-card { display: none; } }
+
+/* ---------- Viewport controls: 3D / 2D switch, reset, sky labels, flat map ---------- */
+.view-toggle { display: flex; border: 1px solid #5b5f66; border-radius: 3px; overflow: hidden; }
+.view-toggle button { font: 500 14px var(--font); color: var(--night-text-2); background: rgba(0, 0, 0, 0.6); border: 0; padding: 5px 12px; cursor: pointer; white-space: nowrap; }
+.view-toggle button + button { border-left: 1px solid #5b5f66; }
+.view-toggle button[aria-checked='true'] { color: var(--night); background: var(--night-text); }
+.view-reset {
+  position: absolute; z-index: 2; right: var(--gutter); top: 68px; width: 40px; height: 40px; padding: 7px; cursor: pointer;
+  background: rgba(0, 0, 0, 0.6); border: 1px solid #5b5f66; border-radius: 50%;
+}
+.view-reset:hover { border-color: var(--night-text); }
+.view-reset svg { display: block; }
+.view-reset circle { fill: none; stroke: var(--night-text-2); stroke-width: 1; }
+.view-reset .n { fill: var(--night-text); }
+.view-reset .s { fill: #5b5f66; }
+.sky-label { font: 600 12px var(--font); font-stretch: 120%; letter-spacing: 0.14em; text-transform: uppercase; color: var(--night-text); white-space: nowrap; pointer-events: none; text-shadow: 0 0 6px #000; }
+.map2d { position: absolute; inset: 0; width: 100%; height: 100%; cursor: grab; touch-action: none; background: var(--night); }
+.map2d:active { cursor: grabbing; }
+.map-grid line { stroke: rgba(255, 255, 255, 0.14); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.map-site { stroke: #000; stroke-width: 1; vector-effect: non-scaling-stroke; cursor: pointer; }
+.map-body circle { fill: none; stroke: var(--night-text); stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+.map-body line { stroke: var(--night-text); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.map-body text { font: 600 4px var(--font); letter-spacing: 0.08em; text-transform: uppercase; fill: var(--night-text); paint-order: stroke; stroke: #000; stroke-width: 1.2px; }
+.map-reticle { stroke-width: 1.6; vector-effect: non-scaling-stroke; pointer-events: none; }
+.map-reticle * { vector-effect: non-scaling-stroke; }
+.map-reticle .back { fill: rgba(0, 0, 0, 0.45); stroke: none; }

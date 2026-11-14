@@ -60,6 +60,7 @@ export default function App() {
   const sun = liveScene ?? scene
   const i = sun && landingUtc ? (sun === liveScene ? 0 : sceneIndexAt(sun, landingUtc)) : -1
   const subsolar = sun && i >= 0 ? { lat: sun.subsolar_lat_deg[i], lon: sun.subsolar_lon_deg[i] } : null
+  const subearth = sun && i >= 0 ? { lat: sun.subearth_lat_deg[i], lon: sun.subearth_lon_deg[i] } : null
 
   // Layout: three isolated regions. Inputs (left) write the store, the viewport (centre) draws it,
   // outputs (right) show the server's answers. Both side panes collapse.
@@ -74,7 +75,7 @@ export default function App() {
         {data && matrix && <InputPanel sites={data.sites.sites} matrix={matrix} landingDate={landingDate} siteIds={siteIds} />}
       </Pane>
 
-      <Viewport sites={data?.sites.sites ?? null} matrix={matrix} area={area.data} subsolar={subsolar} updating={live.loading} />
+      <Viewport sites={data?.sites.sites ?? null} matrix={matrix} area={area.data} subsolar={subsolar} subearth={subearth} updating={live.loading} />
 
       <Pane side="right" title="Results" open={rightOpen} onToggle={() => setRightOpen(!rightOpen)}>
         {error && <p className="error" role="alert">Could not load the site data. {error}</p>}
