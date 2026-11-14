@@ -9,4 +9,7 @@ const dst = new URL('../public/data/', import.meta.url)
 
 rmSync(dst, { recursive: true, force: true })
 cpSync(src, dst, { recursive: true })
+// AERO publishes the real site catalogue (data/processed/sites.json, T05) before the rest of data/processed/.
+const sites = new URL('sites.json', processed)
+if (src === samples && existsSync(sites)) { cpSync(sites, new URL('sites.json', dst)); console.log('sites:', sites.pathname) }
 console.log('data:', src.pathname, '->', dst.pathname)

@@ -86,11 +86,12 @@ describe('sceneIndexAt', () => {
 })
 
 describe('landingAt', () => {
-  it('sets the landing hour (UTC) on a landing date', () => {
+  it('sets the landing time of day (minutes after 00:00 UTC) on a landing date', () => {
     expect(landingAt('2026-11-15T00:00:00Z', 0)).toBe('2026-11-15T00:00:00Z')
-    expect(landingAt('2026-11-15T00:00:00Z', 13)).toBe('2026-11-15T13:00:00Z')
+    expect(landingAt('2026-11-15T00:00:00Z', 13 * 60 + 7)).toBe('2026-11-15T13:07:00Z')
+    expect(landingAt('2026-11-15T00:00:00Z', 1439)).toBe('2026-11-15T23:59:00Z')
   })
   it('replaces the time of a date that already has one', () => {
-    expect(landingAt('2026-11-15T06:00:00Z', 23)).toBe('2026-11-15T23:00:00Z')
+    expect(landingAt('2026-11-15T06:00:00Z', 23 * 60)).toBe('2026-11-15T23:00:00Z')
   })
 })
