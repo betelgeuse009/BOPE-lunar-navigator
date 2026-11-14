@@ -4,6 +4,7 @@ import type { Matrix } from '../data/schemas'
 import { useCompareEvaluations } from '../data/useLive'
 import { MAX_PINS, useApp, type Mode, type Pin } from '../state/store'
 import { ROWS, bestColumns, formatCell, type Cell } from './compare'
+import { domain } from './metrics'
 import { describeViolation, limitLabel } from './profiles'
 
 const timeFmt = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'UTC' })
@@ -75,7 +76,7 @@ export function ComparePanel({ matrix }: { matrix: Matrix }) {
               const best = bestColumns(cols.map((c) => (r.field in c ? c[r.field].value : undefined)), r)
               return (
                 <tr key={r.field}>
-                  <th scope="row">{r.label}</th>
+                  <th scope="row" className={domain(r.field)}>{r.label}</th>
                   {cols.map((c, i) => <td key={pins[i].id} className={best.has(i) ? 'best' : ''}>{formatCell(r, c[r.field], evs.data?.[pins[i].id]?.uncertainty_model?.components?.[r.field]?.range)}</td>)}
                 </tr>
               )

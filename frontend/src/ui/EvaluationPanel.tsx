@@ -74,20 +74,20 @@ export function EvaluationPanel({ ev, loading, error, area, areaLoading, areaErr
             </tbody>
           </table>
           <dl className="numbers">
-            <div><dt>Sunlight</dt><dd>{u('sunlit_frac', fmtPct, [0, 1])}</dd></div>
-            <div><dt>Longest night</dt><dd>{u('longest_dark_h', fmtH, [0, ev.window.duration_h])}</dd></div>
-            <div><dt>First sunset after landing</dt><dd>{untilLoss(v('hours_to_first_dark_h'), 'dark at landing')}</dd></div>
-            <div><dt>Mean Sun elevation when lit</dt><dd>{u('mean_sun_el_when_lit_deg', fmtDeg)}</dd></div>
-            <div><dt>Earth in view</dt><dd>{u('earth_visible_frac', fmtPct, [0, 1])}</dd></div>
-            <div><dt>Longest blackout</dt><dd>{u('longest_no_earth_h', fmtH, [0, ev.window.duration_h])}</dd></div>
-            <div><dt>First Earthset after landing</dt><dd>{untilLoss(v('hours_to_first_earth_loss_h'), 'no Earth at landing')}</dd></div>
+            <div><dt className="sun">Sunlight</dt><dd>{u('sunlit_frac', fmtPct, [0, 1])}</dd></div>
+            <div><dt className="sun">Longest night</dt><dd>{u('longest_dark_h', fmtH, [0, ev.window.duration_h])}</dd></div>
+            <div><dt className="sun">First sunset after landing</dt><dd>{untilLoss(v('hours_to_first_dark_h'), 'dark at landing')}</dd></div>
+            <div><dt className="sun">Mean Sun elevation when lit</dt><dd>{u('mean_sun_el_when_lit_deg', fmtDeg)}</dd></div>
+            <div><dt className="earth">Earth in view</dt><dd>{u('earth_visible_frac', fmtPct, [0, 1])}</dd></div>
+            <div><dt className="earth">Longest blackout</dt><dd>{u('longest_no_earth_h', fmtH, [0, ev.window.duration_h])}</dd></div>
+            <div><dt className="earth">First Earthset after landing</dt><dd>{untilLoss(v('hours_to_first_earth_loss_h'), 'no Earth at landing')}</dd></div>
             <div><dt>Slope{ev.terrain?.slope_baseline_m ? ` (over ${Math.round(ev.terrain.slope_baseline_m)} m)` : ''}</dt><dd>{u('slope_deg', fmtDeg, [0, 90])}</dd></div>
             <div><dt>Elevation (LOLA)</dt><dd>{fmtM(p?.elevation_m)}</dd></div>
             {v('lola_mean_sun_visibility_frac') != null && (
-              <div><dt>NASA long-term Sun visibility</dt><dd>{fmtPct(v('lola_mean_sun_visibility_frac'))}</dd></div>
+              <div><dt className="sun">NASA long-term Sun visibility</dt><dd>{fmtPct(v('lola_mean_sun_visibility_frac'))}</dd></div>
             )}
             {v('lola_mean_earth_visibility_frac') != null && (
-              <div><dt>NASA long-term Earth visibility</dt><dd>{fmtPct(v('lola_mean_earth_visibility_frac'))}</dd></div>
+              <div><dt className="earth">NASA long-term Earth visibility</dt><dd>{fmtPct(v('lola_mean_earth_visibility_frac'))}</dd></div>
             )}
           </dl>
           {ev.terrain_available

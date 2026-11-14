@@ -26,3 +26,10 @@ export function formatValue(v: number | null, field: string): string {
   if (field === 'score') return v.toFixed(2)
   return metricMeta(field).unit === 'h' ? `${Math.round(v)} h` : `${Math.round(v * 100)} %`
 }
+
+// Which body a parameter is about, so the UI can mark Sun numbers amber and Earth numbers blue.
+export function domain(field: string): 'sun' | 'earth' | undefined {
+  if (/earth/.test(field)) return 'earth'
+  if (/sun|dark|lit/.test(field)) return 'sun'
+  return undefined
+}

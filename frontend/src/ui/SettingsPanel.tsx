@@ -1,5 +1,6 @@
 import { DEFAULT_SETTINGS, type Weights } from '../data/api'
 import { FACTORS } from './factors'
+import { domain } from './metrics'
 import { Requirements } from './Requirements'
 import { useApp } from '../state/store'
 
@@ -55,7 +56,7 @@ export function ScoreSettings() {
       <fieldset disabled={!live}>
         <legend>Factors and weights</legend>
         {FACTORS.map((f) => (
-          <div key={f.key} className="factor">
+          <div key={f.key} className={`factor ${domain(f.api) ?? ''}`}>
             <Slider label={f.label} value={settings.weights[f.key]} min={0} max={3} step={0.5} unit=""
               onChange={(v) => setWeight(f.key, v)} />
             <p className="note">{f.rule}</p>

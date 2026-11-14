@@ -13,6 +13,7 @@ import { SouthCap } from './scene/SouthCap'
 import { useApp } from './state/store'
 import { metricColor } from './ui/colors'
 import { Catalogue } from './ui/Catalogue'
+import { ChapterNav } from './ui/ChapterNav'
 import { ComparePanel } from './ui/ComparePanel'
 import { DateRail } from './ui/DateRail'
 import { TimeRail } from './ui/TimeRail'
@@ -29,6 +30,7 @@ export default function App() {
   const [data, setData] = useState<Data | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [scene, setScene] = useState<Scene | null>(null)
+  const [chaptersEl, setChaptersEl] = useState<HTMLElement | null>(null)
   const { metric, dateIdx, minuteUtc, mode, point, scaleMode, pins, compareOpen, setMetric, setDateCount, setSelected, setPoint, setCompareOpen } = useApp()
   useApiHealth()
 
@@ -100,7 +102,17 @@ export default function App() {
           <CameraFocus point={point} />
         </Canvas>
         <div className="stage-foot">
-          {data && matrix && legend}
+          {data && matrix && (
+            <div className="legend-row">
+              <label className="metric">
+                <span>Colour sites by</span>
+                <select value={metric} onChange={(e) => setMetric(e.target.value)}>
+                  {Object.keys(matrix.cells).map((f) => <option key={f} value={f}>{metricMeta(f).label}</option>)}
+                </select>
+              </label>
+              {legend}
+            </div>
+          )}
           <p className="credit">
             Moon imagery: NASA's Scientific Visualization Studio, CGI Moon Kit; south pole: LROC WAC mosaic and LOLA 80 m elevation.
             Relief exaggerated four times.{' '}
@@ -111,55 +123,55 @@ export default function App() {
         </div>
       </div>
 
-      <main className="chapters">
+      <main className="chapters" ref={setChaptersEl}>
         <header className="top">
-          <h1>Lunar landing site navigator</h1>
+          <ChapterNav root={chaptersEl} />
           <p className={`mode mode-${mode}`} title={mode === 'live' ? 'Connected to the analysis server: click anywhere on the Moon.' : undefined}>
-            {mode === 'live' ? (live.loading ? 'Live analysis: updating…' : 'Live analysis') : mode === 'static' ? 'Offline data' : 'Connecting…'}
+            {mode === 'live' ? (live.loading ? 'Live, updating' : 'Live') : mode === 'static' ? 'Offline' : 'Connecting'}
           </p>
-          {data && matrix && (
-            <label className="metric">
-              Colour sites by
-              <select value={metric} onChange={(e) => setMetric(e.target.value)}>
-                {Object.keys(matrix.cells).map((f) => <option key={f} value={f}>{metricMeta(f).label}</option>)}
-              </select>
-            </label>
-          )}
           {data && (
             <button type="button" className="compare-toggle" disabled={pins.length === 0} aria-pressed={compareOpen}
-              title={pins.length === 0 ? 'Pin a site or a clicked point with "+ Compare at this date" first.' : undefined}
+              title={pins.length === 0 ? 'Add places with "Compare at this date" first.' : undefined}
               onClick={() => setCompareOpen(!compareOpen)}>
-              Compare ({pins.length})
+              Compare {pins.length > 0 ? pins.length : ''}
             </button>
           )}
+        </header>
+
+        <div className="intro">
+          <h1>Where and when can we land on the Moon?</h1>
+          <p>
+            On the Moon the Sun and Earth crawl along the horizon, so a few kilometres or a few days decide whether a
+            lander has power and a radio link. Choose a place and a date to see how long the Sun and Earth stay in view.
+          </p>
           {matrix && isPreliminary(matrix) && (
             <p className="fixture" title={matrix.source.notes}>Preliminary data: {matrix.source.notes}</p>
           )}
-        </header>
+        </div>
 
         {error && <p className="error" role="alert">Could not load the site data. {error}</p>}
         {live.error && <p className="error" role="alert">Live analysis failed: {live.error}. Showing precomputed data.</p>}
         {mode === 'static' && (
-          <p className="note">
-            Live analysis is off: the analysis server is not running. Start it with <code>npm run api</code> and reload.
-            Site colours use the precomputed defaults.
+          <p className="error">
+            Live analysis is off because the analysis server is not running. Start it with <code>npm run api</code> and
+            reload. Until then, site colours use precomputed values with the default settings.
           </p>
         )}
 
         {data && matrix && (
           <>
             <Chapter n={1} id="where" title="Where to land"
-              lead="Pick a known landing site, or click anywhere on the Moon. The globe turns to the place you choose.">
+              lead="Pick a site where a spacecraft has already landed, or click anywhere on the Moon. The globe turns to your choice and marks it in pink.">
               <Catalogue sites={data.sites.sites} matrix={matrix} />
               <SitePanel sites={data.sites.sites} matrix={matrix} />
             </Chapter>
             <Chapter n={2} id="when" title="When to land"
-              lead="The Sun and Earth move slowly across the lunar sky, so the landing date changes everything. Each strip shows the score for each choice.">
+              lead="A lunar day lasts about 29.5 Earth days, so the landing date decides how much sunlight a mission gets. Brighter cells score better.">
               <DateRail matrix={matrix} />
               {landingDate && <TimeRail dateUtc={landingDate} siteIds={siteIds} />}
             </Chapter>
             <Chapter n={3} id="mission" title="What mission"
-              lead="A crewed landing needs more than a robot: flat ground, sunlight for the whole stay, Earth in view.">
+              lead="Set what the lander needs. A crewed landing asks for flat ground, sunlight for the whole stay and Earth in view.">
               <MissionSettings />
             </Chapter>
             <Chapter n={4} id="verdict" title="Can we land there?">
