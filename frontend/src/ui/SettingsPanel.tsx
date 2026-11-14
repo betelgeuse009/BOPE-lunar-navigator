@@ -13,7 +13,7 @@ export function SettingsPanel() {
         <summary>How the score works</summary>
         <p>
           Every place gets a score from 0 (worst) to 1 (best) for a mission that lands on the chosen date and stays
-          {' '}{settings.missionDays} days. Four factors each give a sub-score from 0 to 1:
+          {' '}{settings.missionDays} days. Five factors each give a sub-score from 0 to 1:
         </p>
         <dl className="factors">
           {FACTORS.map((f) => (
@@ -21,10 +21,13 @@ export function SettingsPanel() {
           ))}
         </dl>
         <p>
-          The score is the weighted average of the four. Set a weight to 0 to ignore a factor, for example Earth
-          when a relay satellite carries the link. Landing slope joins once terrain data is in.
+          The score is the weighted average of the five. Set a weight to 0 to ignore a factor, for example Earth
+          when a relay satellite carries the link.
         </p>
-        <p className="note">Method: docs/PARAMETERS.md (analysis team). Terrain is not yet included, so nearby points score almost the same.</p>
+        <p className="note">
+          Method: docs/PARAMETERS.md (analysis team). Sunlight and Earth are blocked by the real LOLA terrain horizon
+          (ray-traced to 200 km), checked against NASA's long-term LOLA visibility maps.
+        </p>
       </details>
 
       <fieldset disabled={!live}>

@@ -3,7 +3,7 @@ import { useApp } from '../state/store'
 import { metricColor } from './colors'
 import { FACTORS } from './factors'
 import { PinButton } from './ComparePanel'
-import { fmtCoords, fmtDeg, fmtH, fmtPct, untilLoss } from './format'
+import { fmtCoords, fmtDeg, fmtH, fmtM, fmtPct, untilLoss } from './format'
 
 // Result for the clicked point: score, what makes it up, the key numbers, and the nearby search.
 export function EvaluationPanel({ ev, loading, error, area, areaLoading, areaError }: {
@@ -60,10 +60,25 @@ export function EvaluationPanel({ ev, loading, error, area, areaLoading, areaErr
             <div><dt>Earth in view</dt><dd>{fmtPct(v('earth_visible_frac'))}</dd></div>
             <div><dt>Longest blackout</dt><dd>{fmtH(v('longest_no_earth_h'))}</dd></div>
             <div><dt>First Earthset after landing</dt><dd>{untilLoss(v('hours_to_first_earth_loss_h'), 'no Earth at landing')}</dd></div>
+            <div><dt>Slope{ev.terrain?.slope_baseline_m ? ` (over ${Math.round(ev.terrain.slope_baseline_m)} m)` : ''}</dt><dd>{fmtDeg(v('slope_deg'))}</dd></div>
+            <div><dt>Elevation (LOLA)</dt><dd>{fmtM(p?.elevation_m)}</dd></div>
+            {v('lola_mean_sun_visibility_frac') != null && (
+              <div><dt>NASA long-term Sun visibility</dt><dd>{fmtPct(v('lola_mean_sun_visibility_frac'))}</dd></div>
+            )}
+            {v('lola_mean_earth_visibility_frac') != null && (
+              <div><dt>NASA long-term Earth visibility</dt><dd>{fmtPct(v('lola_mean_earth_visibility_frac'))}</dd></div>
+            )}
           </dl>
-          {!ev.terrain_available && (
-            <p className="note">Terrain not included yet (horizon: {ev.horizon_source}). Near the pole real hills block the low Sun, so these numbers are optimistic.</p>
-          )}
+          {ev.terrain_available
+            ? <p className="note">
+                Horizon, slope and elevation from LOLA{ev.terrain?.dem_product ? ` (${ev.terrain.dem_product}` : ''}
+                {ev.terrain?.dem_resolution_m ? `, ${ev.terrain.dem_resolution_m} m` : ''}{ev.terrain?.dem_product ? ')' : ''}.
+                {ev.terrain?.slope_source ? ` Slope: ${ev.terrain.slope_source}.` : ''} NASA long-term values (LOLA AVGVISIB, south of 85° S) are for context.
+              </p>
+            : <p className="error-inline">
+                The analysis server has no LOLA maps, so hills are ignored (smooth sphere) and these numbers are optimistic.
+                Run <code>python -m analysis.download_maps</code> on the server.
+              </p>}
         </>
       )}
       {radiusKm > 0 && (

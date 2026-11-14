@@ -3,8 +3,8 @@ import { DEFAULT_SETTINGS, areaSpacingKm, settingsQuery } from './api'
 
 describe('settingsQuery', () => {
   it('maps settings to the API query parameters (contracts/API.md)', () => {
-    const q = settingsQuery({ ...DEFAULT_SETTINGS, missionDays: 7, obsHeightM: 10, weights: { sunlit: 1, dark: 0.5, earth: 0, noEarth: 2 } })
-    expect(q).toEqual({ mission_h: '168', obs_height_m: '10', w_sunlit: '1', w_dark: '0.5', w_earth: '0', w_no_earth: '2' })
+    const q = settingsQuery({ ...DEFAULT_SETTINGS, missionDays: 7, obsHeightM: 10, weights: { sunlit: 1, dark: 0.5, earth: 0, noEarth: 2, slope: 3 } })
+    expect(q).toEqual({ mission_h: '168', obs_height_m: '10', w_sunlit: '1', w_dark: '0.5', w_earth: '0', w_no_earth: '2', w_slope: '3' })
   })
 })
 

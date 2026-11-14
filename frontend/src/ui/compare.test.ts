@@ -41,3 +41,11 @@ describe('formatCell', () => {
     expect(formatCell(row('hours_to_first_dark_h'), { value: 0, uncertainty: null })).toBe('dark at landing')
   })
 })
+
+describe('fmtM', () => {
+  it('shows metres with the LOLA height error, n/a without a value', async () => {
+    const { fmtM } = await import('./format')
+    expect(fmtM({ value: 1758.94, uncertainty: 0.08 })).toBe('1758.9 m ± 0.1 m')
+    expect(fmtM({ value: null, uncertainty: null })).toBe('n/a')
+  })
+})

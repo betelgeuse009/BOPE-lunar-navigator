@@ -5,14 +5,14 @@ import { CONTRACT_VERSION } from './schemas'
 
 export const API_BASE: string = import.meta.env.VITE_API_BASE ?? 'http://localhost:8000/api'
 
-export type Weights = { sunlit: number; dark: number; earth: number; noEarth: number }
+export type Weights = { sunlit: number; dark: number; earth: number; noEarth: number; slope: number }
 export type Settings = { missionDays: number; obsHeightM: number; weights: Weights }
 
-// API defaults (docs/PARAMETERS.md §1): 14 d mission, 2 m mast, weight 1 each.
+// API defaults (docs/PARAMETERS.md §1): 14 d mission, 2 m mast, weight 1 each (slope included since the terrain, T28).
 export const DEFAULT_SETTINGS: Settings = {
   missionDays: 14,
   obsHeightM: 2,
-  weights: { sunlit: 1, dark: 1, earth: 1, noEarth: 1 },
+  weights: { sunlit: 1, dark: 1, earth: 1, noEarth: 1, slope: 1 },
 }
 
 export function settingsQuery(s: Settings): Record<string, string> {
@@ -23,6 +23,7 @@ export function settingsQuery(s: Settings): Record<string, string> {
     w_dark: String(s.weights.dark),
     w_earth: String(s.weights.earth),
     w_no_earth: String(s.weights.noEarth),
+    w_slope: String(s.weights.slope),
   }
 }
 
@@ -37,6 +38,11 @@ export const Evaluation = z.object({
   window: z.object({ start_utc: z.string(), end_utc: z.string(), duration_h: z.number() }),
   terrain_available: z.boolean(),
   horizon_source: z.string(),
+  // What the terrain numbers rest on (contracts/API.md, /api/evaluate "terrain"). Absent or partial without the maps.
+  terrain: z.object({
+    dem_product: z.string().nullable(), dem_resolution_m: z.number().nullable(),
+    slope_source: z.string().nullable(), slope_baseline_m: z.number().nullable(), height_error_m: z.number().nullable(),
+  }).partial().optional(),
   parameters: z.record(metric),
   feasible: z.boolean(),
   violations: z.array(z.unknown()),
