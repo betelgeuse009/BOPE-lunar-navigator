@@ -1,5 +1,6 @@
 import type { LimitKey, ProfileId } from '../data/api'
 import { useApp } from '../state/store'
+import { Help } from './Help'
 import { LIMITS, PROFILES, profileSettings } from './profiles'
 
 // Mission type + minimum requirements (hard limits). The analysis server judges them (/evaluate, /area);
@@ -16,7 +17,7 @@ export function Requirements({ disabled }: { disabled: boolean }) {
 
   return (
     <fieldset disabled={disabled} className="requirements">
-      <legend>Mission type</legend>
+      <legend>Mission type <Help topic="mission-type" /></legend>
       <div className="toggle" role="radiogroup" aria-label="Mission type">
         {(Object.keys(PROFILES) as ProfileId[]).map((id) => (
           <label key={id}>
@@ -30,7 +31,7 @@ export function Requirements({ disabled }: { disabled: boolean }) {
         <p className="source">Surface stay {profile.missionDays.value} days. Source: {profile.missionDays.source}</p>
       )}
 
-      <h3>Minimum requirements</h3>
+      <h3>Minimum requirements <Help topic="requirements" /></h3>
       {LIMITS.map((l) => {
         const on = l.key in settings.limits
         const v = settings.limits[l.key] ?? null
@@ -38,10 +39,11 @@ export function Requirements({ disabled }: { disabled: boolean }) {
         const shown = v === null ? '' : String(l.pct ? Math.round(v * 1000) / 10 : v)
         return (
           <div key={l.key} className="limit">
-            <label>
+            <span><label>
               <input type="checkbox" checked={on} onChange={(e) => setLimit(l.key, e.target.checked ? null : undefined)} />
               {' '}{l.label}
             </label>
+            {' '}<Help topic={l.help} /></span>
             <span className="limit-value">
               <input type="number" min={0} max={l.max} step="any" value={shown} disabled={!on} aria-label={`${l.label} (${l.unit})`}
                 onChange={(e) => setLimit(l.key, e.target.value === '' ? null : Number(e.target.value) / (l.pct ? 100 : 1))} />

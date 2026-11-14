@@ -1,5 +1,7 @@
 import { DEFAULT_SETTINGS, type Weights } from '../data/api'
+import type { TopicId } from '../docs/topics'
 import { FACTORS } from './factors'
+import { Help } from './Help'
 import { domain } from './metrics'
 import { Requirements } from './Requirements'
 import { useApp } from '../state/store'
@@ -15,9 +17,9 @@ export function MissionSettings() {
       <Requirements disabled={!live} />
       <fieldset disabled={!live}>
         <legend>Stay and hardware</legend>
-        <Slider label="Surface stay" value={settings.missionDays} min={1} max={28} step={0.5} unit="days"
+        <Slider label="Surface stay" value={settings.missionDays} min={1} max={28} step={0.5} unit="days" help="surface-stay"
           onChange={(v) => setSettings({ missionDays: v })} />
-        <Slider label="Mast height (solar array and antenna)" value={settings.obsHeightM} min={0} max={20} step={0.5} unit="m"
+        <Slider label="Mast height (solar array and antenna)" value={settings.obsHeightM} min={0} max={20} step={0.5} unit="m" help="mast-height"
           onChange={(v) => setSettings({ obsHeightM: v })} />
       </fieldset>
     </>
@@ -30,8 +32,8 @@ export function NearbySearch() {
   const live = mode === 'live'
   return (
     <fieldset disabled={!live || !point}>
-      <legend>Search nearby</legend>
-      <Slider label="Radius around the chosen place" value={radiusKm} min={0} max={50} step={1} unit="km"
+      <legend>Search nearby <Help topic="nearby-search" /></legend>
+      <Slider label="Radius around the chosen place" value={radiusKm} min={0} max={50} step={1} unit="km" help="nearby-search"
         onChange={setRadiusKm} format={(v) => (v === 0 ? 'off' : `${v} km`)} />
       <div className="toggle" role="radiogroup" aria-label="Colour scale">
         <label><input type="radio" checked={scaleMode === 'absolute'} onChange={() => setScaleMode('absolute')} /> Absolute 0 to 1</label>
@@ -54,10 +56,10 @@ export function ScoreSettings() {
         average. Set a weight to 0 to ignore a factor, for example Earth when a relay satellite carries the link.
       </p>
       <fieldset disabled={!live}>
-        <legend>Factors and weights</legend>
+        <legend>Factors and weights <Help topic="score-weights" /></legend>
         {FACTORS.map((f) => (
           <div key={f.key} className={`factor ${domain(f.api) ?? ''}`}>
-            <Slider label={f.label} value={settings.weights[f.key]} min={0} max={3} step={0.5} unit=""
+            <Slider label={f.label} value={settings.weights[f.key]} min={0} max={3} step={0.5} unit="" help={f.help}
               onChange={(v) => setWeight(f.key, v)} />
             <p className="note">{f.rule}</p>
           </div>
@@ -73,10 +75,10 @@ export function ScoreSettings() {
 }
 
 function Slider(p: { label: string; value: number; min: number; max: number; step: number; unit: string;
-  onChange: (v: number) => void; format?: (v: number) => string }) {
+  onChange: (v: number) => void; format?: (v: number) => string; help: TopicId }) {
   return (
     <label className="slider">
-      <span>{p.label}</span>
+      <span>{p.label} <Help topic={p.help} /></span>
       <output>{p.format ? p.format(p.value) : `${p.value}${p.unit ? ` ${p.unit}` : ''}`}</output>
       <input type="range" min={p.min} max={p.max} step={p.step} value={p.value} onChange={(e) => p.onChange(Number(e.target.value))} />
     </label>

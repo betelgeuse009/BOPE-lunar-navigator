@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { isPreliminary, landingAt, loadAll, loadScene, periodAt, sceneIndexAt } from './data/load'
 import type { Scene } from './data/schemas'
 import { useApiHealth, useAreaSearch, useEvaluation, useLiveMatrix } from './data/useLive'
+import { DocsPage } from './docs/DocsPage'
+import { useDocTopic } from './docs/useDocTopic'
 import { Viewport } from './scene/Viewport'
 import { useApp } from './state/store'
 import { ComparePanel } from './ui/ComparePanel'
@@ -21,6 +23,7 @@ export default function App() {
   const [rightOpen, setRightOpen] = useState(true)
   const { metric, dateIdx, minuteUtc, mode, setMetric, setDateCount } = useApp()
   useApiHealth()
+  const docTopic = useDocTopic()
 
   useEffect(() => {
     loadAll(DATA_BASE)
@@ -78,6 +81,7 @@ export default function App() {
       </Pane>
 
       {data && matrix && <ComparePanel matrix={matrix} />}
+      {docTopic && <DocsPage topic={docTopic} />}
     </div>
   )
 }

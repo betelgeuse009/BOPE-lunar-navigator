@@ -37,9 +37,9 @@ export function AreaDots({ area, mode }: { area: Area; mode: ScaleMode }) {
   )
 }
 
-// Clicked point and the best point found nearby. Targets that face the viewer and keep the same size on screen
-// at any zoom: dark outline (contrast on bright regolith), white ring, coloured centre; the clicked point pulses.
-const POINT_COLOR = '#ff4f7b'
+// Clicked point and the best point found nearby. Reticles that face the viewer and keep the same size on screen
+// at any zoom: dark backing (contrast on bright regolith), thin ring, four ticks, centre dot; the clicked point pulses.
+const POINT_COLOR = '#ffffff'
 const BEST_COLOR = '#f2e08a'
 const PX_PER_DISTANCE = 0.012 // marker radius in scene units per unit of camera distance (~16 px at the default view)
 
@@ -71,11 +71,16 @@ function Target({ at, color, pulse = false }: { at: [number, number, number]; co
   const mat = { toneMapped: false, side: DoubleSide, depthTest: false } as const
   return (
     <group ref={ref} position={at}>
-      <mesh renderOrder={10} raycast={() => null}><ringGeometry args={[0.7, 1.15, 48]} /><meshBasicMaterial color="#000000" transparent opacity={0.7} {...mat} /></mesh>
-      <mesh renderOrder={11} raycast={() => null}><ringGeometry args={[0.5, 0.75, 48]} /><meshBasicMaterial color="#ffffff" {...mat} /></mesh>
-      <mesh renderOrder={12} raycast={() => null}><circleGeometry args={[0.38, 32]} /><meshBasicMaterial color={color} {...mat} /></mesh>
+      <mesh renderOrder={10} raycast={() => null}><ringGeometry args={[0.62, 1.12, 48]} /><meshBasicMaterial color="#000000" transparent opacity={0.55} {...mat} /></mesh>
+      <mesh renderOrder={11} raycast={() => null}><ringGeometry args={[0.8, 0.92, 64]} /><meshBasicMaterial color={color} {...mat} /></mesh>
+      {[0, 1, 2, 3].map((k) => (
+        <mesh key={k} renderOrder={11} raycast={() => null} rotation={[0, 0, (k * Math.PI) / 2]} position={[Math.cos((k * Math.PI) / 2) * 1.25, Math.sin((k * Math.PI) / 2) * 1.25, 0]}>
+          <planeGeometry args={[0.6, 0.1]} /><meshBasicMaterial color={color} {...mat} />
+        </mesh>
+      ))}
+      <mesh renderOrder={12} raycast={() => null}><circleGeometry args={[0.16, 24]} /><meshBasicMaterial color={color} {...mat} /></mesh>
       {pulse && (
-        <mesh ref={halo} renderOrder={9} raycast={() => null}><ringGeometry args={[1.05, 1.3, 48]} /><meshBasicMaterial color={color} transparent {...mat} /></mesh>
+        <mesh ref={halo} renderOrder={9} raycast={() => null}><ringGeometry args={[0.95, 1.05, 64]} /><meshBasicMaterial color={color} transparent {...mat} /></mesh>
       )}
     </group>
   )

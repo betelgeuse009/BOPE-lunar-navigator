@@ -3,7 +3,9 @@ import type { Matrix, Site } from '../data/schemas'
 import { useApp } from '../state/store'
 import { metricColor } from './colors'
 import { PinButton } from './ComparePanel'
+import { FIELD_TOPIC } from '../docs/topics'
 import { fmtCoords } from './format'
+import { Help } from './Help'
 import { formatValue, goodness, metricMeta } from './metrics'
 import { landingType } from './sites'
 
@@ -30,17 +32,18 @@ export function SitePanel({ sites, matrix }: { sites: Site[]; matrix: Matrix }) 
               <dt>
                 <i style={{ background: metricColor(goodness(v, f, matrix.mission_duration_h)) }} />
                 {metricMeta(f).label}
+                {FIELD_TOPIC[f] && <Help topic={FIELD_TOPIC[f]} />}
               </dt>
               <dd>{formatValue(v, f)}</dd>
             </div>
           )
         })}
         {site.slope_deg != null && (
-          <div><dt>Slope (LOLA{site.slope_baseline_m ? `, over ${Math.round(site.slope_baseline_m)} m` : ''})</dt><dd>{site.slope_deg.toFixed(1)}°</dd></div>
+          <div><dt>Slope (LOLA{site.slope_baseline_m ? `, over ${Math.round(site.slope_baseline_m)} m` : ''}) <Help topic="slope" /></dt><dd>{site.slope_deg.toFixed(1)}°</dd></div>
         )}
-        {site.elevation_m != null && <div><dt>Elevation (LOLA)</dt><dd>{site.elevation_m.toFixed(0)} m</dd></div>}
+        {site.elevation_m != null && <div><dt>Elevation (LOLA) <Help topic="elevation" /></dt><dd>{site.elevation_m.toFixed(0)} m</dd></div>}
       </dl>
-      <p className="note">Uncertainty: {matrix.uncertainty_notes ?? 'not stated in the data file.'}</p>
+      <p className="note">Uncertainty <Help topic="uncertainty" />: {matrix.uncertainty_notes ?? 'not stated in the data file.'}</p>
       <p className="note">
         Coordinates from {site.coord_source}
         {site.coord_source_url && <> (<a href={site.coord_source_url} target="_blank" rel="noreferrer">source</a>)</>}

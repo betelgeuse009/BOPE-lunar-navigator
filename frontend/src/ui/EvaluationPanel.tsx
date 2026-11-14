@@ -2,6 +2,7 @@ import { limitsQuery, type Area, type Evaluation } from '../data/api'
 import { useApp } from '../state/store'
 import { metricColor } from './colors'
 import { FACTORS } from './factors'
+import { Help } from './Help'
 import { describeViolation, limitLabel } from './profiles'
 import { PinButton } from './ComparePanel'
 import { fmtCoords, fmtDeg, fmtH, fmtM, fmtPct, fmtUnc, untilLoss } from './format'
@@ -39,24 +40,25 @@ export function EvaluationPanel({ ev, loading, error, area, areaLoading, areaErr
         <>
           <p className="score">
             <i style={{ background: metricColor(ev.score.value) }} />
-            Score <strong>{ev.score.value?.toFixed(2) ?? 'n/a'}</strong>
+            <span>Score <Help topic="score" /></span> <strong>{ev.score.value?.toFixed(2) ?? 'n/a'}</strong>
             {ev.score.uncertainty != null && ev.score.uncertainty >= 0.005 ? <span className="unc">± {ev.score.uncertainty.toFixed(2)}</span> : null}
             {hasLimits
               ? <span className={ev.feasible ? 'ok' : 'bad'}>{!ev.feasible ? 'breaks a requirement' : ev.not_checked.length ? 'meets the checked requirements' : 'meets all requirements'}</span>
               : <span className="nolimits">no requirements set</span>}
+            <Help topic="verdict" />
           </p>
           {ev.violations.length > 0 && (
             <ul className="violations">{ev.violations.map((x) => <li key={x.limit}>{describeViolation(x)}</li>)}</ul>
           )}
           {(ev.requirements_at_risk?.length ?? 0) > 0 && (
             <p className="at-risk">
-              At risk: {ev.requirements_at_risk!.map(limitLabel).join(', ')}. Met at this exact point but broken
+              At risk <Help topic="uncertainty" />: {ev.requirements_at_risk!.map(limitLabel).join(', ')}. Met at this exact point but broken
               {pos ? ` within ${pos} m` : ' within the landing uncertainty'} or within the horizon accuracy.
             </p>
           )}
           {ev.not_checked.length > 0 && <p className="note">Not checked, data missing on the server: {ev.not_checked.map(limitLabel).join(', ')}</p>}
           <table className="breakdown">
-            <caption>What makes up the score</caption>
+            <caption>What makes up the score <Help topic="score" /></caption>
             <thead><tr><th>Factor</th><th>Sub-score</th><th>Weight</th><th>Share</th></tr></thead>
             <tbody>
               {FACTORS.map((f) => {
@@ -64,7 +66,7 @@ export function EvaluationPanel({ ev, loading, error, area, areaLoading, areaErr
                 const share = c?.score != null && wSum > 0 ? (c.score * c.weight) / wSum : null
                 return (
                   <tr key={f.key}>
-                    <td>{f.label}</td>
+                    <td>{f.label} <Help topic={f.help} /></td>
                     <td>{c?.score?.toFixed(2) ?? 'n/a'}</td>
                     <td>{c?.weight ?? 0}</td>
                     <td><span className="bar" style={{ width: `${(share ?? 0) * 100}%` }} />{share?.toFixed(2) ?? '–'}</td>
@@ -74,25 +76,25 @@ export function EvaluationPanel({ ev, loading, error, area, areaLoading, areaErr
             </tbody>
           </table>
           <dl className="numbers">
-            <div><dt className="sun">Sunlight</dt><dd>{u('sunlit_frac', fmtPct, [0, 1])}</dd></div>
-            <div><dt className="sun">Longest night</dt><dd>{u('longest_dark_h', fmtH, [0, ev.window.duration_h])}</dd></div>
-            <div><dt className="sun">First sunset after landing</dt><dd>{untilLoss(v('hours_to_first_dark_h'), 'dark at landing')}</dd></div>
-            <div><dt className="sun">Mean Sun elevation when lit</dt><dd>{u('mean_sun_el_when_lit_deg', fmtDeg)}</dd></div>
-            <div><dt className="earth">Earth in view</dt><dd>{u('earth_visible_frac', fmtPct, [0, 1])}</dd></div>
-            <div><dt className="earth">Longest blackout</dt><dd>{u('longest_no_earth_h', fmtH, [0, ev.window.duration_h])}</dd></div>
-            <div><dt className="earth">First Earthset after landing</dt><dd>{untilLoss(v('hours_to_first_earth_loss_h'), 'no Earth at landing')}</dd></div>
-            <div><dt>Slope{ev.terrain?.slope_baseline_m ? ` (over ${Math.round(ev.terrain.slope_baseline_m)} m)` : ''}</dt><dd>{u('slope_deg', fmtDeg, [0, 90])}</dd></div>
-            <div><dt>Elevation (LOLA)</dt><dd>{fmtM(p?.elevation_m)}</dd></div>
+            <div><dt className="sun">Sunlight <Help topic="sunlight" /></dt><dd>{u('sunlit_frac', fmtPct, [0, 1])}</dd></div>
+            <div><dt className="sun">Longest night <Help topic="longest-night" /></dt><dd>{u('longest_dark_h', fmtH, [0, ev.window.duration_h])}</dd></div>
+            <div><dt className="sun">First sunset after landing <Help topic="countdowns" /></dt><dd>{untilLoss(v('hours_to_first_dark_h'), 'dark at landing')}</dd></div>
+            <div><dt className="sun">Mean Sun elevation when lit <Help topic="sun-elevation" /></dt><dd>{u('mean_sun_el_when_lit_deg', fmtDeg)}</dd></div>
+            <div><dt className="earth">Earth in view <Help topic="earth-in-view" /></dt><dd>{u('earth_visible_frac', fmtPct, [0, 1])}</dd></div>
+            <div><dt className="earth">Longest blackout <Help topic="longest-blackout" /></dt><dd>{u('longest_no_earth_h', fmtH, [0, ev.window.duration_h])}</dd></div>
+            <div><dt className="earth">First Earthset after landing <Help topic="countdowns" /></dt><dd>{untilLoss(v('hours_to_first_earth_loss_h'), 'no Earth at landing')}</dd></div>
+            <div><dt>Slope{ev.terrain?.slope_baseline_m ? ` (over ${Math.round(ev.terrain.slope_baseline_m)} m)` : ''} <Help topic="slope" /></dt><dd>{u('slope_deg', fmtDeg, [0, 90])}</dd></div>
+            <div><dt>Elevation (LOLA) <Help topic="elevation" /></dt><dd>{fmtM(p?.elevation_m)}</dd></div>
             {v('lola_mean_sun_visibility_frac') != null && (
-              <div><dt className="sun">NASA long-term Sun visibility</dt><dd>{fmtPct(v('lola_mean_sun_visibility_frac'))}</dd></div>
+              <div><dt className="sun">NASA long-term Sun visibility <Help topic="nasa-visibility" /></dt><dd>{fmtPct(v('lola_mean_sun_visibility_frac'))}</dd></div>
             )}
             {v('lola_mean_earth_visibility_frac') != null && (
-              <div><dt className="earth">NASA long-term Earth visibility</dt><dd>{fmtPct(v('lola_mean_earth_visibility_frac'))}</dd></div>
+              <div><dt className="earth">NASA long-term Earth visibility <Help topic="nasa-visibility" /></dt><dd>{fmtPct(v('lola_mean_earth_visibility_frac'))}</dd></div>
             )}
           </dl>
           {ev.terrain_available
             ? <p className="note">
-                Horizon, slope and elevation from LOLA{ev.terrain?.dem_product ? ` (${ev.terrain.dem_product}` : ''}
+                Horizon <Help topic="terrain-horizon" />, slope and elevation from LOLA{ev.terrain?.dem_product ? ` (${ev.terrain.dem_product}` : ''}
                 {ev.terrain?.dem_resolution_m ? `, ${ev.terrain.dem_resolution_m} m` : ''}{ev.terrain?.dem_product ? ')' : ''}.
                 {ev.terrain?.slope_source ? ` Slope: ${ev.terrain.slope_source}.` : ''} NASA long-term values (LOLA AVGVISIB, south of 85° S) are for context.
               </p>
@@ -104,7 +106,7 @@ export function EvaluationPanel({ ev, loading, error, area, areaLoading, areaErr
       )}
       {radiusKm > 0 && (
         <div className="nearby">
-          <h3>Within {radiusKm} km</h3>
+          <h3>Within {radiusKm} km <Help topic="nearby-search" /></h3>
           {areaError && <p className="error-inline">{areaError}</p>}
           {areaLoading && <p className="note updating">{area ? 'Updating…' : 'Searching…'}</p>}
           {area && (

@@ -11,20 +11,20 @@ export function InputPanel({ sites, matrix, landingDate, siteIds }: {
 }) {
   return (
     <>
-      <Block title="Landing time">
+      <Block title="Landing time" help="landing-time">
         <DateRail matrix={matrix} />
         {landingDate && <TimeRail dateUtc={landingDate} siteIds={siteIds} />}
       </Block>
-      <Block title="Mission">
+      <Block title="Mission" help="mission-type">
         <MissionSettings />
       </Block>
-      <Block title="Score weights" open={false}>
+      <Block title="Score weights" help="score-weights" open={false}>
         <ScoreSettings />
       </Block>
-      <Block title="Search nearby" open={false}>
+      <Block title="Search nearby" help="nearby-search" open={false}>
         <NearbySearch />
       </Block>
-      <Block title="Known landing sites">
+      <Block title="Known landing sites" help="known-sites">
         <Catalogue sites={sites} matrix={matrix} />
       </Block>
     </>

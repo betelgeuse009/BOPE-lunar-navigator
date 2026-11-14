@@ -2,6 +2,7 @@ import { cellValue } from '../data/load'
 import type { Matrix } from '../data/schemas'
 import { useApp } from '../state/store'
 import { metricColor } from './colors'
+import { Help } from './Help'
 import { goodness } from './metrics'
 
 const fmt = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' })
@@ -19,7 +20,7 @@ export function DateRail({ matrix }: { matrix: Matrix }) {
   return (
     <div className="rail">
       <div className="rail-head">
-        <label htmlFor="landing-date">Landing date</label>
+        <span><label htmlFor="landing-date">Landing date</label> <Help topic="landing-time" /></span>
         <output htmlFor="landing-date">{fmt.format(new Date(dates[dateIdx]))}</output>
       </div>
       <div className="rail-track">

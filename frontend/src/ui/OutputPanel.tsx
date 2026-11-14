@@ -14,13 +14,13 @@ export function OutputPanel({ sites, matrix, ev, area }: {
   const { point, mode } = useApp()
   return (
     <>
-      <Block title="Can we land there?">
+      <Block title="Can we land there?" help="verdict">
         {point
           ? <EvaluationPanel ev={ev.data} loading={ev.loading} error={ev.error}
               area={area.data} areaLoading={area.loading} areaError={area.error} />
           : <p className="note">{mode === 'live' ? 'Choose a known landing site or click anywhere on the Moon.' : 'Needs the analysis server (live mode).'}</p>}
       </Block>
-      <Block title="Site record">
+      <Block title="Site record" help="site-record">
         <SitePanel sites={sites} matrix={matrix} />
       </Block>
     </>

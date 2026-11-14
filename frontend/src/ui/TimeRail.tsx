@@ -3,6 +3,7 @@ import { useApp } from '../state/store'
 import { metricColor } from './colors'
 import { formatValue, goodness, metricMeta } from './metrics'
 import { STRIP_STEP_MIN, fmtClock, relativeToDay } from './timeStrip'
+import { Help } from './Help'
 
 // Landing time of day, 1 min steps. The strip behind it is sampled every 10 min (cheap: one /api/matrix call per day)
 // and coloured relative to that day. Live mode only: the offline files exist for 00:00 UTC landings.
@@ -34,7 +35,7 @@ export function TimeRail({ dateUtc, siteIds }: { dateUtc: string; siteIds: strin
   return (
     <div className={`rail rail-time${strip.loading ? ' stale' : ''}`}>
       <div className="rail-head">
-        <label htmlFor="landing-time">Landing time</label>
+        <span><label htmlFor="landing-time">Landing time</label> <Help topic="landing-time" /></span>
         <output htmlFor="landing-time">{fmtClock(value)} UTC</output>
         {!live && <span className="note-inline">Start the analysis server to choose the time; offline data is for 00:00 UTC.</span>}
         {strip.error && <span className="error-inline">{strip.error}</span>}

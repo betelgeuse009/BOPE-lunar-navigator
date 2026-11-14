@@ -1,4 +1,6 @@
 import type { ReactNode } from 'react'
+import type { TopicId } from '../docs/topics'
+import { Help } from './Help'
 
 // A side pane of the workbench. Collapsed, it shrinks to a rail that keeps only its toggle.
 export function Pane({ side, title, open, onToggle, children }: {
@@ -20,10 +22,10 @@ export function Pane({ side, title, open, onToggle, children }: {
 }
 
 // One self-contained block inside a pane. New features are added as new blocks.
-export function Block({ title, open = true, children }: { title: string; open?: boolean; children: ReactNode }) {
+export function Block({ title, help, open = true, children }: { title: string; help: TopicId; open?: boolean; children: ReactNode }) {
   return (
     <details className="block" open={open}>
-      <summary>{title}</summary>
+      <summary><span>{title} <Help topic={help} /></span></summary>
       <div className="block-body">{children}</div>
     </details>
   )
