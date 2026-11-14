@@ -1,0 +1,55 @@
+{
+ "contract_version": "0.1",
+ "generated_at": "2026-11-14T11:22:23Z",
+ "source": {
+  "datasets": [
+   {
+    "name": "none (FIXTURE)"
+   }
+  ],
+  "tool": "frontend/scripts/make-fixtures.mjs",
+  "notes": "FIXTURE: invented values for UI development. Not real data."
+ },
+ "sites": [
+  {
+   "id": "fixture-a",
+   "name": "Fixture site A",
+   "lat_deg": -89.5,
+   "lon_deg": 0,
+   "category": "other",
+   "coord_source": "FIXTURE, not real"
+  },
+  {
+   "id": "fixture-b",
+   "name": "Fixture site B",
+   "lat_deg": -88,
+   "lon_deg": 120,
+   "category": "other",
+   "coord_source": "FIXTURE, not real"
+  },
+  {
+   "id": "fixture-c",
+   "name": "Fixture site C",
+   "lat_deg": -86.5,
+   "lon_deg": -60,
+   "category": "other",
+   "coord_source": "FIXTURE, not real"
+  },
+  {
+   "id": "fixture-d",
+   "name": "Fixture site D",
+   "lat_deg": -85,
+   "lon_deg": 45,
+   "category": "other",
+   "coord_source": "FIXTURE, not real"
+  },
+  {
+   "id": "fixture-e",
+   "name": "Fixture site E",
+   "lat_deg": -84,
+   "lon_deg": -150,
+   "category": "other",
+   "coord_source": "FIXTURE, not real"
+  }
+ ]
+}
