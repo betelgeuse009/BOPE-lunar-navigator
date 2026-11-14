@@ -254,3 +254,18 @@ Changed contract: no
 Needs from AERO: yes/no on the uv proposal (and who does it: you, or FE prepares the pyproject.toml as a PR for you to review).
 Questions for AERO: see above.
 Commits: fe/api-hybrid 074baf4 (npm run api)
+
+## 2026-11-14 15:55 · FE
+Bug found while testing the API from the globe (Erdeniz): after moving the landing-date slider, scores stopped updating,
+  even for new clicks. Root cause, measured here: every new landing date is a new time window, and /evaluate needs ~2.7 s
+  for a new window; FE sent one request per slider step, the server cannot cancel them, so a 15-date drag queued
+  ~40 s of work and the next click answered after 53 s. Your numbers were right all along (checked 4 dates x 4 points).
+  FE fix (fe/api-hybrid dee7c48): at most one request in flight per panel; newer ones replace each other.
+Request for AERO (performance, your call how): make a new landing date cheap. Idea: cache the Sun/Earth vectors on a fixed
+  grid (for example per calendar month at calc_step_s) and slice any window out of it, instead of caching per exact
+  [start, end]. Then dragging through 30 dates in the same month would cost one computation, not 30.
+  Even better for the slider: an /evaluate variant that takes several start dates in one call (like /matrix does for points).
+Changed contract: no
+Needs from AERO: the caching change above (or tell me it is not feasible).
+Questions for AERO: none
+Commits: fe/api-hybrid dee7c48
