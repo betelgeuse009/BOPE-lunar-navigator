@@ -59,6 +59,22 @@ def test_horizon_dip_grows_with_height():
     assert horizon.dip_deg(10.0) > horizon.dip_deg(2.0)
 
 
+def test_countdowns_to_sunset_sunrise_earthset_earthrise():
+    """Near-side centre, 30 days: the Sun sets and rises; the Earth never sets (always high)."""
+    bv = eph.body_vectors(START, END, 3600)
+    inp = Inputs(use_terrain=False)
+    s = metrics.site_series(bv, 0.0, 0.0, inp)
+    p = metrics.summarize(s, 0, slice(None), 3600, inp)
+    lit = s["lit"][0]
+    first_dark, first_lit = int(np.argmax(~lit)), int(np.argmax(lit))
+    assert p["hours_to_first_dark_h"] == (0.0 if not lit[0] else float(first_dark))
+    assert p["hours_to_first_sun_h"] == (0.0 if lit[0] else float(first_lit))
+    assert (p["hours_to_first_dark_h"] == 0.0) != (p["hours_to_first_sun_h"] == 0.0)   # exactly one is "now"
+    assert p["hours_to_first_earth_h"] == 0.0 and p["hours_to_first_earth_loss_h"] is None
+    far = metrics.summarize(metrics.site_series(bv, 0.0, 180.0, inp), 0, slice(None), 3600, inp)
+    assert far["hours_to_first_earth_h"] is None                                          # never rises on the far side
+
+
 def test_runs_and_longest_run():
     mask = np.array([True, True, False, True, True, True, False])
     assert vis.runs(mask) == [(0, 2), (3, 6)]

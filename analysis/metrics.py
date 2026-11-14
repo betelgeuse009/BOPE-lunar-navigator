@@ -102,14 +102,16 @@ def summarize(series: dict[str, np.ndarray], i: int, sl: slice, step_s: int, inp
     return {
         "sunlit_frac": float(lit.mean()),
         "longest_dark_h": longest_dark_h,
-        "hours_to_first_dark_h": vis.hours_to_first(~lit, step_s),
+        "hours_to_first_dark_h": vis.hours_to_first(~lit, step_s),     # time left before sunset (0 = dark at landing)
+        "hours_to_first_sun_h": vis.hours_to_first(lit, step_s),       # time to sunrise (0 = Sun already up; null = never)
         "mean_sun_el_when_lit_deg": _mean_or_none(sun_el, lit),
         "sun_el_min_deg": float(sun_el.min()), "sun_el_max_deg": float(sun_el.max()),
         "sun_energy_tracking_kwh_m2": energy_kwh_m2,
         "mean_irradiance_w_m2": energy_kwh_m2 * 1000.0 / window_h,
         "earth_visible_frac": float(comm.mean()),
         "longest_no_earth_h": vis.longest_run_h(~comm, step_s),
-        "hours_to_first_earth_loss_h": vis.hours_to_first(~comm, step_s),
+        "hours_to_first_earth_loss_h": vis.hours_to_first(~comm, step_s),  # time left before Earthset
+        "hours_to_first_earth_h": vis.hours_to_first(comm, step_s),         # time to Earthrise (0 = Earth already up)
         "mean_earth_el_when_visible_deg": _mean_or_none(earth_el, comm),
         "earth_el_min_deg": float(earth_el.min()), "earth_el_max_deg": float(earth_el.max()),
         "both_frac": float((lit & comm).mean()),

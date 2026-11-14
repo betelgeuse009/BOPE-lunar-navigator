@@ -21,6 +21,10 @@
         "longest_dark_h": { "$ref": "common.schema.json#/$defs/metric" },
         "longest_no_earth_h": { "$ref": "common.schema.json#/$defs/metric" },
         "mean_sun_el_when_lit_deg": { "$ref": "common.schema.json#/$defs/metric" },
+        "hours_to_first_dark_h": { "$ref": "common.schema.json#/$defs/metric", "description": "OPTIONAL: hours from the window start to sunset (0 = dark at the start; value null = never dark)" },
+        "hours_to_first_sun_h": { "$ref": "common.schema.json#/$defs/metric", "description": "OPTIONAL: hours from the window start to sunrise (0 = already sunlit; value null = never sunlit)" },
+        "hours_to_first_earth_loss_h": { "$ref": "common.schema.json#/$defs/metric", "description": "OPTIONAL: hours from the window start to Earthset (0 = no Earth at the start; null = never lost)" },
+        "hours_to_first_earth_h": { "$ref": "common.schema.json#/$defs/metric", "description": "OPTIONAL: hours from the window start to Earthrise (0 = Earth already visible; null = never visible)" },
         "dsn_available_frac": { "$ref": "common.schema.json#/$defs/metric", "description": "LATER: Earth visible AND a DSN station sees the Moon" },
         "battery_needed_wh": { "$ref": "common.schema.json#/$defs/metric", "description": "LATER: energy to survive longest_dark_h; load assumption in source.notes" }
       },
