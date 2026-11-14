@@ -4,6 +4,7 @@ import { Area, Evaluation, apiAvailable, apiGet, areaSpacingKm, settingsQuery } 
 import { createLatestRunner } from './latest'
 import { landingAt, parseFile } from './load'
 import { Matrix } from './schemas'
+import { STRIP_STEP_MIN } from '../ui/timeStrip'
 
 function useDebounced<T>(value: T, ms: number): T {
   const [v, setV] = useState(value)
@@ -56,10 +57,10 @@ export function useApiHealth() {
 
 // Live site x date matrix with the user's settings; the static matrix supplies the site list and dates.
 export function useLiveMatrix(base: Matrix | null): Result<Matrix> {
-  const { mode, settings, hourUtc } = useApp()
+  const { mode, settings, minuteUtc } = useApp()
   const s = useDebounced(settings, 300)
   const params = base && mode === 'live'
-    ? { ...settingsQuery(s), site_ids: base.site_ids.join(','), start_utc: landingAt(base.landing_dates_utc[0], hourUtc),
+    ? { ...settingsQuery(s), site_ids: base.site_ids.join(','), start_utc: landingAt(base.landing_dates_utc[0], minuteUtc),
         n_dates: String(base.landing_dates_utc.length), date_step_h: '24' }
     : null
   return useApiRequest(params && JSON.stringify(params), async (p) =>
@@ -75,14 +76,28 @@ export function useEvaluation(startUtc: string | undefined): Result<Evaluation> 
   return useApiRequest(params && JSON.stringify(params), (p) => apiGet('evaluate', p, Evaluation))
 }
 
-// /api/evaluate for every pinned place at its own landing date and hour, with the current settings. Keyed by pin id,
+// Colour strip behind the time-of-day slider: one /api/matrix call with a landing every 10 min over the landing
+// day, for the clicked point if there is one, otherwise for the catalogue sites (the strip then shows the best).
+export function useDayStrip(dateUtc: string | undefined, siteIds: string[]): Result<Matrix> {
+  const { mode, settings, point } = useApp()
+  const s = useDebounced(settings, 300)
+  const where = point ? { points: `${point.lat.toFixed(4)},${point.lon.toFixed(4)}` } : { site_ids: siteIds.join(',') }
+  const params = mode === 'live' && dateUtc
+    ? { ...settingsQuery(s), ...where, start_utc: landingAt(dateUtc, 0), n_dates: String((24 * 60) / STRIP_STEP_MIN),
+        date_step_h: String(STRIP_STEP_MIN / 60) }
+    : null
+  return useApiRequest(params && JSON.stringify(params), async (p) =>
+    parseFile(Matrix, await apiGet('matrix', p, Matrix.passthrough()), '/api/matrix'))
+}
+
+// /api/evaluate for every pinned place at its own landing date and time, with the current settings. Keyed by pin id,
 // so a stale result never lands in the wrong column while a new pin is loading. Cheap after the first call:
 // AERO caches Sun/Earth per month and skylines per point.
 export function useCompareEvaluations(pins: Pin[], dates: string[]): Result<Record<string, Evaluation>> {
   const { mode, settings } = useApp()
   const s = useDebounced(settings, 300)
   const reqs = mode === 'live'
-    ? pins.map((p) => ({ id: p.id, params: { ...settingsQuery(s), lat_deg: p.lat.toFixed(4), lon_deg: p.lon.toFixed(4), start_utc: landingAt(dates[p.dateIdx], p.hourUtc) } }))
+    ? pins.map((p) => ({ id: p.id, params: { ...settingsQuery(s), lat_deg: p.lat.toFixed(4), lon_deg: p.lon.toFixed(4), start_utc: landingAt(dates[p.dateIdx], p.minuteUtc) } }))
     : []
   return useApiRequest(reqs.length ? JSON.stringify(reqs) : null, async (list: typeof reqs) =>
     Object.fromEntries(await Promise.all(list.map(async (r) => [r.id, await apiGet('evaluate', r.params, Evaluation)] as const))))

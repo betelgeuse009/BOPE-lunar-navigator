@@ -13,6 +13,7 @@ import { useApp } from './state/store'
 import { metricColor } from './ui/colors'
 import { ComparePanel } from './ui/ComparePanel'
 import { DateRail } from './ui/DateRail'
+import { TimeRail } from './ui/TimeRail'
 import { metricMeta } from './ui/metrics'
 import { EvaluationPanel } from './ui/EvaluationPanel'
 import { SettingsPanel } from './ui/SettingsPanel'
@@ -26,7 +27,7 @@ export default function App() {
   const [data, setData] = useState<Data | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [scene, setScene] = useState<Scene | null>(null)
-  const { metric, dateIdx, hourUtc, mode, point, scaleMode, pins, compareOpen, setMetric, setDateCount, setSelected, setPoint, setCompareOpen } = useApp()
+  const { metric, dateIdx, minuteUtc, mode, point, scaleMode, pins, compareOpen, setMetric, setDateCount, setSelected, setPoint, setCompareOpen } = useApp()
   useApiHealth()
 
   useEffect(() => {
@@ -35,9 +36,9 @@ export default function App() {
       .catch((e: Error) => setError(e.message))
   }, [setDateCount])
 
-  // Landing time: the chosen date at the chosen hour (live only; the offline files are computed at 00:00 UTC).
+  // Landing time: the chosen date at the chosen time of day (live only; the offline files are computed at 00:00 UTC).
   const landingDate = data?.matrix.landing_dates_utc[dateIdx]
-  const landingUtc = landingDate && landingAt(landingDate, mode === 'live' ? hourUtc : 0)
+  const landingUtc = landingDate && landingAt(landingDate, mode === 'live' ? minuteUtc : 0)
   // Scene file (sub-solar point over time) for the month that contains the selected landing time.
   const periodId = data && landingUtc && data.manifest.has_scene ? periodAt(data.manifest, landingUtc)?.id : undefined
   useEffect(() => {
@@ -121,6 +122,7 @@ export default function App() {
           {live.error && <p className="error" role="alert">Live analysis failed: {live.error}. Showing precomputed data.</p>}
           <footer className="bottom">
             <DateRail matrix={matrix} />
+            {landingDate && <TimeRail dateUtc={landingDate} matrix={matrix} />}
             <div className="legend">
               <span>{metricMeta(metric).higherIsBetter ? 'Less' : 'More'}</span>
               <span className="ramp" style={{ background: `linear-gradient(90deg, ${[0, 0.33, 0.66, 1].map(metricColor).join(',')})` }} />

@@ -8,15 +8,15 @@ import { ROWS, bestColumns, formatCell, type Cell } from './compare'
 const timeFmt = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'UTC' })
 const HORIZON: Record<string, string> = { 'lola-terrain': 'LOLA terrain', 'smooth-sphere': 'smooth sphere, no terrain' }
 
-// Pins a catalogue site or a clicked point, at the landing date and hour currently on the date rail.
+// Pins a catalogue site or a clicked point, at the landing date and time currently on the rails.
 export function PinButton({ label, lat, lon, siteId }: { label: string; lat: number; lon: number; siteId?: string }) {
-  const { dateIdx, hourUtc: h, mode, pins, addPin } = useApp()
-  const hourUtc = mode === 'live' ? h : 0
-  const id = `${siteId ?? `${lat.toFixed(4)},${lon.toFixed(4)}`}@${dateIdx}T${hourUtc}`
+  const { dateIdx, minuteUtc: m, mode, pins, addPin } = useApp()
+  const minuteUtc = mode === 'live' ? m : 0
+  const id = `${siteId ?? `${lat.toFixed(4)},${lon.toFixed(4)}`}@${dateIdx}T${minuteUtc}`
   const pinned = pins.some((p) => p.id === id)
   const full = pins.length >= MAX_PINS
   return (
-    <button type="button" className="pin" disabled={pinned || full} onClick={() => addPin({ id, label, lat, lon, dateIdx, hourUtc, siteId })}>
+    <button type="button" className="pin" disabled={pinned || full} onClick={() => addPin({ id, label, lat, lon, dateIdx, minuteUtc, siteId })}>
       {pinned ? 'In the comparison' : full ? `Comparison is full (${MAX_PINS})` : '+ Compare at this date'}
     </button>
   )
@@ -30,7 +30,7 @@ function columnCells(pin: Pin, ev: Evaluation | undefined, mode: Mode, matrix: M
     [f, { value: cellValue(matrix, pin.siteId!, f, pin.dateIdx), uncertainty: null }]))
 }
 
-// Side by side: each pinned place keeps the landing date and hour it was pinned at, so both "which site" and
+// Side by side: each pinned place keeps the landing date and time it was pinned at, so both "which site" and
 // "which date" can be compared. Best value per row is highlighted.
 export function ComparePanel({ matrix }: { matrix: Matrix }) {
   const { pins, removePin, mode, compareOpen, setCompareOpen, settings } = useApp()
@@ -61,7 +61,7 @@ export function ComparePanel({ matrix }: { matrix: Matrix }) {
               {pins.map((p) => (
                 <th scope="col" key={p.id}>
                   <div className="col-head">
-                    <span>{p.label}<small>landing {timeFmt.format(new Date(landingAt(dates[p.dateIdx], p.hourUtc)))} UTC</small></span>
+                    <span>{p.label}<small>landing {timeFmt.format(new Date(landingAt(dates[p.dateIdx], p.minuteUtc)))} UTC</small></span>
                     <button type="button" className="close" onClick={() => removePin(p.id)} aria-label={`Remove ${p.label}`}>×</button>
                   </div>
                 </th>
