@@ -16,6 +16,26 @@ KERNELS = {
     "moon_de440_250416.tf": "fk/satellites/moon_de440_250416.tf",  # MOON_ME frame definition
 }
 
+# LOLA / LROC maps: key -> (path under data/raw/maps/, download URL or None, size in bytes).
+# URLs and sizes checked 2026-11-14 (HTTP 200, sizes equal to the files AERO downloaded). Details: data/MAPS.md.
+MAPS_DIR = REPO / "data" / "raw" / "maps"
+_PGDA = "https://pgda.gsfc.nasa.gov/data"
+_GDR = "https://imbrium.mit.edu/DATA/LOLA_GDR"
+MAPS = {
+    "dem_80s_80m":   ("dem/south_pole/LDEM_80S_80MPP_ADJ.tiff", f"{_PGDA}/LOLA_20mpp/LDEM_80S_80MPP_ADJ.TIF", 189_158_392),
+    "dem_60s_240m":  ("dem/south_pole/LDEM_60S_240MPP_ADJ.tiff", f"{_PGDA}/LOLA_20mpp/LDEM_60S_240MPP_ADJ.TIF", 218_961_039),
+    "dem_87s_5m":    ("dem/south_pole/ldem_87s_5mpp.tif", f"{_PGDA}/LOLA_5mpp/87S/ldem_87s_5mpp.tif", 3_465_285_714),
+    "dem_global":    ("dem/global/LDEM_128.IMG", f"{_GDR}/CYLINDRICAL/IMG/LDEM_128.IMG", 2_123_366_400),
+    "dem_global_label": ("dem/global/LDEM_128.LBL", f"{_GDR}/CYLINDRICAL/IMG/LDEM_128.LBL", 5_133),
+    "slope_80s_80m": ("slope/LDSM_80S_80MPP_ADJ.tiff", f"{_PGDA}/LOLA_20mpp/LDSM_80S_80MPP_ADJ.TIF", 241_594_035),
+    "dem_err_80s_80m": ("uncertainty/LDEM_80S_80MPP_ADJ_ERR.tiff", f"{_PGDA}/LOLA_20mpp/LDEM_80S_80MPP_ADJ_ERR.TIF", 254_808_965),
+    "avgvisib_sun":  ("illumination/AVGVISIB_85S_060M_201608.tiff", f"{_PGDA}/MoonIllumination/AVGVISIB_85S_060M_201608.TIF", 33_994_464),
+    "avgvisib_earth": ("illumination/AVGVISIB_85S_060M_201608_EARTH.tiff", f"{_PGDA}/MoonIllumination/AVGVISIB_85S_060M_201608_EARTH.TIF", 24_862_958),
+    "psr_80s":       ("psr/LPSR_80S_20MPP_ADJ_1km2.csv", f"{_PGDA}/LOLA_20mpp/LPSR_80S_20MPP_ADJ_1km2.CSV", 29_642_968),
+    # Background image only (FE). No direct file URL: download by hand from https://data.lroc.im-ldi.com/lroc/view_rdr/WAC_ROI_SOUTH_SUMMER
+    "wac_south":     ("imagery/WAC_ROI_SOUTH_SUMMER_064P.PYR.TIF", None, 50_472_972),
+}
+
 FRAME = "MOON_ME"         # Mean Earth / Polar Axis, same frame as the LOLA maps
 ABCORR = "LT+S"           # light time + stellar aberration
 LAT_CLAMP_DEG = 89.9999   # azimuth is undefined at the exact pole
