@@ -5,6 +5,8 @@ import { FACTORS } from './factors'
 
 const fmtH = (v: number | null | undefined) => (v == null ? 'n/a' : `${Math.round(v)} h`)
 const fmtPct = (v: number | null | undefined) => (v == null ? 'n/a' : `${Math.round(v * 100)} %`)
+// hours_to_first_dark_h / hours_to_first_earth_loss_h (PARAMETERS.md): null = never lost during the stay, 0 = already lost at landing.
+const untilLoss = (v: number | null, atLanding: string) => (v == null ? 'not during the stay' : v === 0 ? atLanding : fmtH(v))
 const fmtDeg = (v: number | null | undefined) => (v == null ? 'n/a' : `${v.toFixed(1)}°`)
 
 // Result for the clicked point: score, what makes it up, the key numbers, and the nearby search.
@@ -56,11 +58,11 @@ export function EvaluationPanel({ ev, loading, error, area, areaLoading, areaErr
           <dl className="numbers">
             <div><dt>Sunlight</dt><dd>{fmtPct(v('sunlit_frac'))}</dd></div>
             <div><dt>Longest night</dt><dd>{fmtH(v('longest_dark_h'))}</dd></div>
-            <div><dt>First sunset after landing</dt><dd>{v('hours_to_first_dark_h') == null ? 'none in the stay' : fmtH(v('hours_to_first_dark_h'))}</dd></div>
+            <div><dt>First sunset after landing</dt><dd>{untilLoss(v('hours_to_first_dark_h'), 'dark at landing')}</dd></div>
             <div><dt>Mean Sun elevation when lit</dt><dd>{fmtDeg(v('mean_sun_el_when_lit_deg'))}</dd></div>
             <div><dt>Earth in view</dt><dd>{fmtPct(v('earth_visible_frac'))}</dd></div>
             <div><dt>Longest blackout</dt><dd>{fmtH(v('longest_no_earth_h'))}</dd></div>
-            <div><dt>First Earthset after landing</dt><dd>{v('hours_to_first_earth_loss_h') == null ? 'none in the stay' : fmtH(v('hours_to_first_earth_loss_h'))}</dd></div>
+            <div><dt>First Earthset after landing</dt><dd>{untilLoss(v('hours_to_first_earth_loss_h'), 'no Earth at landing')}</dd></div>
           </dl>
           {!ev.terrain_available && (
             <p className="note">Terrain not included yet (horizon: {ev.horizon_source}). Near the pole real hills block the low Sun, so these numbers are optimistic.</p>

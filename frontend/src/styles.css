@@ -162,3 +162,7 @@ legend { padding: 0; font-weight: 600; font-size: 16px; }
 /* Results that are being recomputed: keep them readable but clearly not current */
 .stale .score, .stale .breakdown, .stale .numbers, .stale .nearby p:not(.updating) { opacity: 0.4; }
 .updating { color: var(--regolith-1); }
+
+/* Header text sits over the sunlit Moon: give the small grey labels a dark backing so they stay readable */
+.mode, .metric { padding: 3px 8px; background: var(--shade); }
+h1 { text-shadow: 0 1px 6px rgba(0, 0, 0, 0.9); }
