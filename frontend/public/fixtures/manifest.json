@@ -1,0 +1,50 @@
+{
+ "contract_version": "0.1",
+ "generated_at": "2026-11-14T11:22:23Z",
+ "source": {
+  "datasets": [
+   {
+    "name": "none (FIXTURE)"
+   }
+  ],
+  "tool": "frontend/scripts/make-fixtures.mjs",
+  "notes": "FIXTURE: invented values for UI development. Not real data."
+ },
+ "periods": [
+  {
+   "id": "2027-01",
+   "label": "January 2027",
+   "start_utc": "2027-01-01T00:00:00Z",
+   "end_utc": "2027-02-01T00:00:00Z",
+   "step_s": 600
+  }
+ ],
+ "available": [
+  {
+   "site_id": "fixture-a",
+   "has_horizon": false,
+   "period_ids": []
+  },
+  {
+   "site_id": "fixture-b",
+   "has_horizon": false,
+   "period_ids": []
+  },
+  {
+   "site_id": "fixture-c",
+   "has_horizon": false,
+   "period_ids": []
+  },
+  {
+   "site_id": "fixture-d",
+   "has_horizon": false,
+   "period_ids": []
+  },
+  {
+   "site_id": "fixture-e",
+   "has_horizon": false,
+   "period_ids": []
+  }
+ ],
+ "has_matrix": true
+}
