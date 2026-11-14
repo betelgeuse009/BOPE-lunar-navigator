@@ -1,5 +1,6 @@
 import { useTexture } from '@react-three/drei'
 import { SRGBColorSpace, Vector2 } from 'three'
+import { latLonToVec3 } from './geo'
 
 const BASE = import.meta.env.BASE_URL
 
@@ -15,12 +16,14 @@ export function Moon() {
   )
 }
 
-// Illustrative light: a low, grazing sun for the south pole. Not the real Sun direction for the selected date.
-export function Lights() {
+// Sun light from AERO's sub-solar point (where the Sun is at zenith) when scene data exists;
+// otherwise an illustrative low sun so the pole still reads.
+export function Lights({ subsolar }: { subsolar: { lat: number; lon: number } | null }) {
+  const position = subsolar ? latLonToVec3(subsolar.lat, subsolar.lon, 10) : ([6, -0.6, 2.5] as const)
   return (
     <>
-      <ambientLight intensity={0.05} />
-      <directionalLight position={[6, -0.6, 2.5]} intensity={3.2} />
+      <ambientLight intensity={0.04} />
+      <directionalLight position={position} intensity={3.2} />
     </>
   )
 }

@@ -18,6 +18,7 @@ export const Manifest = z.object({
   periods: z.array(z.object({ id: z.string(), label: z.string().optional(), start_utc: z.string(), end_utc: z.string(), step_s: z.number() })),
   available: z.array(z.object({ site_id: z.string(), has_horizon: z.boolean(), period_ids: z.array(z.string()) })),
   has_matrix: z.boolean().optional(),
+  has_scene: z.boolean().optional(),
 })
 
 export const Sites = z.object({
@@ -49,3 +50,17 @@ export type Manifest = z.infer<typeof Manifest>
 export type Sites = z.infer<typeof Sites>
 export type Site = Sites['sites'][number]
 export type Matrix = z.infer<typeof Matrix>
+
+const series = z.array(z.number())
+export const Scene = z.object({
+  ...header,
+  period_id: z.string(),
+  aberration_correction: z.string(),
+  time_utc: z.array(z.string()),
+  subsolar_lat_deg: series,
+  subsolar_lon_deg: series,
+  subearth_lat_deg: series,
+  subearth_lon_deg: series,
+  earth_phase_frac: series,
+})
+export type Scene = z.infer<typeof Scene>

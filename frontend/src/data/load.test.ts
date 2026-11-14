@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
-import { Manifest, Matrix, Sites } from './schemas'
-import { cellValue, isFixture, parseFile } from './load'
+import { Manifest, Matrix, Scene, Sites } from './schemas'
+import { cellValue, isPreliminary, parseFile, periodAt, sceneIndexAt } from './load'
 
 const fixture = (name: string) =>
   JSON.parse(readFileSync(new URL(`../../public/fixtures/${name}`, import.meta.url), 'utf8'))
@@ -40,9 +40,46 @@ describe('cellValue', () => {
   })
 })
 
-describe('isFixture', () => {
-  it('detects fixture files from source.notes', () => {
-    expect(isFixture(fixture('sites.json'))).toBe(true)
-    expect(isFixture({ source: { notes: 'real data' } })).toBe(false)
+describe('isPreliminary', () => {
+  it('flags FE fixtures and AERO sample data from source.notes', () => {
+    expect(isPreliminary(fixture('sites.json'))).toBe(true)
+    expect(isPreliminary({ source: { notes: 'SAMPLE DATA for front-end development.' } })).toBe(true)
+    expect(isPreliminary({ source: { notes: 'Horizon from LOLA 80 m.' } })).toBe(false)
+  })
+})
+
+// AERO sample data (data/samples/, real SPICE geometry for example points)
+const sample = (name: string) =>
+  JSON.parse(readFileSync(new URL(`../../../data/samples/${name}`, import.meta.url), 'utf8'))
+
+describe('AERO samples', () => {
+  it('parse with the v0.1 loaders', () => {
+    expect(parseFile(Manifest, sample('manifest.json'), 'manifest.json').periods.map((p) => p.id)).toEqual(['2026-11', '2026-12'])
+    expect(parseFile(Sites, sample('sites.json'), 'sites.json').sites).toHaveLength(3)
+    expect(parseFile(Matrix, sample('matrix.json'), 'matrix.json').landing_dates_utc).toHaveLength(30)
+    expect(parseFile(Scene, sample('scene/2026-11.json'), 'scene').time_utc).toHaveLength(4320)
+  })
+})
+
+describe('periodAt', () => {
+  const m = parseFile(Manifest, sample('manifest.json'), 'manifest.json')
+  it('finds the period containing a time', () => {
+    expect(periodAt(m, '2026-11-15T00:00:00Z')?.id).toBe('2026-11')
+    expect(periodAt(m, '2026-12-01T00:00:00Z')?.id).toBe('2026-12')
+  })
+  it('returns null outside every period', () => {
+    expect(periodAt(m, '2027-03-01T00:00:00Z')).toBeNull()
+  })
+})
+
+describe('sceneIndexAt', () => {
+  const sc = parseFile(Scene, sample('scene/2026-11.json'), 'scene')
+  it('returns the exact step for a time on the grid', () => {
+    expect(sceneIndexAt(sc, '2026-11-01T00:10:00Z')).toBe(1)
+  })
+  it('returns the nearest step between grid times and clamps outside', () => {
+    expect(sceneIndexAt(sc, '2026-11-01T00:16:00Z')).toBe(2)
+    expect(sceneIndexAt(sc, '2026-10-01T00:00:00Z')).toBe(0)
+    expect(sceneIndexAt(sc, '2027-01-01T00:00:00Z')).toBe(4319)
   })
 })
