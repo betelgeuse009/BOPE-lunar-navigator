@@ -4,8 +4,8 @@ import { useApp } from './store'
 describe('store', () => {
   beforeEach(() => useApp.getState().setDateCount(31))
 
-  it('defaults to both_frac', () => {
-    expect(useApp.getState().metric).toBe('both_frac')
+  it('defaults to the overall score', () => {
+    expect(useApp.getState().metric).toBe('score')
   })
   it('clamps the date index to the available dates', () => {
     useApp.getState().setDateIdx(-3)

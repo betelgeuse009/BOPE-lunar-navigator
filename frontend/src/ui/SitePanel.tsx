@@ -7,7 +7,7 @@ import { formatValue, goodness, metricMeta } from './metrics'
 export function SitePanel({ sites, matrix }: { sites: Site[]; matrix: Matrix }) {
   const { hoveredSite, selectedSite, dateIdx, metric } = useApp()
   const site = sites.find((s) => s.id === (hoveredSite ?? selectedSite))
-  if (!site) return <aside className="panel panel-empty">Point at a site to see its numbers. Click to keep it open.</aside>
+  if (!site) return <aside className="panel panel-empty">Point at a site to see its numbers. With live analysis on, click any place on the Moon to evaluate it.</aside>
   const fields = Object.keys(matrix.cells)
   return (
     <aside className="panel">
