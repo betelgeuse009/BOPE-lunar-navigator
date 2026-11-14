@@ -17,3 +17,12 @@ export function metricColor(v: number | null): string {
   const rgb = STOPS[i].map((c, k) => Math.round(c + (STOPS[i + 1][k] - c) * f))
   return '#' + rgb.map((c) => c.toString(16).padStart(2, '0')).join('')
 }
+
+// Area-search colours. 'absolute': the score itself (0..1, honest default while terrain is missing).
+// 'relative': stretched to the range found in this disc, to spot the best patch nearby.
+export type ScaleMode = 'absolute' | 'relative'
+export function areaColor(score: number | null, range: [number, number], mode: ScaleMode): string {
+  if (score === null || mode === 'absolute') return metricColor(score)
+  const [lo, hi] = range
+  return metricColor(hi > lo ? (score - lo) / (hi - lo) : 1)
+}
