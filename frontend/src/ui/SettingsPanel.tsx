@@ -4,9 +4,9 @@ import { domain } from './metrics'
 import { Requirements } from './Requirements'
 import { useApp } from '../state/store'
 
-// The user's settings, one piece per chapter of the page (see docs/superpowers/specs/2026-11-14-chapters-layout-design.md).
+// The user's settings, one piece per block of the input pane (ui/InputPanel.tsx).
 
-// Chapter "What mission": mission type, minimum requirements, surface stay, mast height.
+// Mission block: mission type, minimum requirements, surface stay, mast height.
 export function MissionSettings() {
   const { mode, settings, setSettings } = useApp()
   const live = mode === 'live'
@@ -24,7 +24,7 @@ export function MissionSettings() {
   )
 }
 
-// Chapter "Can we land there?": search around the chosen place.
+// Search nearby block: search around the chosen place.
 export function NearbySearch() {
   const { mode, radiusKm, setRadiusKm, scaleMode, setScaleMode, point } = useApp()
   const live = mode === 'live'
@@ -41,7 +41,7 @@ export function NearbySearch() {
   )
 }
 
-// Chapter "How the score works": the rule for each factor and its weight.
+// Score weights block: the rule for each factor and its weight.
 export function ScoreSettings() {
   const { mode, settings, setSettings } = useApp()
   const live = mode === 'live'
