@@ -88,7 +88,9 @@ Neither Claude can see the other's conversation. **Git history plus `docs/LOG.md
 ### Session start (every time)
 1. `git fetch && git pull --rebase origin main` (on the user's working branch).
 2. Read the last ~10 entries of `docs/LOG.md`, the open items in `docs/TASKS.md`,
-   and `git log --oneline -15 origin/main origin/aero`.
+   and `git log --oneline -15 --remotes=origin` (all pushed branches: `main`, `aero`, `fe/*`).
+   Also read LOG entries the other teammate has pushed but not merged yet:
+   `git diff origin/main...origin/<branch> -- docs/LOG.md` for `origin/aero` and each `origin/fe/*` branch.
 3. Tell the user in 3–5 lines: what the other teammate did since last time, anything they asked of us,
    and what is next for this user.
 
@@ -109,6 +111,8 @@ Commits: a1b2c3d, d4e5f6a
 
 4. Update the status of the relevant tasks in `docs/TASKS.md`.
 5. Commit the LOG/TASKS update (`docs(log): …`) and push.
+   FE: put LOG/TASKS-only changes on their own small branch and merge them to `main` right away,
+   so they never wait behind code.
 
 The user can also say **"send a message to my teammate: …"**. Write it as a LOG entry and push.
 That is our async chat, and it stays in history.
