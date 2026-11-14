@@ -1,7 +1,8 @@
-import type { Area, Evaluation } from '../data/api'
+import { limitsQuery, type Area, type Evaluation } from '../data/api'
 import { useApp } from '../state/store'
 import { metricColor } from './colors'
 import { FACTORS } from './factors'
+import { describeViolation, limitLabel } from './profiles'
 import { PinButton } from './ComparePanel'
 import { fmtCoords, fmtDeg, fmtH, fmtM, fmtPct, untilLoss } from './format'
 
@@ -10,7 +11,8 @@ export function EvaluationPanel({ ev, loading, error, area, areaLoading, areaErr
   ev: Evaluation | null; loading: boolean; error: string | null
   area: Area | null; areaLoading: boolean; areaError: string | null
 }) {
-  const { point, setPoint, radiusKm } = useApp()
+  const { point, setPoint, radiusKm, settings } = useApp()
+  const hasLimits = Object.keys(limitsQuery(settings)).length > 0
   if (!point) return null
   const p = ev?.parameters
   const v = (k: string) => p?.[k]?.value ?? null
@@ -32,8 +34,14 @@ export function EvaluationPanel({ ev, loading, error, area, areaLoading, areaErr
           <p className="score">
             <i style={{ background: metricColor(ev.score.value) }} />
             Score <strong>{ev.score.value?.toFixed(2) ?? 'n/a'}</strong>
-            <span className={ev.feasible ? 'ok' : 'bad'}>{ev.feasible ? 'meets all limits' : 'breaks a limit'}</span>
+            {hasLimits
+              ? <span className={ev.feasible ? 'ok' : 'bad'}>{!ev.feasible ? 'breaks a requirement' : ev.not_checked.length ? 'meets the checked requirements' : 'meets all requirements'}</span>
+              : <span className="nolimits">no requirements set</span>}
           </p>
+          {ev.violations.length > 0 && (
+            <ul className="violations">{ev.violations.map((x) => <li key={x.limit}>{describeViolation(x)}</li>)}</ul>
+          )}
+          {ev.not_checked.length > 0 && <p className="note">Not checked, data missing on the server: {ev.not_checked.map(limitLabel).join(', ')}</p>}
           <table className="breakdown">
             <caption>What makes up the score</caption>
             <thead><tr><th>Factor</th><th>Sub-score</th><th>Weight</th><th>Share</th></tr></thead>

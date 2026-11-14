@@ -6,13 +6,19 @@ import { CONTRACT_VERSION } from './schemas'
 export const API_BASE: string = import.meta.env.VITE_API_BASE ?? 'http://localhost:8000/api'
 
 export type Weights = { sunlit: number; dark: number; earth: number; noEarth: number; slope: number }
-export type Settings = { missionDays: number; obsHeightM: number; weights: Weights }
+// User limits (docs/PARAMETERS.md §3). Key present = switched on; null = on but no value entered yet (not sent).
+export type LimitKey = 'max_slope_deg' | 'max_dark_h' | 'min_sunlit_frac' | 'min_earth_visible_frac' | 'max_no_earth_h'
+export type Limits = Partial<Record<LimitKey, number | null>>
+export type ProfileId = 'none' | 'robotic' | 'crewed'
+export type Settings = { missionDays: number; obsHeightM: number; weights: Weights; profile: ProfileId; limits: Limits }
 
 // API defaults (docs/PARAMETERS.md §1): 14 d mission, 2 m mast, weight 1 each (slope included since the terrain, T28).
 export const DEFAULT_SETTINGS: Settings = {
   missionDays: 14,
   obsHeightM: 2,
   weights: { sunlit: 1, dark: 1, earth: 1, noEarth: 1, slope: 1 },
+  profile: 'none',
+  limits: {},
 }
 
 export function settingsQuery(s: Settings): Record<string, string> {
@@ -25,6 +31,11 @@ export function settingsQuery(s: Settings): Record<string, string> {
     w_no_earth: String(s.weights.noEarth),
     w_slope: String(s.weights.slope),
   }
+}
+
+// Limits go only to /evaluate and /area (the endpoints that judge feasibility).
+export function limitsQuery(s: Settings): Record<string, string> {
+  return Object.fromEntries(Object.entries(s.limits).flatMap(([k, v]) => (v == null ? [] : [[k, String(v)]])))
 }
 
 // /api/area refuses more than 2000 points; a disc of radius r with spacing r/20 has about pi*400 = 1257.
@@ -45,7 +56,7 @@ export const Evaluation = z.object({
   }).partial().optional(),
   parameters: z.record(metric),
   feasible: z.boolean(),
-  violations: z.array(z.unknown()),
+  violations: z.array(z.object({ limit: z.string(), parameter: z.string(), value: z.number().nullable(), limit_value: z.number() }).partial()),
   not_checked: z.array(z.string()),
   score: z.object({
     value: z.number().nullable(),

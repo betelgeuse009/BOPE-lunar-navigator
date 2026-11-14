@@ -1,5 +1,6 @@
 import { DEFAULT_SETTINGS, type Weights } from '../data/api'
 import { FACTORS } from './factors'
+import { Requirements } from './Requirements'
 import { useApp } from '../state/store'
 
 export function SettingsPanel() {
@@ -30,9 +31,11 @@ export function SettingsPanel() {
         </p>
       </details>
 
+      <Requirements disabled={!live} />
+
       <fieldset disabled={!live}>
         <legend>Mission</legend>
-        <Slider label="Surface stay" value={settings.missionDays} min={1} max={28} step={1} unit="days"
+        <Slider label="Surface stay" value={settings.missionDays} min={1} max={28} step={0.5} unit="days"
           onChange={(v) => setSettings({ missionDays: v })} />
         <Slider label="Mast height (solar array and antenna)" value={settings.obsHeightM} min={0} max={20} step={0.5} unit="m"
           onChange={(v) => setSettings({ obsHeightM: v })} />

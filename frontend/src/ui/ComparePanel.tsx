@@ -1,9 +1,10 @@
-import type { Evaluation } from '../data/api'
+import { limitsQuery, type Evaluation } from '../data/api'
 import { cellValue, landingAt } from '../data/load'
 import type { Matrix } from '../data/schemas'
 import { useCompareEvaluations } from '../data/useLive'
 import { MAX_PINS, useApp, type Mode, type Pin } from '../state/store'
 import { ROWS, bestColumns, formatCell, type Cell } from './compare'
+import { describeViolation, limitLabel } from './profiles'
 
 const timeFmt = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'UTC' })
 const HORIZON: Record<string, string> = { 'lola-terrain': 'LOLA terrain', 'smooth-sphere': 'smooth sphere, no terrain' }
@@ -34,6 +35,7 @@ function columnCells(pin: Pin, ev: Evaluation | undefined, mode: Mode, matrix: M
 // "which date" can be compared. Best value per row is highlighted.
 export function ComparePanel({ matrix }: { matrix: Matrix }) {
   const { pins, removePin, mode, compareOpen, setCompareOpen, settings } = useApp()
+  const hasLimits = Object.keys(limitsQuery(settings)).length > 0
   const dates = matrix.landing_dates_utc
   const evs = useCompareEvaluations(pins, dates)
   if (!compareOpen || pins.length === 0) return null
@@ -78,6 +80,20 @@ export function ComparePanel({ matrix }: { matrix: Matrix }) {
                 </tr>
               )
             })}
+            {mode === 'live' && hasLimits && (
+              <tr>
+                <th scope="row">Requirements</th>
+                {pins.map((p) => {
+                  const ev = evs.data?.[p.id]
+                  return (
+                    <td key={p.id} className={ev ? (ev.feasible ? 'ok' : 'bad') : ''}>
+                      {!ev ? 'n/a' : !ev.feasible ? ev.violations.map(describeViolation).join('; ')
+                        : ev.not_checked.length ? `meets checked; not checked: ${ev.not_checked.map(limitLabel).join(', ')}` : 'meets all'}
+                    </td>
+                  )
+                })}
+              </tr>
+            )}
             {mode === 'live' && (
               <tr>
                 <th scope="row">Horizon used</th>

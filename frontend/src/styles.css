@@ -210,3 +210,18 @@ h1 { text-shadow: 0 1px 6px rgba(0, 0, 0, 0.9); }
 .rail-time.stale .rail-cells { opacity: 0.5; }
 .note-inline { font-size: 14px; color: var(--regolith-2); }
 .rail-time .error-inline { font-size: 14px; }
+
+/* Mission type and minimum requirements (settings panel) */
+.requirements h3 { margin: 12px 0 4px; font-size: 16px; font-weight: 600; }
+.requirements .toggle { display: flex; flex-direction: column; gap: 2px; margin-top: 6px; }
+.limit { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 0 8px; margin-top: 6px; color: var(--regolith-2); }
+.limit .note, .limit .source { grid-column: 1 / -1; margin: 2px 0 0; }
+.limit-value { display: flex; align-items: center; gap: 4px; }
+.limit-value input { width: 64px; font: 500 15px var(--font); color: var(--regolith-1); background: transparent;
+  border: 1px solid var(--regolith-3); border-radius: 2px; padding: 1px 4px; }
+.limit-value input:disabled { color: var(--regolith-3); }
+.source { font-size: 12px; color: var(--regolith-2); overflow-wrap: anywhere; margin: 4px 0 0; }
+.violations { margin: 6px 0 0; padding-left: 18px; color: #c9a24a; font-size: 14px; }
+.score .nolimits { margin-left: auto; font-size: 14px; color: var(--regolith-2); }
+.compare td.ok { color: #2fb39a; }
+.compare td.bad { color: #c9a24a; }

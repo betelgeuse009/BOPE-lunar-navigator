@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useApp, type Pin } from '../state/store'
-import { Area, Evaluation, apiAvailable, apiGet, areaSpacingKm, settingsQuery } from './api'
+import { Area, Evaluation, apiAvailable, apiGet, areaSpacingKm, limitsQuery, settingsQuery } from './api'
 import { createLatestRunner } from './latest'
 import { landingAt, parseFile } from './load'
 import { Matrix } from './schemas'
@@ -71,7 +71,7 @@ export function useEvaluation(startUtc: string | undefined): Result<Evaluation> 
   const { mode, settings, point } = useApp()
   const s = useDebounced(settings, 300)
   const params = mode === 'live' && point && startUtc
-    ? { ...settingsQuery(s), lat_deg: point.lat.toFixed(4), lon_deg: point.lon.toFixed(4), start_utc: startUtc }
+    ? { ...settingsQuery(s), ...limitsQuery(s), lat_deg: point.lat.toFixed(4), lon_deg: point.lon.toFixed(4), start_utc: startUtc }
     : null
   return useApiRequest(params && JSON.stringify(params), (p) => apiGet('evaluate', p, Evaluation))
 }
@@ -97,7 +97,7 @@ export function useCompareEvaluations(pins: Pin[], dates: string[]): Result<Reco
   const { mode, settings } = useApp()
   const s = useDebounced(settings, 300)
   const reqs = mode === 'live'
-    ? pins.map((p) => ({ id: p.id, params: { ...settingsQuery(s), lat_deg: p.lat.toFixed(4), lon_deg: p.lon.toFixed(4), start_utc: landingAt(dates[p.dateIdx], p.minuteUtc) } }))
+    ? pins.map((p) => ({ id: p.id, params: { ...settingsQuery(s), ...limitsQuery(s), lat_deg: p.lat.toFixed(4), lon_deg: p.lon.toFixed(4), start_utc: landingAt(dates[p.dateIdx], p.minuteUtc) } }))
     : []
   return useApiRequest(reqs.length ? JSON.stringify(reqs) : null, async (list: typeof reqs) =>
     Object.fromEntries(await Promise.all(list.map(async (r) => [r.id, await apiGet('evaluate', r.params, Evaluation)] as const))))
@@ -108,7 +108,7 @@ export function useAreaSearch(startUtc: string | undefined): Result<Area> {
   const s = useDebounced(settings, 300)
   const r = useDebounced(radiusKm, 300)
   const params = mode === 'live' && point && startUtc && r > 0
-    ? { ...settingsQuery(s), lat_deg: point.lat.toFixed(4), lon_deg: point.lon.toFixed(4), start_utc: startUtc,
+    ? { ...settingsQuery(s), ...limitsQuery(s), lat_deg: point.lat.toFixed(4), lon_deg: point.lon.toFixed(4), start_utc: startUtc,
         radius_km: String(r), spacing_km: areaSpacingKm(r).toFixed(3) }
     : null
   return useApiRequest(params && JSON.stringify(params), (p) => apiGet('area', p, Area))
