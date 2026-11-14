@@ -1,7 +1,7 @@
 import { useTexture } from '@react-three/drei'
 import { useMemo } from 'react'
-import { SRGBColorSpace, SphereGeometry, Vector2 } from 'three'
-import { polarCapUV } from './geo'
+import { SRGBColorSpace, Vector2 } from 'three'
+import { capGeometry } from './capGeometry'
 
 const BASE = import.meta.env.BASE_URL
 const CAP_DEG = 20 // must match CAP_DEG in scripts/textures.py
@@ -13,20 +13,7 @@ export function SouthCap() {
   map.colorSpace = SRGBColorSpace
   map.anisotropy = normalMap.anisotropy = 8
 
-  const geometry = useMemo(() => {
-    const cap = (CAP_DEG * Math.PI) / 180
-    const g = new SphereGeometry(1.0005, 512, 96, 0, Math.PI * 2, Math.PI - cap, cap)
-    const pos = g.attributes.position
-    const uv = g.attributes.uv
-    for (let i = 0; i < pos.count; i++) {
-      const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i)
-      const lat = (Math.asin(y / Math.hypot(x, y, z)) * 180) / Math.PI
-      const lon = (Math.atan2(-z, x) * 180) / Math.PI
-      const [u, v] = polarCapUV(lat, lon, CAP_DEG)
-      uv.setXY(i, u, v)
-    }
-    return g
-  }, [])
+  const geometry = useMemo(() => capGeometry(1.0005, CAP_DEG), [])
 
   return (
     <mesh geometry={geometry}>

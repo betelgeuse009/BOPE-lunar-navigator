@@ -1,0 +1,356 @@
+{
+ "apollo-11": {
+  "title": "Apollo 11",
+  "summary": "Apollo 11 (July 16–24, 1969) was the American spaceflight that first landed humans on the Moon, and the fifth crewed mission of NASA's Apollo program. The mission was crewed by Commander Neil Armstrong, Command Module Pilot Michael Collins, and Lunar Module Pilot Edwin \"Buzz\" Aldrin, all of whom were on their second and final spaceflight. Launched atop a Saturn V rocket from Kennedy Space Center in Florida on July 16 at 13:32 UTC, the Apollo spacecraft consisted of three parts: the command module (CM), which housed the three astronauts and was the only part to return to Earth; the service module (SM), which provided propulsion, electrical power, oxygen, and water to the command module; and the Lunar Module (LM), which had two stages—a descent stage with a large engine and fuel tanks for landing on the Moon, and a lighter ascent stage containing a cabin for two astronauts and a small engine to return them to lunar orbit.",
+  "url": "https://en.wikipedia.org/wiki/Apollo_11",
+  "text_licence": "CC BY-SA 4.0",
+  "image": {
+   "file": "missions/apollo-11.jpg",
+   "credit": "Neil A. Armstrong",
+   "licence": "Public domain",
+   "source": "https://commons.wikimedia.org/wiki/File:A_Man_on_the_Moon,_AS11-40-5903_(cropped).jpg"
+  }
+ },
+ "apollo-12": {
+  "title": "Apollo 12",
+  "summary": "Apollo 12 (November 14–24, 1969) was the sixth crewed flight in the United States Apollo program and the second to land on the Moon. It was launched on November 14, 1969, by NASA from the Kennedy Space Center in Florida, landing on the part of the Moon called the Ocean of Storms on November 19, 1969. Commander Charles \"Pete\" Conrad and Lunar Module Pilot Alan L. Bean completed just over one day and seven hours of lunar surface activity while Command Module Pilot Richard F. Gordon remained in lunar orbit.",
+  "url": "https://en.wikipedia.org/wiki/Apollo_12",
+  "text_licence": "CC BY-SA 4.0",
+  "image": {
+   "file": "missions/apollo-12.jpg",
+   "credit": "NASA, Alan L. Bean",
+   "licence": "Public domain",
+   "source": "https://commons.wikimedia.org/wiki/File:Surveyor_3-Apollo_12.jpg"
+  }
+ },
+ "apollo-14": {
+  "title": "Apollo 14",
+  "summary": "Apollo 14 (January 31 – February 9, 1971) was the eighth crewed mission in the United States Apollo program operated by NASA, the third to land on the Moon, and the first to land in the lunar highlands. It was the last of the \"H missions\", landings at specific sites of scientific interest on the Moon for two-day stays with two lunar extravehicular activities (EVAs or moonwalks). The mission was originally scheduled for 1970, but was postponed because of the investigation following the failure of Apollo 13 to reach the Moon's surface, and the need for modifications to the spacecraft as a result.",
+  "url": "https://en.wikipedia.org/wiki/Apollo_14",
+  "text_licence": "CC BY-SA 4.0",
+  "image": {
+   "file": "missions/apollo-14.jpg",
+   "credit": "Edgar D. Mitchell / NASA",
+   "licence": "Public domain",
+   "source": "https://commons.wikimedia.org/wiki/File:Apollo_14_Shepard.jpg"
+  }
+ },
+ "apollo-15": {
+  "title": "Apollo 15",
+  "summary": "Apollo 15 (July 26 – August 7, 1971) was the ninth crewed mission in the Apollo program and the fourth Moon landing. It was the first J mission, with a longer stay on the Moon and a greater focus on science than earlier landings. Apollo 15 saw the first use of the Lunar Roving Vehicle.",
+  "url": "https://en.wikipedia.org/wiki/Apollo_15",
+  "text_licence": "CC BY-SA 4.0",
+  "image": {
+   "file": "missions/apollo-15.jpg",
+   "credit": "NASA Johnson Space Center Restored by Bammesk",
+   "licence": "Public domain",
+   "source": "https://commons.wikimedia.org/wiki/File:AS15-88-11866_-_Apollo_15_flag,_rover,_LM,_Irwin_-_restoration1.jpg"
+  }
+ },
+ "apollo-16": {
+  "title": "Apollo 16",
+  "summary": "Apollo 16 (April 16–27, 1972) was the tenth crewed mission in the United States Apollo space program, administered by NASA, and the fifth and penultimate to land on the Moon. It was the second of Apollo's \"J missions\", with an extended stay on the lunar surface, a focus on science, and the use of the Lunar Roving Vehicle (LRV). The landing and exploration were in the Descartes Highlands, a site chosen because some scientists expected it to be an area formed by volcanic action, though this proved not to be the case.",
+  "url": "https://en.wikipedia.org/wiki/Apollo_16",
+  "text_licence": "CC BY-SA 4.0",
+  "image": {
+   "file": "missions/apollo-16.jpg",
+   "credit": "Charlie Duke",
+   "licence": "Public domain",
+   "source": "https://commons.wikimedia.org/wiki/File:John_W._Young_on_the_Moon.jpg"
+  }
+ },
+ "apollo-17": {
+  "title": "Apollo 17",
+  "summary": "Apollo 17 (December 7–19, 1972) was the eleventh and final crewed mission of NASA's Apollo program, the sixth and most recent time humans have set foot on the Moon. Commander Gene Cernan and Lunar Module Pilot Harrison Schmitt walked on the Moon, while Command Module Pilot Ronald Evans orbited above. Schmitt was the only professional geologist to land on the Moon; he was selected in place of Joe Engle, as NASA had been under pressure to send a scientist to the Moon.",
+  "url": "https://en.wikipedia.org/wiki/Apollo_17",
+  "text_licence": "CC BY-SA 4.0",
+  "image": {
+   "file": "missions/apollo-17.jpg",
+   "credit": "Harrison Schmitt / Apollo 17",
+   "licence": "Public domain",
+   "source": "https://commons.wikimedia.org/wiki/File:Eugene_Cernan_at_the_LM,_Apollo_17,_AS17-134-20378.jpg"
+  }
+ },
+ "surveyor-1": {
+  "title": "Surveyor 1",
+  "summary": "Surveyor 1 was the first lunar soft-lander in the uncrewed Surveyor program of the National Aeronautics and Space Administration (NASA, United States). This lunar soft-lander gathered data about the lunar surface that would be needed for the crewed Apollo Moon landings that began in 1969. The successful soft landing of Surveyor 1 on the Ocean of Storms was the first by an American space probe on any extraterrestrial body, occurring four months after the first soft Moon landing by the Soviet Union's Luna 9 probe.",
+  "url": "https://en.wikipedia.org/wiki/Surveyor_1",
+  "text_licence": "CC BY-SA 4.0",
+  "image": {
+   "file": "missions/surveyor-1.jpg",
+   "credit": "NASA",
+   "licence": "Public domain",
+   "source": "https://commons.wikimedia.org/wiki/File:Surveyor_NASA_lunar_lander.jpg"
+  }
+ },
+ "surveyor-3": {
+  "title": "Surveyor 3",
+  "summary": "Surveyor 3 is the third lander of the American uncrewed Surveyor program sent to explore the surface of the Moon in 1967 and the second to successfully land. It was the first mission to carry a surface-soil sampling-scoop. Surveyor 3 was visited by Apollo 12 astronauts Pete Conrad and Alan Bean in November 1969, and remains the only probe visited by humans on another world.",
+  "url": "https://en.wikipedia.org/wiki/Surveyor_3",
+  "text_licence": "CC BY-SA 4.0",
+  "image": {
+   "file": "missions/surveyor-3.jpg",
+   "credit": "Apollo 12 astronauts",
+   "licence": "Public domain",
+   "source": "https://commons.wikimedia.org/wiki/File:Surveyor_3_on_Moon.jpg"
+  }
+ },
+ "surveyor-5": {
+  "title": "Surveyor 5",
+  "summary": "Surveyor 5 is the fifth lunar lander of the American uncrewed Surveyor program sent to explore the surface of the Moon. Surveyor 5 landed on Mare Tranquillitatis in 1967. A total of 19,118 images were transmitted to Earth.",
+  "url": "https://en.wikipedia.org/wiki/Surveyor_5",
+  "text_licence": "CC BY-SA 4.0",
+  "image": {
+   "file": "missions/surveyor-5.png",
+   "credit": "NASA/GSFC/Arizona State University",
+   "licence": "Public domain",
+   "source": "https://commons.wikimedia.org/wiki/File:Surveyor_5-_A_hole-in-one_(LROC14_-_M106726943LE_S5_blowup4x).png"
+  }
+ },
+ "surveyor-6": {
+  "title": "Surveyor 6",
+  "summary": "Surveyor 6 is the sixth lunar lander of the American uncrewed Surveyor program that reached the surface of the Moon. Surveyor 6 landed on the Sinus Medii. A total of 30,027 images were transmitted to Earth.",
+  "url": "https://en.wikipedia.org/wiki/Surveyor_6",
+  "text_licence": "CC BY-SA 4.0",
+  "image": {
+   "file": "missions/surveyor-6.png",
+   "credit": "NASA/GSFC/Arizona State University",
+   "licence": "Public domain",
+   "source": "https://commons.wikimedia.org/wiki/File:Surveyor_6_on_the_plains_of_Sinus_Medii_(LROCM117501284LE_S6_rev).png"
+  }
+ },
+ "surveyor-7": {
+  "title": "Surveyor 7",
+  "summary": "Surveyor 7 was sent to the Moon in 1968 on a scientific and photographic mission as the seventh and last lunar lander of the American uncrewed Surveyor program. With two previous unsuccessful missions in the Surveyor series, and with Surveyor 7's landing success, Surveyor 7 became the fifth and final spacecraft in the series to achieve a lunar soft landing. A total of 21,091 pictures were transmitted from Surveyor 7 back to Earth.",
+  "url": "https://en.wikipedia.org/wiki/Surveyor_7",
+  "text_licence": "CC BY-SA 4.0",
+  "image": {
+   "file": "missions/surveyor-7.png",
+   "credit": "NASA/GSFC/Arizona State University",
+   "licence": "Public domain",
+   "source": "https://commons.wikimedia.org/wiki/File:M175355093L_thumb_4x.png"
+  }
+ },
+ "luna-9": {
+  "title": "Luna 9",
+  "summary": "Luna 9 (Луна-9), internal designation Ye-6 No.13, was an uncrewed space mission of the Soviet Union's Luna programme. On 3 February 1966, the Luna 9 spacecraft became the first spacecraft to achieve a soft landing on the Moon and return imagery from its surface.",
+  "url": "https://en.wikipedia.org/wiki/Luna_9",
+  "text_licence": "CC BY-SA 4.0",
+  "image": {
+   "file": "missions/luna-9.jpg",
+   "credit": "Pline",
+   "licence": "CC BY-SA 3.0",
+   "source": "https://commons.wikimedia.org/wiki/File:Luna_9_Musee_du_Bourget_P1010505.JPG"
+  }
+ },
+ "luna-13": {
+  "title": "Luna 13",
+  "summary": "Luna 13 (E-6M series) was an uncrewed space mission of the Luna program by Soviet Union.",
+  "url": "https://en.wikipedia.org/wiki/Luna_13",
+  "text_licence": "CC BY-SA 4.0",
+  "image": {
+   "file": "missions/luna-13.jpg",
+   "credit": "NASA",
+   "licence": "Public domain",
+   "source": "https://commons.wikimedia.org/wiki/File:Luna13_lander_vsm.jpg"
+  }
+ },
+ "luna-16": {
+  "title": "Luna 16",
+  "summary": "Luna 16 was an uncrewed 1970 space mission, part of the Soviet Luna program. It was the first robotic probe to land on the Moon and return a sample of lunar soil to Earth. The 101 grams (3.56 ounces) sample was returned from Mare Fecunditatis.",
+  "url": "https://en.wikipedia.org/wiki/Luna_16",
+  "text_licence": "CC BY-SA 4.0",
+  "image": {
+   "file": "missions/luna-16.jpg",
+   "credit": "Bembmv",
+   "licence": "CC BY-SA 3.0",
+   "source": "https://commons.wikimedia.org/wiki/File:Luna_16.jpg"
+  }
+ },
+ "luna-17": {
+  "title": "Luna 17",
+  "summary": "Luna 17 (Ye-8 series) was an uncrewed space mission of the Luna program, also called Lunik 17. It deployed the first robotic rover onto the surface of the Moon.",
+  "url": "https://en.wikipedia.org/wiki/Luna_17",
+  "text_licence": "CC BY-SA 4.0",
+  "image": {
+   "file": "missions/luna-17.jpg",
+   "credit": "James Stuby based on NASA image",
+   "licence": "Public domain",
+   "source": "https://commons.wikimedia.org/wiki/File:M127159138LC_Luna_17_lander.jpg"
+  }
+ },
+ "luna-20": {
+  "title": "Luna 20",
+  "summary": "Luna 20 was the second of three successful Soviet lunar sample return missions. It was flown as part of the Luna program as a robotic competitor to the six successful Apollo lunar sample return missions. Luna 20 was placed in an intermediate Earth parking orbit and from this orbit was sent towards the Moon.",
+  "url": "https://en.wikipedia.org/wiki/Luna_20",
+  "text_licence": "CC BY-SA 4.0",
+  "image": {
+   "file": "missions/luna-20.png",
+   "credit": "NASA",
+   "licence": "Public domain",
+   "source": "https://commons.wikimedia.org/wiki/File:Luna_20_descent_stage.png"
+  }
+ },
+ "luna-21": {
+  "title": "Luna 21",
+  "summary": "Luna 21 (Ye-8 series) was an uncrewed space mission, and its spacecraft, of the Luna program, also called Lunik 21, in 1973. The spacecraft landed on the Moon and deployed the second Soviet lunar rover, Lunokhod 2. The primary objectives of the mission were to collect images of the lunar surface, examine ambient light levels to determine the feasibility of astronomical observations from the Moon, perform laser ranging experiments from Earth, observe solar X-rays, measure local magnetic fields, and study mechanical properties of the lunar surface material.",
+  "url": "https://en.wikipedia.org/wiki/Luna_21",
+  "text_licence": "CC BY-SA 4.0",
+  "image": {
+   "file": "missions/luna-21.png",
+   "credit": "NASA/GSFC/Arizona State University",
+   "licence": "Public domain",
+   "source": "https://commons.wikimedia.org/wiki/File:Luna_21_Lander_(LROC15_-_M122007650LE_L21_ano).png"
+  }
+ },
+ "luna-23": {
+  "title": "Luna 23",
+  "summary": "Luna 23 was an uncrewed space mission of the Luna program developed by the Soviet Union.",
+  "url": "https://en.wikipedia.org/wiki/Luna_23",
+  "text_licence": "CC BY-SA 4.0",
+  "image": {
+   "file": "missions/luna-23.png",
+   "credit": "LROC",
+   "licence": "Public domain",
+   "source": "https://commons.wikimedia.org/wiki/File:Luna23_figure.png"
+  }
+ },
+ "luna-24": {
+  "title": "Luna 24",
+  "summary": "Luna 24 was a robotic probe of the Soviet Union's Luna programme. The 24th mission of the Luna series of spacecraft, the mission of the Luna 24 probe was the third Soviet mission to return lunar soil samples from the Moon (the first two sample return missions were Luna 16 and Luna 20). The probe landed in Mare Crisium (Sea of Crises).",
+  "url": "https://en.wikipedia.org/wiki/Luna_24",
+  "text_licence": "CC BY-SA 4.0",
+  "image": {
+   "file": "missions/luna-24.png",
+   "credit": "LRO",
+   "licence": "Public domain",
+   "source": "https://commons.wikimedia.org/wiki/File:Luna24_rev_fig.png"
+  }
+ },
+ "change-3": {
+  "title": "Chang'e 3",
+  "summary": "Chang'e 3 ( ; Chinese: 嫦娥三号; pinyin: Cháng'é Sānhào; lit. 'Chang'e No. 3') is a robotic lunar exploration mission operated by the China National Space Administration (CNSA), incorporating a robotic lander and China's first lunar rover.",
+  "url": "https://en.wikipedia.org/wiki/Chang%27e_3",
+  "text_licence": "CC BY-SA 4.0",
+  "image": {
+   "file": "missions/change-3.jpg",
+   "credit": "Institute of High Energy Physics, Chinese Academy of Sciences",
+   "licence": "CC BY 4.0",
+   "source": "https://commons.wikimedia.org/wiki/File:Yutu_rover.jpg"
+  }
+ },
+ "change-4": {
+  "title": "Chang'e 4",
+  "summary": "Chang'e 4 (; Chinese: 嫦娥四号; pinyin: Cháng'é Sìhào; lit. 'Chang'e No. 4') is a robotic spacecraft mission in the Chinese Lunar Exploration Program of the CNSA. It made a soft landing on the far side of the Moon, the first spacecraft to do so, on 3 January 2019.",
+  "url": "https://en.wikipedia.org/wiki/Chang%27e_4",
+  "text_licence": "CC BY-SA 4.0",
+  "image": {
+   "file": "missions/change-4.png",
+   "credit": "CSNA/Siyu Zhang/Kevin M. Gill",
+   "licence": "CC BY 2.0",
+   "source": "https://commons.wikimedia.org/wiki/File:ChangE-4_-_PCAM.png"
+  }
+ },
+ "change-5": {
+  "title": "Chang'e 5",
+  "summary": "Chang'e 5 (Chinese: 嫦娥五号; pinyin: Cháng'é wǔhào) was the fifth lunar exploration mission in the Chinese Lunar Exploration Program of CNSA, and China's first lunar sample-return mission. The spacecraft pair launched on 23 November 2020, atop a Long March 5 rocket from Wenchang Space Launch Site on Hainan Island, landed on the Moon on 1 December, collected ~1731 g (61.1 oz) of lunar samples (including from a core ~1 m deep), and returned to the Earth on 16 December. Like its predecessors, the spacecraft is named after the Chinese moon goddess, Chang'e.",
+  "url": "https://en.wikipedia.org/wiki/Chang%27e_5",
+  "text_licence": "CC BY-SA 4.0",
+  "image": {
+   "file": "missions/change-5.jpg",
+   "credit": "China News Service",
+   "licence": "CC BY 4.0",
+   "source": "https://commons.wikimedia.org/wiki/File:Chang-e-5-assembly-CG-1-Cropped.jpg"
+  }
+ },
+ "change-6": {
+  "title": "Chang'e 6",
+  "summary": "Chang'e 6 (Chinese: 嫦娥六号; pinyin: Cháng'é liùhào) was the sixth robotic lunar exploration mission by the China National Space Administration (CNSA) and the second CNSA lunar sample-return mission. Like its predecessors in the Chinese Lunar Exploration Program, the spacecraft is named after the Chinese moon goddess Chang'e. It was the first lunar mission to retrieve samples from the far side of the Moon; all previous samples were collected from the near side.",
+  "url": "https://en.wikipedia.org/wiki/Chang%27e_6",
+  "text_licence": "CC BY-SA 4.0"
+ },
+ "chandrayaan-3": {
+  "title": "Chandrayaan-3",
+  "summary": "Chandrayaan-3 (CHUN-drə-YAHN ; ; from Sanskrit: Chandra, \"Moon\" and yāna, \"craft, vehicle\") is the third mission in the Chandrayaan programme, a series of lunar-exploration missions developed by ISRO. The mission consists of Vikram, a lunar lander, and Pragyan, a lunar rover, as replacements for the equivalents on Chandrayaan-2, which had crashed on landing in 2019. Chandrayaan-3 was launched on 14 July 2023, at 14:35 IST from Satish Dhawan Space Centre (SDSC) in Sriharikota, Andhra Pradesh. It entered lunar orbit on 5 August, and touched down near the lunar south pole, at 69°S, on 23 August 2023 at 18:04 IST (12:34 UTC).",
+  "url": "https://en.wikipedia.org/wiki/Chandrayaan-3",
+  "text_licence": "CC BY-SA 4.0"
+ },
+ "slim": {
+  "title": "Smart Lander for Investigating Moon",
+  "summary": "The Smart Lander for Investigating Moon (SLIM), nicknamed the \"Moon Sniper\", was a lunar lander mission operated by the Japan Aerospace Exploration Agency (JAXA). Manufactured by Mitsubishi Electric, it was launched on September 6, 2023, aboard an H-IIA rocket from the Tanegashima Space Center, together with the X-Ray Imaging and Spectroscopy Mission (XRISM) space telescope. SLIM entered lunar orbit on December 25, 2023, and successfully soft-landed on the Moon on January 19, 2024, making Japan the fifth country to accomplish a soft landing on the Moon, after the Soviet Union, the United States, China, and India.",
+  "url": "https://en.wikipedia.org/wiki/Smart_Lander_for_Investigating_Moon",
+  "text_licence": "CC BY-SA 4.0",
+  "image": {
+   "file": "missions/slim.png",
+   "credit": "Hms1103",
+   "licence": "CC BY-SA 4.0",
+   "source": "https://commons.wikimedia.org/wiki/File:SLIM_half_scale_model_(close_cropped).png"
+  }
+ },
+ "im-1-odysseus": {
+  "title": "IM-1",
+  "summary": "IM-1 was a robotic Moon landing mission conducted by Intuitive Machines under NASA's Commercial Lunar Payload Services (CLPS) program. The Nova-C lander, named Odysseus, touched down near the Malapert-A crater in the Moon's southern hemisphere on February 22, 2024. It had launched on a Falcon 9 from Kennedy Space Center Launch Complex 39A on February 15.",
+  "url": "https://en.wikipedia.org/wiki/IM-1",
+  "text_licence": "CC BY-SA 4.0",
+  "image": {
+   "file": "missions/im-1-odysseus.jpg",
+   "credit": "NASA Marshall Space Flight Center / Intuitive Machines",
+   "licence": "Public domain",
+   "source": "https://commons.wikimedia.org/wiki/File:Intuitive_Machines%E2%80%99_Nova-C_lunar_lander_(IM_00309)_(cropped).jpg"
+  }
+ },
+ "im-2-athena": {
+  "title": "IM-2",
+  "summary": "IM-2 was a robotic lunar landing mission operated by Intuitive Machines as part of NASA's Commercial Lunar Payload Services (CLPS) program. The Nova-C lander, named Athena, reached the surface of the Moon on 6 March 2025. Contact was temporarily lost during the landing process; when it was re-established, data indicated the spacecraft was not in the correct orientation and one of the two radio antennas was not operating.",
+  "url": "https://en.wikipedia.org/wiki/IM-2",
+  "text_licence": "CC BY-SA 4.0"
+ },
+ "blue-ghost-1": {
+  "title": "Blue Ghost Mission 1",
+  "summary": "Blue Ghost Mission 1 was a robotic Moon landing mission conducted by Firefly Aerospace (Firefly). The spacecraft soft-landed on the lunar surface on March 2, 2025, making Firefly the first commercial company to complete a fully successful soft landing on the Moon. As part of NASA's Commercial Lunar Payload Services program, the mission delivered ten scientific and technological experiments to advance future human exploration under the Artemis program.",
+  "url": "https://en.wikipedia.org/wiki/Blue_Ghost_Mission_1",
+  "text_licence": "CC BY-SA 4.0",
+  "image": {
+   "file": "missions/blue-ghost-1.png",
+   "credit": "NASA/Firefly Aerospace",
+   "licence": "Public domain",
+   "source": "https://commons.wikimedia.org/wiki/File:Blue_Ghost_M1_on_the_Moon.png"
+  }
+ },
+ "im-3-reiner-gamma": {
+  "title": "IM-3",
+  "summary": "IM-3 is a robotic lunar lander and lunar satellite mission developed by Intuitive Machines as part of NASA's Commercial Lunar Payload Services (CLPS) program. It is scheduled for launch in early 2027. The Nova-C class lander will deliver payloads to the lunar swirl in the Reiner Gamma region.",
+  "url": "https://en.wikipedia.org/wiki/IM-3",
+  "text_licence": "CC BY-SA 4.0",
+  "image": {
+   "file": "missions/im-3-reiner-gamma.jpg",
+   "credit": "NASA Marshall Space Flight Center / Intuitive Machines",
+   "licence": "Public domain",
+   "source": "https://commons.wikimedia.org/wiki/File:Intuitive_Machines%E2%80%99_Nova-C_lunar_lander_(IM_00309)_(cropped).jpg"
+  }
+ },
+ "hakuto-r-m1": {
+  "title": "Hakuto-R Mission 1",
+  "summary": "Hakuto-R Mission 1 was a failed private Japanese uncrewed lunar landing mission built and operated by ispace, which was launched in December 2022 for an attempted lunar landing in April 2023. This first Hakuto mission was primarily a technology demonstrator and carried the Emirates Lunar Mission. Travelling approximately 1,400,000 kilometres (870,000 mi), it is the furthest a privately funded spacecraft has traveled.",
+  "url": "https://en.wikipedia.org/wiki/Hakuto-R_Mission_1",
+  "text_licence": "CC BY-SA 4.0",
+  "image": {
+   "file": "missions/hakuto-r-m1.jpg",
+   "credit": "Artvill",
+   "licence": "CC BY-SA 4.0",
+   "source": "https://commons.wikimedia.org/wiki/File:Maquette_de_Hakuto-R_IAC_2022.jpg"
+  }
+ },
+ "hakuto-r-m2": {
+  "title": "Hakuto-R Mission 2",
+  "summary": "Hakuto-R Mission 2, also called Resilience, was a robotic lunar landing mission launched on 15 January 2025. Developed by the Japanese company ispace, the lander was intended to deliver a small rover manufactured by the company's European subsidiary, as well as other payloads. Like Hakuto-R Mission 1, this mission served as a technology demonstration, with the final goal of providing reliable transportation and data services on the Moon.",
+  "url": "https://en.wikipedia.org/wiki/Hakuto-R_Mission_2",
+  "text_licence": "CC BY-SA 4.0",
+  "image": {
+   "file": "missions/hakuto-r-m2.jpg",
+   "credit": "テレストレラッソ",
+   "licence": "CC BY-SA 4.0",
+   "source": "https://commons.wikimedia.org/wiki/File:RESILIENCE-lander-replica04_20250528atHanedaAirPort.jpg"
+  }
+ }
+}
