@@ -93,8 +93,9 @@ For the globe colouring: use `score` (0..1) from `/api/matrix` (site × date), `
 
 - **Terrain is included** when the LOLA maps are on disk: the skyline is ray-marched over the DEMs out to 200 km
   (`analysis/terrain.py`), target accuracy 0.1°. Checked against NASA's long-term LOLA visibility maps at 150 random
-  points south of 85.5°S: Sun r = 0.981 (mean difference −0.005), Earth r = 0.987 (mean difference −0.037, not
-  explained yet; possibly a different definition of "visible" for the wide Earth disk). `docs/validation/avgvisib.md`.
+  points south of 85.5°S with NASA's definition (any part of the disk visible): Sun r = 0.982 (mean difference +0.010),
+  Earth r = 0.996 (+0.005). Our `sunlit_frac` / `earth_visible_frac` use a stricter rule (at least half the disk), so they
+  are lower than NASA's long-term maps by construction. `docs/validation/avgvisib.md`.
   Without the maps (or with `use_terrain=false`) the horizon is a smooth sphere seen from `obs_height_m`
   (dip = acos(R / (R + h)): 0.087° at 2 m), and polar results are optimistic.
 - **Slope is a regional indicator.** It is measured over 80, 240 or 237 m; no lunar map resolves boulders or the
@@ -102,7 +103,24 @@ For the globe colouring: use `score` (0..1) from `/api/matrix` (site × date), `
 - The visible disk fraction assumes the skyline is flat across the disk width (0.5° for the Sun, 1.9° for the Earth).
 - Limb darkening is ignored: a half-hidden solar disk counts as half the light.
 - Durations have the resolution of the internal time step (`calc_step_s`, default 60 s).
-- Uncertainties of the metrics are not estimated yet (`null`); only `elevation_m` has one. Planned: neighbouring points +
-  LOLA height-error map (T22).
+- Uncertainties: see section 6.
 - Sun/Earth directions agree with JPL Horizons to 0.00003° (tolerance 0.01°): `docs/validation/horizons.md`.
 - Not yet included: ground-station (DSN) availability, thermal environment, permanently shadowed regions.
+
+## 6. Uncertainty (`analysis/uncertainty.py`)
+
+Every parameter from `/api/evaluate` (and every metric in the `metrics` documents) has an `uncertainty`: a ± bound in its
+own unit, from two user inputs:
+
+| Input | Default | What it represents | How it is propagated |
+|---|---|---|---|
+| `position_uncertainty_m` | 100 m | Landing accuracy: the lander does not touch down on the exact point | parameters re-evaluated at 8 points on a ring of this radius; position term = largest change |
+| `horizon_uncertainty_deg` | 0.1° | Accuracy of the terrain skyline (our target accuracy) | skyline shifted by ± this; horizon term = largest change |
+
+uncertainty = sqrt(position² + horizon²); `elevation_m` adds the LOLA height error in quadrature. `range` gives the lowest
+and highest value found, which stays within the physical limits (a ± can suggest impossible values such as a negative
+night length). Both defaults are AERO's choices, not requirements: set `position_uncertainty_m` to the lander's landing
+accuracy. A limit that holds at the point but breaks within the uncertainty is reported in `requirements_at_risk`.
+
+What it does not include: errors in the Sun/Earth directions (below 0.0001°, checked against JPL Horizons), DEM artefacts
+beyond the height-error map, and the flat-skyline approximation across the disk width.
