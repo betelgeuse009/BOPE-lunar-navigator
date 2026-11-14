@@ -232,40 +232,23 @@ Questions for AERO: none
 Next: limits (feasibility) in the settings panel, mission profiles when the crewed preset has sources (T30).
 Commits: fe/api-hybrid
 
-## 2026-11-14 15:30 · FE
-Correction: the previous FE entry is stamped 16:10 by mistake; it was written at about 15:10.
-Proposal for AERO (your folder, your decision): manage the analysis Python dependencies with uv (https://docs.astral.sh/uv/).
-  Why:
-  - One lockfile (uv.lock) pins exact versions of numpy, spiceypy, fastapi, uvicorn..., so your Windows machine, Erdeniz's
-    Linux machine and a hosted server for the judges' link (T29) run identical packages. requirements.txt is unpinned today.
-  - No venv/pip steps and no python3-venv system package: `uv sync` creates .venv, `uv run ...` uses it. Same commands on
-    Windows and Linux (no .venv/Scripts vs .venv/bin difference).
-  - Fast installs, and hosting gets simpler (`uv sync --frozen` in a container).
-  What it would look like:
-  - pyproject.toml at the repo root (or analysis/pyproject.toml), dependencies moved from analysis/requirements.txt,
-    pytest/httpx as a dev group; `uv lock` writes uv.lock (committed). Python >= 3.11 as your README says.
-  - Commands become: `uv sync`, `uv run python -m analysis.download_kernels`, `uv run uvicorn analysis.api:app --port 8000`,
-    `uv run pytest analysis`. Install uv on Windows: `powershell -c "irm https://astral.sh/uv/install.ps1 | iex"`.
-  - requirements.txt can stay for a while (or be generated with `uv export`) so nothing breaks during the switch.
-  Meanwhile, without touching your files: FE added `npm run api` (frontend/package.json) =
-    `uv run --with-requirements analysis/requirements.txt uvicorn analysis.api:app --port 8000`, which works with your
-    current requirements.txt. If you adopt the full setup, FE switches that script to `uv run uvicorn ...`.
+## 2026-11-14 15:59 · AERO
+Done: read FE 16:10 (great, thanks). Maps checked and documented, ready for the terrain work (T28):
+  - All 11 LOLA/LROC maps downloaded by Gabriele and checked: every file opens, same 1737.4 km sphere and polar stereographic
+    projection, heights agree between products (5 m vs 80 m median -0.1 m; 240 m vs 80 m median -0.2 m).
+  - NEW data/MAPS.md (shared reference: paths, units, coverage, sources, checks, which map is used where). It replaces the
+    old maps README with the backend/ paths you flagged at 13:40.
+  - NEW analysis/download_maps.py: --check reports what you have; without flags it downloads what is missing
+    (~3 GB, plus 3.3 GB with --all). URLs and sizes verified today. You already have the 80 m DEM; you only need the rest
+    if you run the terrain API yourself once T28 lands.
+  - Decision (DECISIONS.md): slope = official 80 m map south of 80°S, computed from the DEM elsewhere. Our slope from the 80 m
+    DEM reproduces the official map (median |diff| 0.10-0.17°, r = 0.996-0.999). No extra maps for now; north polar set is
+    optional (T31).
 Changed contract: no
-Needs from AERO: yes/no on the uv proposal (and who does it: you, or FE prepares the pyproject.toml as a PR for you to review).
-Questions for AERO: see above.
-Commits: fe/api-hybrid 074baf4 (npm run api)
-
-## 2026-11-14 15:55 · FE
-Bug found while testing the API from the globe (Erdeniz): after moving the landing-date slider, scores stopped updating,
-  even for new clicks. Root cause, measured here: every new landing date is a new time window, and /evaluate needs ~2.7 s
-  for a new window; FE sent one request per slider step, the server cannot cancel them, so a 15-date drag queued
-  ~40 s of work and the next click answered after 53 s. Your numbers were right all along (checked 4 dates x 4 points).
-  FE fix (fe/api-hybrid dee7c48): at most one request in flight per panel; newer ones replace each other.
-Request for AERO (performance, your call how): make a new landing date cheap. Idea: cache the Sun/Earth vectors on a fixed
-  grid (for example per calendar month at calc_step_s) and slice any window out of it, instead of caching per exact
-  [start, end]. Then dragging through 30 dates in the same month would cost one computation, not 30.
-  Even better for the slider: an /evaluate variant that takes several start dates in one call (like /matrix does for points).
-Changed contract: no
-Needs from AERO: the caching change above (or tell me it is not feasible).
-Questions for AERO: none
-Commits: fe/api-hybrid dee7c48
+Heads-up for T28 (coming next): slope_deg and elevation_m will become numbers instead of null, with the DEM baseline
+  reported (80/240/237 m); /api/horizon will return a real profile (horizon.schema.json); /api/area scores will start to
+  vary across ridges and craters.
+Needs from FE: nothing.
+Questions for FE: none
+Next: T28 terrain in the API (horizon profile, slope, elevation), then evaluate/area JSON Schemas.
+Commits: see PR aero -> main

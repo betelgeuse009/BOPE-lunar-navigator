@@ -13,3 +13,9 @@ export function polarCapUV(latDeg: number, lonDeg: number, capDeg: number): [num
   const lon = (lonDeg * Math.PI) / 180
   return [0.5 + 0.5 * rho * Math.cos(lon), 0.5 + 0.5 * rho * Math.sin(lon)]
 }
+
+// Inverse of latLonToVec3: a point on (or near) the sphere back to selenographic lat/lon in degrees.
+export function vec3ToLatLon(x: number, y: number, z: number): [number, number] {
+  const r = Math.hypot(x, y, z)
+  return [(Math.asin(y / r) * 180) / Math.PI, (Math.atan2(-z, x) * 180) / Math.PI]
+}

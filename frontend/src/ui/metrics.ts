@@ -3,6 +3,7 @@
 type Meta = { label: string; unit: 'frac' | 'h'; higherIsBetter: boolean }
 
 const META: Record<string, Meta> = {
+  score: { label: 'Overall score', unit: 'frac', higherIsBetter: true },
   both_frac: { label: 'Sunlight and Earth in view', unit: 'frac', higherIsBetter: true },
   sunlit_frac: { label: 'Time in sunlight', unit: 'frac', higherIsBetter: true },
   earth_visible_frac: { label: 'Time with Earth in view', unit: 'frac', higherIsBetter: true },
@@ -22,5 +23,6 @@ export function goodness(v: number | null, field: string, missionDurationH: numb
 
 export function formatValue(v: number | null, field: string): string {
   if (v === null) return 'no data'
+  if (field === 'score') return v.toFixed(2)
   return metricMeta(field).unit === 'h' ? `${Math.round(v)} h` : `${Math.round(v * 100)} %`
 }
