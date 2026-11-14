@@ -6,7 +6,8 @@ Hackathon: Sat Nov 14 – Sun Nov 15, 2026. Submission deadline is on the offici
 This file is read by **every** Claude Code session in this repo, for both teammates.
 It defines who we are, who owns what, and how our two Claude sessions stay in sync through git.
 Personal context lives in `team/<github-username>.md`. Read the one for the current user.
-Follow the karpathy-guidelines.md
+Follow the coding guidelines in @karpathy-guidelines.md
+
 ---
 
 ## 1. Who is working with you (do this first in every session)
@@ -133,11 +134,7 @@ That separation is what lets AERO work in Python without touching the web code.
 - Contract changes: propose in LOG → other teammate agrees in LOG → bump version →
   update the schema + FE fixtures in the same PR. Backwards-compatible additions (new optional fields) need no agreement.
 
-Initial contract idea (v0.1, to be agreed at kickoff):
-- `sites.json`: id, name, lat/lon, source of the coordinates
-- `horizon/<site>.json`: azimuth grid (deg) → horizon elevation (deg), DEM product + resolution
-- `ephemeris/<site>_<period>.json`: time series of Sun and Earth az/el (topocentric), source (SPICE/Horizons)
-- `metrics/<site>_<period>.json`: % sunlit, % Earth-visible, % both, longest gaps, (later) DSN windows, battery need, mast-height curve
+Current schemas: `contracts/schemas/` (see `contracts/README.md`).
 
 ## 7. Shared docs (create at kickoff if missing)
 - `docs/TASKS.md`: task board. Columns: ID · task · owner (FE/AERO) · status (todo/doing/review/done) · depends on.

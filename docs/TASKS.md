@@ -20,3 +20,5 @@ Status: todo · doing · review · done. Update the row when status changes; add
 | T14 | 3D Sun–Earth–Moon geometry view (R3F, schematic scale) | FE | todo | T11 |
 | T15 | Check Space Apps rules on pre-event work and AI-use disclosure; note in DECISIONS | FE | todo | |
 | T16 | LATER: DSN windows, battery for longest night, mast-height curve | AERO | todo | T08 |
+| T17 | Site/date evaluation parameters in `docs/PARAMETERS.md` (name, unit, method, thresholds, source) | AERO | todo | T03 |
+| T18 | Moon globe view: orbit camera, site markers, date slider recolouring sites | FE | todo | T10, T17 |
