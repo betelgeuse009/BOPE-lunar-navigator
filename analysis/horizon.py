@@ -1,19 +1,28 @@
-"""Horizon seen from a site: the elevation angle below which the sky is blocked, for every azimuth.
+"""Horizon seen from a site: the elevation angle below which the sky is blocked, toward any azimuth.
 
-CURRENT MODEL: smooth sphere, no terrain. The horizon is the geometric edge of a perfect 1737.4 km sphere seen
-from `obs_height_m` above it, which lies slightly BELOW 0 deg (the "dip"): dip = acos(R / (R + h)).
-  h = 2 m -> 0.087 deg, h = 10 m -> 0.194 deg. This is why a taller mast sees the Sun longer even without terrain.
-
-NEXT (T07): replace `horizon_deg` with the real profile from the LOLA DEMs (ray marching, see PLAN.md 3.5).
-That formula reduces exactly to this dip when the terrain is flat, so nothing else has to change.
+Two models:
+- "lola-terrain": the real skyline from the LOLA DEMs (analysis/terrain.py). Used when the maps are on disk
+  (data/MAPS.md) and the request does not switch it off.
+- "smooth-sphere": no terrain. The horizon is the edge of a perfect 1737.4 km sphere seen from `obs_height_m`,
+  slightly below 0 deg: dip = acos(R / (R + h)) (0.087 deg at 2 m, 0.194 deg at 10 m).
+The terrain formula reduces exactly to the smooth-sphere dip when the terrain is flat.
 """
 from __future__ import annotations
 
 import numpy as np
 
-SOURCE = "smooth-sphere"      # becomes the DEM product name once terrain is used
-TERRAIN_AVAILABLE = False
-MOON_RADIUS_M = 1_737_400.0   # reference sphere of the LOLA products (same value as pck00011.tpc)
+from . import terrain
+
+SMOOTH, TERRAIN = "smooth-sphere", "lola-terrain"
+MOON_RADIUS_M = terrain.R_M
+
+
+def terrain_available() -> bool:
+    return terrain.available()
+
+
+def source(use_terrain: bool) -> str:
+    return TERRAIN if use_terrain and terrain_available() else SMOOTH
 
 
 def dip_deg(obs_height_m: float) -> float:
@@ -21,9 +30,13 @@ def dip_deg(obs_height_m: float) -> float:
     return float(np.degrees(np.arccos(MOON_RADIUS_M / (MOON_RADIUS_M + max(obs_height_m, 0.0)))))
 
 
-def horizon_deg(lat_deg, lon_deg, az_deg: np.ndarray, obs_height_m: float) -> np.ndarray:
-    """Horizon elevation (deg) toward each azimuth in `az_deg`. Same shape as `az_deg`.
-
-    lat/lon are unused by the smooth-sphere model; they are in the signature for the terrain version.
-    """
-    return np.full(np.shape(az_deg), -dip_deg(obs_height_m))
+def horizon_deg(lat_deg, lon_deg, az_deg: np.ndarray, obs_height_m: float, use_terrain: bool = True,
+                fast: bool = False) -> np.ndarray:
+    """Horizon elevation (deg) toward the azimuths `az_deg` (N sites x T steps). Same shape as `az_deg`."""
+    if source(use_terrain) == SMOOTH:
+        return np.full(np.shape(az_deg), -dip_deg(obs_height_m))
+    lat, lon = np.atleast_1d(lat_deg), np.atleast_1d(lon_deg)
+    out = np.empty(np.shape(az_deg))
+    for i in range(lat.size):
+        out[i] = terrain.horizon_at(terrain.horizon(lat[i], lon[i], obs_height_m, fast), az_deg[i])
+    return out

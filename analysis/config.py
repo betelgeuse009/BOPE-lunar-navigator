@@ -64,6 +64,6 @@ SCORE_WEIGHTS = {
     "longest_dark_h": 1.0,
     "earth_visible_frac": 1.0,
     "longest_no_earth_h": 1.0,
-    "slope_deg": 1.0,   # only counts once terrain data exists; until then it is left out of the score
+    "slope_deg": 1.0,   # left out of the score when the terrain maps are missing or use_terrain is off
 }
 SLOPE_SCORE_ZERO_DEG = 20.0  # slope where the slope sub-score reaches 0 (a user-adjustable default, not a literature limit)

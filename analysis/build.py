@@ -12,7 +12,7 @@ import argparse
 import json
 from pathlib import Path
 
-from . import config, products, sites
+from . import config, horizon, products, sites
 from .metrics import Inputs
 
 PERIODS = [("2026-11", "2026-11-01T00:00:00Z", "2026-12-01T00:00:00Z"),
@@ -32,6 +32,10 @@ def main() -> None:
     ap.add_argument("--out", default="data/samples", help="output folder, relative to the repo root")
     out = config.REPO / ap.parse_args().out
     inp = Inputs()
+    has_terrain = horizon.terrain_available()
+    if has_terrain:
+        for s in sites.SITES:
+            write(out, f"horizon/{s['id']}.json", products.horizon_doc(s["id"], s["lat_deg"], s["lon_deg"], inp.obs_height_m))
     for pid, start, end in PERIODS:
         write(out, f"scene/{pid}.json", products.scene_doc(pid, start, end, config.STEP_S))
         for s in sites.SITES:
@@ -43,7 +47,7 @@ def main() -> None:
         [s["id"] for s in sites.SITES], [s["lat_deg"] for s in sites.SITES], [s["lon_deg"] for s in sites.SITES],
         PERIODS[0][1], MATRIX_DATES, 24.0, config.MISSION_H, config.AREA_CALC_STEP_S, inp, config.SCORE_WEIGHTS))
     write(out, "sites.json", products.sites_doc())
-    write(out, "manifest.json", products.manifest_doc(PERIODS, config.STEP_S, has_matrix=True))
+    write(out, "manifest.json", products.manifest_doc(PERIODS, config.STEP_S, has_matrix=True, has_horizon=has_terrain))
 
 
 if __name__ == "__main__":

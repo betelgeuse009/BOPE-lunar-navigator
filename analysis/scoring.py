@@ -44,7 +44,12 @@ def score(p: dict, weights: dict[str, float]) -> dict:
 
 
 def feasibility(p: dict, limits: dict[str, float | None]) -> dict:
-    """Check the user limits. A limit on a parameter that is not available yet is reported in `not_checked`."""
+    """Check the user limits (the user's requirements).
+
+    `feasible` is True when no limit is violated; `requirements_violated` is the same fact as a 0/1 flag
+    (1 = at least one requirement is NOT respected). A limit on a parameter that is not available
+    (for example slope without the terrain maps) cannot be judged and is listed in `not_checked`.
+    """
     violations, not_checked = [], []
     for name, limit in limits.items():
         if limit is None:
@@ -54,5 +59,6 @@ def feasibility(p: dict, limits: dict[str, float | None]) -> dict:
         if value is None:
             not_checked.append(name)
         elif (value < limit) if must_be_at_least else (value > limit):
-            violations.append({"limit": name, "parameter": param, "value": value, "limit_value": limit})
-    return {"feasible": not violations, "violations": violations, "not_checked": not_checked}
+            violations.append({"limit": name, "parameter": param, "value": round(float(value), 4), "limit_value": limit})
+    return {"feasible": not violations, "requirements_violated": int(bool(violations)),
+            "violations": violations, "not_checked": not_checked}

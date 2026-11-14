@@ -9,7 +9,7 @@ from dataclasses import asdict, dataclass
 
 import numpy as np
 
-from . import config, ephemeris as eph, horizon, visibility as vis
+from . import config, ephemeris as eph, horizon, terrain, visibility as vis
 
 AU_KM = 149_597_870.7  # astronomical unit, exact by definition (IAU 2012 Resolution B2)
 
@@ -23,20 +23,40 @@ class Inputs:
     load_w: float | None = None                # average electrical load to keep alive (also in the dark)
     panel_area_m2: float | None = None         # Sun-tracking solar array area
     panel_efficiency_frac: float | None = None  # sunlight -> electricity, 0..1
+    use_terrain: bool = True                   # real LOLA skyline, slope and elevation (if the maps are on disk)
+    fast_horizon: bool = False                 # internal: coarser horizon profile, used for area searches
 
     def as_dict(self) -> dict:
-        return asdict(self)
+        d = asdict(self)
+        d.pop("fast_horizon")
+        return d
 
 
 def site_series(bv: eph.BodyVectors, lat_deg, lon_deg, inp: Inputs) -> dict[str, np.ndarray]:
-    """Time series for N sites over the grid of `bv`. All arrays are (N, T)."""
-    pos = eph.site_positions_km(lat_deg, lon_deg, inp.obs_height_m)
+    """Time series for N sites over the grid of `bv`. Arrays are (N, T), except the per-site terrain values (N,)."""
+    lat, lon = np.atleast_1d(np.asarray(lat_deg, dtype=float)), np.atleast_1d(np.asarray(lon_deg, dtype=float))
+    use_terrain = horizon.source(inp.use_terrain) == horizon.TERRAIN
+    nan = np.full(lat.shape, np.nan)
+    if use_terrain:
+        elevation = terrain.elevation_m(lat, lon)
+        slope, slope_baseline, slope_source = terrain.slope_deg(lat, lon)
+        height_error = terrain.height_error_m(lat, lon)
+    else:
+        elevation, slope, slope_baseline, slope_source, height_error = nan, nan, nan, [""] * lat.size, nan
+    # The observer stands on the terrain: radius = sphere + terrain height + mast height.
+    pos = eph.site_positions_km(lat, lon, inp.obs_height_m + (elevation if use_terrain else 0.0))
     sun, earth = eph.topocentric(bv.sun_km, pos), eph.topocentric(bv.earth_km, pos)
     sun_rad = eph.angular_radius_deg(eph.body_radius_km("SUN"), sun["dist_km"])
     earth_rad = eph.angular_radius_deg(eph.body_radius_km("EARTH"), earth["dist_km"])
-    sun_vis = vis.visible_disk_frac(sun["el_deg"], sun_rad, horizon.horizon_deg(lat_deg, lon_deg, sun["az_deg"], inp.obs_height_m))
-    earth_vis = vis.visible_disk_frac(earth["el_deg"], earth_rad, horizon.horizon_deg(lat_deg, lon_deg, earth["az_deg"], inp.obs_height_m))
+
+    def skyline(az):
+        return horizon.horizon_deg(lat, lon, az, inp.obs_height_m, inp.use_terrain, inp.fast_horizon)
+
+    sun_vis = vis.visible_disk_frac(sun["el_deg"], sun_rad, skyline(sun["az_deg"]))
+    earth_vis = vis.visible_disk_frac(earth["el_deg"], earth_rad, skyline(earth["az_deg"]))
     return {
+        "terrain": use_terrain, "elevation_m": elevation, "slope_deg": slope, "slope_baseline_m": slope_baseline,
+        "slope_source": slope_source, "height_error_m": height_error,
         "sun_az_deg": sun["az_deg"], "sun_el_deg": sun["el_deg"], "sun_dist_km": sun["dist_km"],
         "sun_radius_deg": sun_rad, "sun_visible_frac": sun_vis,
         "earth_az_deg": earth["az_deg"], "earth_el_deg": earth["el_deg"], "earth_dist_km": earth["dist_km"],
@@ -51,6 +71,10 @@ def site_series(bv: eph.BodyVectors, lat_deg, lon_deg, inp: Inputs) -> dict[str,
 
 def _mean_or_none(values: np.ndarray, mask: np.ndarray) -> float | None:
     return float(values[mask].mean()) if mask.any() else None
+
+
+def _num(v) -> float | None:
+    return None if v is None or np.isnan(v) else float(v)
 
 
 def summarize(series: dict[str, np.ndarray], i: int, sl: slice, step_s: int, inp: Inputs) -> dict[str, float | None]:
@@ -86,7 +110,7 @@ def summarize(series: dict[str, np.ndarray], i: int, sl: slice, step_s: int, inp
         "both_frac": float((lit & comm).mean()),
         "energy_generated_kwh": generated, "energy_required_kwh": required, "energy_margin_kwh": margin,
         "battery_needed_wh": battery,
-        # Terrain parameters: null until the LOLA maps are wired in (T07).
-        "slope_deg": None, "elevation_m": None,
+        # Terrain parameters from the LOLA maps; null when the terrain is not used or the maps are missing.
+        "slope_deg": _num(series["slope_deg"][i]), "elevation_m": _num(series["elevation_m"][i]),
         "window_h": window_h,
     }

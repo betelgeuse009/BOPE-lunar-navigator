@@ -67,26 +67,37 @@ def test_matrix_matches_contract():
 
 
 def test_evaluate_parameters_feasibility_and_score():
-    doc = get("/api/evaluate", **SITE, load_w=100, panel_area_m2=2, panel_efficiency_frac=0.3, max_no_earth_h=1, max_slope_deg=8)
+    doc = get("/api/evaluate", **SITE, load_w=100, panel_area_m2=2, panel_efficiency_frac=0.3, max_no_earth_h=1,
+              max_slope_deg=8, use_terrain=False)
     p = doc["parameters"]
     assert 0 <= p["sunlit_frac"]["value"] <= 1 and p["slope_deg"]["value"] is None
     assert p["energy_margin_kwh"]["value"] is not None
-    assert doc["feasible"] is False and doc["violations"][0]["limit"] == "max_no_earth_h"
-    assert doc["not_checked"] == ["max_slope_deg"]
+    assert doc["feasible"] is False and doc["requirements_violated"] == 1
+    assert doc["violations"][0]["limit"] == "max_no_earth_h"
+    assert doc["not_checked"] == ["max_slope_deg"]            # slope cannot be judged without the terrain
+    assert doc["horizon_source"] == "smooth-sphere" and doc["terrain"]["used"] is False
     assert 0 <= doc["score"]["value"] <= 1
 
 
+def test_requirements_flag_is_0_when_all_limits_are_met():
+    doc = get("/api/evaluate", **SITE, min_sunlit_frac=0.1, max_no_earth_h=300, use_terrain=False)
+    assert doc["feasible"] is True and doc["requirements_violated"] == 0 and doc["violations"] == []
+    doc = get("/api/evaluate", **SITE, use_terrain=False)       # no limits given: nothing can be violated
+    assert doc["requirements_violated"] == 0
+
+
 def test_taller_mast_sees_at_least_as_much_sun():
-    low = get("/api/evaluate", **SITE, obs_height_m=2)["parameters"]["sunlit_frac"]["value"]
-    high = get("/api/evaluate", **SITE, obs_height_m=100)["parameters"]["sunlit_frac"]["value"]
+    low = get("/api/evaluate", **SITE, obs_height_m=2, use_terrain=False)["parameters"]["sunlit_frac"]["value"]
+    high = get("/api/evaluate", **SITE, obs_height_m=100, use_terrain=False)["parameters"]["sunlit_frac"]["value"]
     assert high >= low
 
 
 def test_area_returns_grid_and_best_point():
-    doc = get("/api/area", **SITE, radius_km=5, spacing_km=1)
+    doc = get("/api/area", **SITE, radius_km=5, spacing_km=1, max_no_earth_h=60)
     pts = doc["points"]
     n = len(pts["lat_deg"])
-    assert n > 50 and all(len(pts[k]) == n for k in ("lon_deg", "east_km", "north_km", "score", "feasible"))
+    assert n > 50 and all(len(pts[k]) == n for k in ("lon_deg", "east_km", "north_km", "score", "feasible", "requirements_violated"))
+    assert pts["requirements_violated"] == [int(not f) for f in pts["feasible"]]
     assert pts["east_km"][0] == 0 and pts["north_km"][0] == 0            # index 0 is the clicked point
     assert doc["best"]["score"] >= doc["center_score"]
     assert doc["center_is_best"] == (doc["best"]["index"] == 0)
@@ -103,5 +114,6 @@ def test_bad_requests_get_422(path, params):
     assert client.get(path, params=params).status_code == 422
 
 
-def test_horizon_not_implemented_yet():
-    assert client.get("/api/horizon").status_code == 501
+def test_health_reports_terrain_and_maps():
+    h = get("/api/health")
+    assert h["terrain_available"] in (True, False) and "dem_80s_80m" in h["maps"]
