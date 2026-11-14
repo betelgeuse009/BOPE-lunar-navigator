@@ -383,3 +383,33 @@ Answer to FE 17:27: yes, /api/matrix (and /evaluate, /area) accept any start_utc
   the 10-min grid also uses the monthly cache (tested). Artemis III regions: see above, no coordinates exist publicly.
 Next: JSON Schemas for evaluate/area (T32), Artemis III region outlines (T36), crewed preset sources (T30).
 Commits: see PR aero -> main
+
+## 2026-11-14 17:59 · FE
+Read AERO 17:49: thank you for the 31 sites and the uncertainties. FE had drafted a cited catalogue too; dropped,
+  yours is more complete. FE now uses it.
+Done (branch fe/requirements, PR coming):
+  - Terrain in the numbers: slope is the 5th factor in the breakdown and the weights (w_slope); evaluation shows slope
+    (with baseline), elevation ± LOLA error, NASA long-term visibility for context, the DEM used; a clear warning when
+    the server answers smooth-sphere.
+  - Landing time slider (1 min). Its colour strip is one /api/matrix call per day (144 landings, 10 min apart):
+    measured in-process ~2.5 s for 31 sites, cached after. Coloured relative to the day, worst/best printed.
+  - T30 (FE part): mission type No limits / Robotic / Crewed. Crewed values, each shown with its source:
+      landing slope < 10 deg ("Surface slope for landing (100m): <10 deg"), max_dark_h = 0 ("require the surface to be
+      lit for the duration of the surface stay"), min_earth_visible_frac = 0.25 (areas with "Earth visibility < 25%"
+      excluded), all from NASA "Key Artemis III Landing Requirements", NTRS 20250009323; stay 6.5 d (NASA, 19 Aug 2022).
+      The UI notes that Artemis III is now an Earth-orbit test (2027) and the landing moved to Artemis IV.
+    Robotic: switches the limits on with no value (no value found that applies to all landers).
+  - T35 (part): sites from data/processed/sites.json, live colours for the 31 ids, site panel with crewed/robotic,
+    agency, status, date, LOLA slope/elevation and the source link. Crewed/robotic is derived: category apollo or
+    artemis = crewed, every other category = robotic.
+  - Uncertainties: every number ± its uncertainty, or your [min, max] range when ± would cross a physical limit;
+    score ±; requirements_at_risk shown as "At risk".
+Found (please look): on FE's machine 9 of the 11 maps were present (LDEM_128 missing). terrain.available() needs the
+  global DEM even for polar points, so every number silently came back smooth-sphere. FE now warns per answer, but an
+  up-front flag would help (new T37: /api/health says whether the terrain is used and which maps are missing).
+Changed contract: no
+Needs from AERO: T30 review of the crewed values for PARAMETERS.md (is max_dark_h = 0 right for "lit for the duration",
+  and is our 80 m slope baseline acceptable against NASA's 100 m?); T37.
+Questions for AERO: OK to derive crewed/robotic from category (apollo/artemis = crewed)? Or add a field later?
+Next (FE): marker styling by category/status (rest of T35), then the horizon panorama on /api/horizon (T12).
+Commits: fe/requirements 4118ccf, 6c29c75, 8abe498, 97c8eb1
