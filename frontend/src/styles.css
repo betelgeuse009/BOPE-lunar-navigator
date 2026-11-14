@@ -1,0 +1,103 @@
+@import '@fontsource/barlow-semi-condensed/400.css';
+@import '@fontsource/barlow-semi-condensed/500.css';
+@import '@fontsource/barlow-semi-condensed/600.css';
+
+:root {
+  --sky: #000000;
+  --regolith-1: #e7e5e0;   /* primary text: sunlit highland */
+  --regolith-2: #a3a19b;   /* secondary text */
+  --regolith-3: #5b5f66;   /* rules, no-data */
+  --shade: rgba(0, 0, 0, 0.72); /* panels float over the black sky */
+  --font: 'Barlow Semi Condensed', system-ui, sans-serif;
+  --gutter: clamp(16px, 3vw, 32px);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body, #root { height: 100%; margin: 0; }
+body {
+  background: var(--sky);
+  color: var(--regolith-1);
+  font: 400 16px/1.4 var(--font);
+  font-variant-numeric: tabular-nums;
+}
+
+.app { position: relative; height: 100%; overflow: hidden; }
+.app canvas { position: absolute; inset: 0; touch-action: none; }
+
+/* Top bar */
+.top {
+  position: absolute; top: 0; left: 0; right: 0;
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 28px;
+  padding: var(--gutter);
+  pointer-events: none;
+}
+.top > * { pointer-events: auto; }
+h1 { margin: 0; font-size: 26px; font-weight: 600; letter-spacing: 0.01em; }
+.metric { display: flex; align-items: baseline; gap: 10px; color: var(--regolith-2); }
+select {
+  font: 500 16px var(--font); color: var(--regolith-1);
+  background: var(--shade); border: 1px solid var(--regolith-3); border-radius: 2px; padding: 4px 8px;
+}
+.fixture {
+  margin: 0; padding: 2px 8px;
+  border: 1px dashed var(--regolith-2); color: var(--regolith-2); font-size: 14px;
+}
+
+/* Site panel */
+.panel {
+  position: absolute; right: var(--gutter); top: 96px;
+  width: min(300px, calc(100% - 2 * var(--gutter)));
+  padding: 14px 16px; background: var(--shade);
+  border-left: 2px solid var(--regolith-3);
+}
+.panel-empty { color: var(--regolith-2); font-size: 15px; }
+.panel h2 { margin: 0; font-size: 21px; font-weight: 600; }
+.coords { margin: 2px 0 12px; color: var(--regolith-2); }
+.panel dl { margin: 0; }
+.panel dl > div { display: flex; justify-content: space-between; gap: 12px; padding: 4px 0; color: var(--regolith-2); }
+.panel dl > div.current { color: var(--regolith-1); font-weight: 500; }
+.panel dt { display: flex; align-items: center; gap: 8px; }
+.panel dt i { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+.panel dd { margin: 0; }
+.note { margin: 10px 0 0; font-size: 14px; color: var(--regolith-2); }
+
+/* Bottom: date rail, legend, credit */
+.bottom {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  padding: 0 var(--gutter) var(--gutter);
+  background: linear-gradient(transparent, var(--sky) 45%);
+}
+.rail { max-width: 920px; }
+.rail-head { display: flex; align-items: baseline; gap: 14px; }
+.rail-head label { color: var(--regolith-2); }
+.rail-head output { font-size: 30px; font-weight: 600; }
+.rail-track { position: relative; height: 34px; margin-top: 6px; }
+.rail-cells { position: absolute; inset: 6px 0; display: flex; gap: 2px; }
+.rail-cells span { flex: 1; opacity: 0.55; }
+.rail-cells span.on { opacity: 1; outline: 2px solid var(--regolith-1); outline-offset: 2px; }
+.rail-track input {
+  position: absolute; inset: 0; width: 100%; margin: 0;
+  appearance: none; background: transparent; cursor: pointer;
+}
+.rail-track input::-webkit-slider-thumb { appearance: none; width: 1px; height: 34px; background: transparent; }
+.rail-track input::-moz-range-thumb { width: 1px; height: 34px; border: 0; background: transparent; }
+.rail-track input:focus-visible { outline: 2px solid var(--regolith-1); outline-offset: 4px; }
+.rail-ends { display: flex; justify-content: space-between; gap: 12px; font-size: 14px; color: var(--regolith-2); }
+
+.legend { display: flex; align-items: center; gap: 10px; margin-top: 12px; font-size: 14px; color: var(--regolith-2); }
+.legend .ramp { width: 140px; height: 8px; }
+.legend .nodata { display: flex; align-items: center; gap: 6px; margin-left: 12px; }
+.legend .nodata i { width: 10px; height: 10px; border-radius: 50%; }
+.credit { margin: 8px 0 0; font-size: 13px; color: var(--regolith-3); max-width: 80ch; }
+
+.error {
+  position: absolute; left: var(--gutter); right: var(--gutter); top: 50%;
+  margin: 0; padding: 14px 16px; background: var(--shade); border-left: 2px solid #c9a24a;
+}
+
+@media (max-width: 640px) {
+  .panel { top: auto; bottom: 210px; }
+  .rail-ends span:nth-child(2) { display: none; }
+  h1 { font-size: 22px; }
+}
