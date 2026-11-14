@@ -28,7 +28,8 @@ At the start of every session:
 If the user is AERO, you are also their **git operator**: you run every git/GitHub command for them
 and explain it in one plain sentence. Never ask them to type git commands themselves.
 
-## 2. The challenge (official text goes here)
+## 2. The challenge
+Official text and our reading: `docs/CHALLENGE.md` (source of truth for scope).
 <!-- Paste the official Summary / Objectives / Considerations / Resources from
      spaceappschallenge.org. This section is the source of truth for scope. -->
 

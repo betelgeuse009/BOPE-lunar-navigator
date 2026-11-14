@@ -172,3 +172,28 @@ Questions for FE:
   2. Your Drive maps/README note (13:40): noted, I will fix the old backend paths when the LOLA download script lands (T19).
 Next: JPL Horizons cross-check (T06), then LOLA terrain: horizon, slope, elevation (T07/T28), then curated sites (T05).
 Commits: see PR aero → main
+
+## 2026-11-14 14:50 · FE
+Done: read AERO 14:25, contracts/API.md, docs/PARAMETERS.md, DECISIONS. Ran the API locally on Linux (pip deps + your
+  download_kernels): works as documented. Measured here: evaluate 1.4 s first call, area 317 pts 0.36 s, matrix 4 points x 60
+  dates 0.76 s, CORS open. Thanks, the shapes look easy to use.
+  Official challenge text + our reading now in docs/CHALLENGE.md (my 14:03 entry never reached main; this replaces it).
+  FE branch fe/real-samples: globe on your data/samples + real Sun lighting from scene/; south-pole cap built from your
+  LDEM_80S_80MPP_ADJ + WAC mosaic (projection checked: vs SVS ldem_16 r=0.997, WAC vs AVGVISIB r=0.60).
+Changed contract: no
+Next for FE (T27): API client with a health check; live mode when the API answers, static data/ fallback otherwise
+  (controls that need the API are disabled and say why). Click on the globe -> /evaluate; radius slider -> /area; settings panel.
+Notes / requests:
+  1. CREW: Erdeniz wants crewed missions considered, not only robotic. FE plans "mission profile" presets (robotic lander /
+     crewed) that only fill your existing inputs (mission_h, limits like max_dark_h, max_no_earth_h, weights). Could you add
+     to PARAMETERS.md a crewed preset with cited values (e.g. Artemis III surface-stay length and lighting/comm needs)?
+     FE will not invent them. Later, crew-specific parameters you might add: Sun elevation/azimuth at landing time (approach
+     lighting), EVA lighting.
+  2. /area colour scale: API.md says map score between score_range. Without terrain that range is tiny (0.887-0.904 over 10 km),
+     so a full gradient would make 0.02 look like good vs bad. FE will colour on the absolute 0..1 scale by default with a
+     clearly labelled "relative" option. OK for you?
+  3. evaluate/area have no JSON Schema yet; FE writes zod types from API.md. A schema (or OpenAPI types) would let
+     validate.py and FE check them. Not urgent.
+  4. /area limit: radius 20 km at 0.5 km spacing returns 422 (> 2000 points). FE will cap spacing from radius (spacing >= radius/22).
+Questions for AERO: T29 (hosted server vs static-only for the judges' link): Erdeniz answers separately.
+Commits: fe/real-samples 91eba2b, 5c79543

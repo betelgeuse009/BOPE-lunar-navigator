@@ -21,10 +21,10 @@ Status: todo · doing · review · done. Update the row when status changes; add
 | T15 | Check Space Apps rules on pre-event work and AI-use disclosure; note in DECISIONS | FE | todo | |
 | T16 | LATER: DSN windows, battery for longest night, mast-height curve | AERO | todo | T08 |
 | T17 | Site/date evaluation parameters in `docs/PARAMETERS.md` (name, unit, method, thresholds, source) | AERO | review | T03 |
-| T18 | Moon globe view: orbit camera, site markers, date slider recolouring sites | FE | todo | T10, T17 |
+| T18 | Moon globe view: orbit camera, site markers, date slider recolouring sites | FE | done | T10, T17 |
 | T19 | Download script: SPICE kernels done (`python -m analysis.download_kernels`). Still open: LOLA maps (list and URLs in `analysis/PLAN.md` §2) | AERO | doing | |
 | T20 | Agree optional contract additions proposed in LOG 2026-11-14 11:44 (distances, angular radius, Earth phase, ENU vectors, `scene/<period>.json`, site extras, multi-res DEM) | Both | done | T03 |
-| T21 | Mirror T20 additions in schemas (AERO) and in `frontend/public/fixtures/` (FE) | Both | todo | T20 |
+| T21 | Mirror T20 additions in schemas (AERO) and in `frontend/public/fixtures/` (FE) | Both | review | T20 |
 | T22 | Uncertainty bands: neighbour ring (100–500 m) + LOLA height-error map → metric `uncertainty` | AERO | todo | T08 |
 | T23 | Validate long-term sunlit / Earth-visible means vs LOLA `AVGVISIB` maps; record in DECISIONS | AERO | todo | T08 |
 | T24 | LATER: map layers (slope, mean illumination, Earth visibility, PSRs) as web PNGs + index file (needs contract addition) | AERO | todo | T07 |
@@ -33,3 +33,4 @@ Status: todo · doing · review · done. Update the row when status changes; add
 | T27 | Front end calls the API (`contracts/API.md`): click any point → `/api/evaluate`; area search → `/api/area` colour gradient; settings panel for the inputs | FE | todo | T25 |
 | T28 | Wire LOLA terrain into the API: horizon profile (`/api/horizon`), `slope_deg`, `elevation_m` (makes the area search meaningful) | AERO | todo | T07 |
 | T29 | Decide how the public demo gets its data: hosted Python server or static fallback only | Both | todo | T25 |
+| T30 | Mission profiles (robotic lander / crewed): FE preset UI; AERO cited preset values in PARAMETERS.md | Both | todo | T27 |
