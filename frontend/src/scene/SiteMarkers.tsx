@@ -22,8 +22,8 @@ export function SiteMarkers({ sites, matrix }: { sites: Site[]; matrix: Matrix }
             onPointerOut={() => setHovered(null)}
             onClick={(e) => {
               e.stopPropagation()
+              setSelected(s.id)
               if (mode === 'live') setPoint({ lat: s.lat_deg, lon: s.lon_deg }) // evaluate the site with the user's settings
-              else setSelected(s.id === selectedSite ? null : s.id)
             }}
           >
             <sphereGeometry args={[0.009, 16, 12]} />
