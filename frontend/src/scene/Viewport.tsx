@@ -1,0 +1,118 @@
+import { OrbitControls } from '@react-three/drei'
+import { Canvas } from '@react-three/fiber'
+import { Suspense, useRef, useState } from 'react'
+import type { Group } from 'three'
+import type { Area } from '../data/api'
+import type { Matrix, Site } from '../data/schemas'
+import { useApp } from '../state/store'
+import { metricColor } from '../ui/colors'
+import { metricMeta } from '../ui/metrics'
+import { MissionCard } from '../ui/MissionCard'
+import { AreaDots, PointMarkers } from './AreaLayer'
+import { CameraFocus } from './CameraFocus'
+import { CameraReset } from './CameraReset'
+import { vec3ToLatLon } from './geo'
+import { Map2D } from './Map2D'
+import { Lights, Moon } from './Moon'
+import { SiteMarkers } from './SiteMarkers'
+import { Sky } from './Sky'
+import { HOME, SKY } from './view'
+import { SouthCap } from './SouthCap'
+
+// Centre of the workbench: the Moon, what is drawn on it, and the controls that belong to the view.
+export function Viewport({ sites, matrix, area, subsolar, subearth, updating }: {
+  sites: Site[] | null; matrix: Matrix | null; area: Area | null
+  subsolar: { lat: number; lon: number } | null; subearth: { lat: number; lon: number } | null; updating: boolean
+}) {
+  const { metric, mode, point, scaleMode, pins, compareOpen, setMetric, setSelected, setPoint, setCompareOpen } = useApp()
+  const [view, setView] = useState<'3d' | '2d'>('3d')
+  const [reset, setReset] = useState(0) // each press of the reset button
+  const moon = useRef<Group>(null)
+  return (
+    <div className="stage">
+      {view === '2d' && <Map2D sites={sites} matrix={matrix} area={area} subsolar={subsolar} subearth={subearth} resetSignal={reset} />}
+      {view === '3d' && <Canvas camera={{ position: HOME, fov: 35, near: 0.01 }} onPointerMissed={() => setSelected(null)}>
+        <color attach="background" args={['#000000']} />
+        <Lights subsolar={subsolar} />
+        <Suspense fallback={null}>
+          <group ref={moon}
+            onClick={(e) => {
+              if (e.delta > 4 || mode !== 'live') return // a drag, or no API to ask
+              e.stopPropagation()
+              const [lat, lon] = vec3ToLatLon(e.point.x, e.point.y, e.point.z)
+              setPoint({ lat, lon })
+              setSelected(null)
+            }}
+          >
+            <Moon />
+            <SouthCap />
+          </group>
+        </Suspense>
+        {sites && matrix && <SiteMarkers sites={sites} matrix={matrix} />}
+        {area && <AreaDots area={area} mode={scaleMode} />}
+        {point && <PointMarkers point={point} best={area && !area.center_is_best ? area.best : null} />}
+        <Suspense fallback={null}><Sky subsolar={subsolar} subearth={subearth} moon={moon} /></Suspense>
+        <OrbitControls makeDefault enablePan={false} minDistance={1.15} maxDistance={16} rotateSpeed={0.5} zoomSpeed={0.7} />
+        <CameraFocus point={point} />
+        <CameraReset signal={reset} />
+      </Canvas>}
+
+      <header className="stage-top">
+        <h1>Lunar Landing Site Navigator</h1>
+        <div className="view-toggle" role="radiogroup" aria-label="View">
+          <button type="button" role="radio" aria-checked={view === '3d'} onClick={() => setView('3d')}>3D globe</button>
+          <button type="button" role="radio" aria-checked={view === '2d'} onClick={() => setView('2d')}>2D map</button>
+        </div>
+        <p className={`mode mode-${mode}`} title={mode === 'live' ? 'Connected to the analysis server: click anywhere on the Moon.' : undefined}>
+          {mode === 'live' ? (updating ? 'Live, updating' : 'Live') : mode === 'static' ? 'Offline' : 'Connecting'}
+        </p>
+        {matrix && (
+          <button type="button" className="compare-toggle" disabled={pins.length === 0} aria-pressed={compareOpen}
+            title={pins.length === 0 ? 'Add places with "Compare at this date" first.' : undefined}
+            onClick={() => setCompareOpen(!compareOpen)}>
+            Compare {pins.length > 0 ? pins.length : ''}
+          </button>
+        )}
+      </header>
+
+      <button type="button" className="view-reset" onClick={() => setReset(reset + 1)}
+        title={view === '3d' ? 'Back to the opening view' : 'Show the whole Moon'} aria-label="Reset the view">
+        <svg viewBox="0 0 24 24" aria-hidden><circle cx="12" cy="12" r="10.5" /><path className="n" d="M12 3.5 15 12H9z" /><path className="s" d="M12 20.5 9 12h6z" /></svg>
+      </button>
+      <MissionCard />
+
+      <div className="stage-foot">
+        {matrix && (
+          <div className="legend-row">
+            <label className="metric">
+              <span>Colour sites by</span>
+              <select value={metric} onChange={(e) => setMetric(e.target.value)}>
+                {Object.keys(matrix.cells).map((f) => <option key={f} value={f}>{metricMeta(f).label}</option>)}
+              </select>
+            </label>
+            <div className="legend">
+              <span>{metricMeta(metric).higherIsBetter ? 'Less' : 'More'}</span>
+              <span className="ramp" style={{ background: `linear-gradient(90deg, ${[0, 0.33, 0.66, 1].map(metricColor).join(',')})` }} />
+              <span>{metricMeta(metric).higherIsBetter ? 'More' : 'Less'}</span>
+              <span className="nodata"><i style={{ background: metricColor(null) }} />No data</span>
+            </div>
+          </div>
+        )}
+        <p className="credit">
+          Moon imagery: NASA's Scientific Visualization Studio, CGI Moon Kit; south pole: LROC WAC mosaic and LOLA 80 m elevation.
+          {view === '3d' ? ' Relief exaggerated four times. ' : ' Flat map: areas stretch toward the poles. '}
+          {subsolar
+            ? `Sunlight from the Sun's position at landing time (sub-solar point ${subsolar.lat.toFixed(1)}°, ${subsolar.lon.toFixed(1)}°).`
+            : 'Lighting is illustrative: no Sun position data for this date.'}
+          {view === '3d' && (subsolar || subearth) && (
+            <>
+              {' '}Sun and Earth: real directions, not to scale. Drawn {SKY.earthRadius} and {SKY.sunRadius} Moon radii in size at {SKY.earthDist} and{' '}
+              {SKY.sunDist} Moon radii away; really the Earth is 3.67 Moon radii in radius about 221 away, the Sun 400 in radius
+              about 86 100 away. Stars are decorative. Earth and Sun textures: Solar System Scope, CC BY 4.0.
+            </>
+          )}
+        </p>
+      </div>
+    </div>
+  )
+}

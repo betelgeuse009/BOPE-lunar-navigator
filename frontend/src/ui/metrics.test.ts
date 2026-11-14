@@ -14,3 +14,12 @@ describe('formatValue', () => {
     expect(formatValue(null, 'sunlit_frac')).toBe('no data')
   })
 })
+
+describe('domain', () => {
+  it('sorts parameters into Sun and Earth', async () => {
+    const { domain } = await import('./metrics')
+    expect(['sunlit_frac', 'longest_dark_h', 'hours_to_first_dark_h', 'mean_sun_el_when_lit_deg'].map(domain)).toEqual(['sun', 'sun', 'sun', 'sun'])
+    expect(['earth_visible_frac', 'longest_no_earth_h', 'hours_to_first_earth_loss_h'].map(domain)).toEqual(['earth', 'earth', 'earth'])
+    expect(['slope_deg', 'elevation_m', 'score', 'both_frac'].map(domain)).toEqual([undefined, undefined, undefined, undefined])
+  })
+})

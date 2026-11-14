@@ -14,7 +14,7 @@ describe('store', () => {
     expect(useApp.getState().dateIdx).toBe(30)
   })
   it('pins up to four places for comparison, each place and date once', () => {
-    const pin = (id: string) => ({ id, label: id, lat: 0, lon: 0, dateIdx: 0, minuteUtc: 0 })
+    const pin = (id: string) => ({ id, label: id, lat: 0, lon: 0, dateIdx: 0, dateUtc: '2026-11-01T00:00:00Z', minuteUtc: 0 })
     useApp.setState({ pins: [] })
     ;['a', 'b', 'a', 'c', 'd', 'e'].forEach((id) => useApp.getState().addPin(pin(id)))
     expect(useApp.getState().pins.map((p) => p.id)).toEqual(['a', 'b', 'c', 'd'])

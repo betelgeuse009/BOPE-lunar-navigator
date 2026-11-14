@@ -1,4 +1,5 @@
 import type { LimitKey, Limits, ProfileId, Settings } from '../data/api'
+import type { TopicId } from '../docs/topics'
 
 // Mission types and the minimum requirements they switch on. Every value carries its source; a value we could not
 // find published is null (switched on, entered by the user), never guessed. AERO reviews these for PARAMETERS.md (T30).
@@ -22,7 +23,7 @@ export const PROFILES: Record<ProfileId, Profile> = {
     },
   },
   crewed: {
-    label: 'Crewed (NASA south pole)',
+    label: 'Crewed',
     description: "NASA's published landing requirements for the first crewed south-pole landing, written for Artemis III "
       + '(that flight is now an Earth-orbit test in 2027; the landing is planned for Artemis IV). Also required but not '
       + 'checked here: land within 6° of the south pole and within 100 m of the target; EVA slopes under 20° over 2 km.',
@@ -44,12 +45,12 @@ export function profileSettings(id: ProfileId): Partial<Settings> {
 }
 
 // How each limit is shown and typed. Fractions are typed as percent.
-export const LIMITS: { key: LimitKey; label: string; unit: string; pct?: boolean; max: number }[] = [
-  { key: 'max_slope_deg', label: 'Max landing slope', unit: '°', max: 90 },
-  { key: 'max_dark_h', label: 'Max longest night', unit: 'h', max: 1000 },
-  { key: 'min_sunlit_frac', label: 'Min sunlight', unit: '%', pct: true, max: 100 },
-  { key: 'min_earth_visible_frac', label: 'Min Earth in view', unit: '%', pct: true, max: 100 },
-  { key: 'max_no_earth_h', label: 'Max longest blackout', unit: 'h', max: 1000 },
+export const LIMITS: { key: LimitKey; label: string; unit: string; pct?: boolean; max: number; help: TopicId }[] = [
+  { key: 'max_slope_deg', label: 'Max landing slope', unit: '°', max: 90, help: 'slope' },
+  { key: 'max_dark_h', label: 'Max longest night', unit: 'h', max: 1000, help: 'longest-night' },
+  { key: 'min_sunlit_frac', label: 'Min sunlight', unit: '%', pct: true, max: 100, help: 'sunlight' },
+  { key: 'min_earth_visible_frac', label: 'Min Earth in view', unit: '%', pct: true, max: 100, help: 'earth-in-view' },
+  { key: 'max_no_earth_h', label: 'Max longest blackout', unit: 'h', max: 1000, help: 'longest-blackout' },
 ]
 
 // "Max landing slope: 13.1° (limit 10°)" from an /api/evaluate violation.

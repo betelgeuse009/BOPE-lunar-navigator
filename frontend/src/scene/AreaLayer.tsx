@@ -1,5 +1,6 @@
+import { useFrame } from '@react-three/fiber'
 import { useLayoutEffect, useRef } from 'react'
-import { Color, type InstancedMesh, type Mesh, Object3D } from 'three'
+import { Color, DoubleSide, type Group, type InstancedMesh, type Mesh, type MeshBasicMaterial, Object3D, type RingGeometry } from 'three'
 import type { Area } from '../data/api'
 import type { Point } from '../state/store'
 import { areaColor, type ScaleMode } from '../ui/colors'
@@ -36,27 +37,51 @@ export function AreaDots({ area, mode }: { area: Area; mode: ScaleMode }) {
   )
 }
 
-// Clicked point (white) and the best point found nearby (ring).
+// Clicked point and the best point found nearby. Reticles that face the viewer and keep the same size on screen
+// at any zoom: dark backing (contrast on bright regolith), thin ring, four ticks, centre dot; the clicked point pulses.
+const POINT_COLOR = '#ffffff'
+const BEST_COLOR = '#f2e08a'
+const PX_PER_DISTANCE = 0.012 // marker radius in scene units per unit of camera distance (~16 px at the default view)
+
 export function PointMarkers({ point, best }: { point: Point; best: { lat_deg: number; lon_deg: number } | null }) {
   return (
     <group>
-      <mesh position={latLonToVec3(point.lat, point.lon, 1.002)} raycast={() => null}>
-        <sphereGeometry args={[0.006, 16, 12]} />
-        <meshBasicMaterial color="#ffffff" toneMapped={false} />
-      </mesh>
-      {best && <Ring at={latLonToVec3(best.lat_deg, best.lon_deg, 1.002)} />}
+      {best && <Target at={latLonToVec3(best.lat_deg, best.lon_deg, 1.003)} color={BEST_COLOR} />}
+      <Target at={latLonToVec3(point.lat, point.lon, 1.003)} color={POINT_COLOR} pulse />
     </group>
   )
 }
 
-// Ring lying flat on the surface (torus axis turned toward the Moon's centre).
-function Ring({ at }: { at: [number, number, number] }) {
-  const ref = useRef<Mesh>(null)
-  useLayoutEffect(() => { ref.current?.lookAt(0, 0, 0) }, [at])
+function Target({ at, color, pulse = false }: { at: [number, number, number]; color: string; pulse?: boolean }) {
+  const ref = useRef<Group>(null)
+  const halo = useRef<Mesh<RingGeometry, MeshBasicMaterial>>(null)
+  useFrame(({ camera, clock }) => {
+    const g = ref.current
+    if (!g) return
+    // Drawn on top of everything (site markers sit on the same spot), so hide it ourselves on the far side of the Moon.
+    g.visible = g.position.dot(camera.position) > g.position.lengthSq()
+    g.quaternion.copy(camera.quaternion) // face the viewer: a full circle even at grazing angles near the poles
+    g.scale.setScalar(camera.position.distanceTo(g.position) * PX_PER_DISTANCE)
+    if (halo.current) {
+      const t = (clock.elapsedTime % 1.6) / 1.6
+      halo.current.scale.setScalar(1 + 1.2 * t)
+      halo.current.material.opacity = 0.8 * (1 - t)
+    }
+  })
+  const mat = { toneMapped: false, side: DoubleSide, depthTest: false } as const
   return (
-    <mesh ref={ref} position={at} raycast={() => null}>
-      <torusGeometry args={[0.009, 0.0018, 8, 32]} />
-      <meshBasicMaterial color="#f2e08a" toneMapped={false} />
-    </mesh>
+    <group ref={ref} position={at}>
+      <mesh renderOrder={10} raycast={() => null}><ringGeometry args={[0.62, 1.12, 48]} /><meshBasicMaterial color="#000000" transparent opacity={0.55} {...mat} /></mesh>
+      <mesh renderOrder={11} raycast={() => null}><ringGeometry args={[0.8, 0.92, 64]} /><meshBasicMaterial color={color} {...mat} /></mesh>
+      {[0, 1, 2, 3].map((k) => (
+        <mesh key={k} renderOrder={11} raycast={() => null} rotation={[0, 0, (k * Math.PI) / 2]} position={[Math.cos((k * Math.PI) / 2) * 1.25, Math.sin((k * Math.PI) / 2) * 1.25, 0]}>
+          <planeGeometry args={[0.6, 0.1]} /><meshBasicMaterial color={color} {...mat} />
+        </mesh>
+      ))}
+      <mesh renderOrder={12} raycast={() => null}><circleGeometry args={[0.16, 24]} /><meshBasicMaterial color={color} {...mat} /></mesh>
+      {pulse && (
+        <mesh ref={halo} renderOrder={9} raycast={() => null}><ringGeometry args={[0.95, 1.05, 64]} /><meshBasicMaterial color={color} transparent {...mat} /></mesh>
+      )}
+    </group>
   )
 }
