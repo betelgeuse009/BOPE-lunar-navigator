@@ -1,0 +1,50 @@
+{
+ "cap_deg": 10,
+ "elevation": {
+  "range": [
+   -5300.0,
+   5700.0
+  ],
+  "unit": "m",
+  "global": "layers/elevation_global.png",
+  "cap": "layers/elevation_south.png",
+  "global_pixel_m": 237,
+  "cap_pixel_m": 80.0,
+  "data_min": -9045.0,
+  "data_max": 10720.5
+ },
+ "slope": {
+  "range": [
+   0,
+   30
+  ],
+  "unit": "deg",
+  "cap": "layers/slope_south.png",
+  "cap_pixel_m": 80.0
+ },
+ "sun_visibility": {
+  "range": [
+   0,
+   100
+  ],
+  "unit": "%",
+  "cap": "layers/sun_visibility_south.png",
+  "cap_pixel_m": 60.0,
+  "data_max": 60.7599983215332
+ },
+ "earth_visibility": {
+  "range": [
+   0,
+   100
+  ],
+  "unit": "%",
+  "cap": "layers/earth_visibility_south.png",
+  "cap_pixel_m": 60.0,
+  "data_max": 100.0
+ },
+ "psr": {
+  "cap": "layers/psr_south.png",
+  "count": 1531,
+  "area_km2": 18921
+ }
+}

@@ -141,3 +141,13 @@ export function useWindows(startUtc: string | undefined): Result<Windows> {
   const site = useSiteWindow(startUtc)
   return useApiRequest(site && JSON.stringify(site), (p) => apiGet('metrics', p, Windows))
 }
+
+// Distance to the Earth and to the Sun at the landing time, to draw them to scale. The server measures distances
+// from a place on the surface; the centre of the near side (0 N, 0 E) is used, at most one Moon radius from the centre.
+export function useSkyDistances(startUtc: string | undefined): { earthKm: number; sunKm: number } | null {
+  const mode = useApp((s) => s.mode)
+  const params = mode === 'live' && startUtc ? { lat_deg: '0', lon_deg: '0', start_utc: startUtc, mission_h: '2', step_s: '3600' } : null
+  const e = useApiRequest(params && JSON.stringify(params), (p) => apiGet('ephemeris', p, Ephemeris)).data
+  const earthKm = e?.earth_dist_km?.[0], sunKm = e?.sun_dist_km?.[0]
+  return earthKm && sunKm ? { earthKm, sunKm } : null
+}

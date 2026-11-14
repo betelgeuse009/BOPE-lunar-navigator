@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { DEFAULT_SETTINGS, type Settings } from '../data/api'
 import { addDays } from '../data/load'
+import type { LayerId } from '../scene/layers'
 import type { ScaleMode } from '../ui/colors'
 
 export type Mode = 'checking' | 'live' | 'static'
@@ -28,6 +29,8 @@ type AppState = {
   scaleMode: ScaleMode
   pins: Pin[]
   compareOpen: boolean
+  layer: LayerId | null     // map layer drawn over the Moon
+  setLayer: (l: LayerId | null) => void
   setDateIdx: (i: number) => void
   setDateCount: (n: number) => void
   setStaticDates: (d: string[]) => void
@@ -64,6 +67,8 @@ export const useApp = create<AppState>((set) => ({
   scaleMode: 'absolute',
   pins: [],
   compareOpen: false,
+  layer: null,
+  setLayer: (layer) => set({ layer }),
   setDateIdx: (i) => set((s) => ({ dateIdx: clamp(i, s.dateCount) })),
   setDateCount: (n) => set((s) => ({ dateCount: n, dateIdx: clamp(s.dateIdx, n) })),
   setStaticDates: (staticDates) => set({ staticDates }),
