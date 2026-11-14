@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { latLonToVec3 } from './geo'
+import { latLonToVec3, polarCapUV } from './geo'
 
 describe('latLonToVec3', () => {
   it('puts (0,0) on +x', () => {
@@ -16,5 +16,20 @@ describe('latLonToVec3', () => {
     const v = latLonToVec3(-89.9999, 37, 1737.4)
     v.forEach((c) => expect(Number.isFinite(c)).toBe(true))
     expect(v[1]).toBeLessThan(0)
+  })
+})
+
+describe('polarCapUV', () => {
+  it('puts the south pole at the centre of the cap texture', () => {
+    const [u, v] = polarCapUV(-90, 0, 20)
+    expect(u).toBeCloseTo(0.5); expect(v).toBeCloseTo(0.5)
+  })
+  it('puts the cap edge at lon 0 on the right edge (matches scripts/textures.py)', () => {
+    const [u, v] = polarCapUV(-70, 0, 20)
+    expect(u).toBeCloseTo(1); expect(v).toBeCloseTo(0.5)
+  })
+  it('puts lon 90E at the top', () => {
+    const [u, v] = polarCapUV(-80, 90, 20)
+    expect(u).toBeCloseTo(0.5); expect(v).toBeCloseTo(0.75)
   })
 })

@@ -4,6 +4,7 @@ import { Suspense, useEffect, useState } from 'react'
 import { isFixture, loadAll } from './data/load'
 import { Lights, Moon } from './scene/Moon'
 import { SiteMarkers } from './scene/SiteMarkers'
+import { SouthCap } from './scene/SouthCap'
 import { useApp } from './state/store'
 import { metricColor } from './ui/colors'
 import { DateRail } from './ui/DateRail'
@@ -31,6 +32,7 @@ export default function App() {
         <Lights />
         <Suspense fallback={null}>
           <Moon />
+          <SouthCap />
         </Suspense>
         {data && <SiteMarkers sites={data.sites.sites} matrix={data.matrix} />}
         <OrbitControls enablePan={false} minDistance={1.15} maxDistance={6} rotateSpeed={0.5} zoomSpeed={0.7} />
