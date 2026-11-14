@@ -24,12 +24,12 @@ to Earth? What changes if I move the date or the site?"* South pole first, but t
 
 ## 2. Data sources (download to `data/raw/`, never commit)
 
-### 2.1 SPICE kernels (~45 MB total) → `data/raw/kernels/`
+### 2.1 SPICE kernels (~45 MB total) → `data/raw/kernel/`
 | File | Content |
 |---|---|
 | `de440s.bsp` | Sun, Earth, Moon positions (1849–2150) |
 | `moon_pa_de440_200625.bpc` | Lunar orientation over time (libration) |
-| `moon_de440_250416.tf` | Lunar frame definitions incl. `MOON_ME` (TODO: verify the exact file name on NAIF) |
+| `moon_de440_250416.tf` | Lunar frame definitions incl. `MOON_ME` (file verified present and valid 2026-11-14) |
 | `naif0012.tls` | Leap seconds |
 | `pck00011.tpc` | Body constants (radii) |
 

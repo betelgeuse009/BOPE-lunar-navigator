@@ -14,8 +14,8 @@
   (reference frames, time systems, geometry, uncertainty, validation against references), not just data processing.
 
 ## How to work with me
-- Language: I may talk to you in Italian, so reply to me in Italian. Everything written into the repo
-  (code, comments, docs, LOG entries, commit messages) is in English.
+- Language: I may talk to you in Italian, but always reply in English, also in chat (Erdeniz often reads
+  along). Everything written into the repo (code, comments, docs, LOG entries, commit messages) is in English.
 - Be direct and technical on physics and maths. I'm an engineer, so don't simplify the science.
 - Git, GitHub, VS Code, Claude Code: you are my git operator (CLAUDE.md §1). Run the commands for me and
   explain each one in one plain sentence. Never ask me to type git commands. If something goes wrong
