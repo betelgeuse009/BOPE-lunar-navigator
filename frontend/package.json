@@ -12,7 +12,8 @@
     "fixtures": "node scripts/make-fixtures.mjs",
     "predev": "node scripts/sync-data.mjs",
     "prebuild": "node scripts/sync-data.mjs",
-    "prepreview": "node scripts/sync-data.mjs"
+    "prepreview": "node scripts/sync-data.mjs",
+    "api": "cd .. && uv run --with-requirements analysis/requirements.txt uvicorn analysis.api:app --port 8000"
   },
   "dependencies": {
     "@fontsource/barlow-semi-condensed": "^5.3.0",
