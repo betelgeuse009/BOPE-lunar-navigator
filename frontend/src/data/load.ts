@@ -44,10 +44,10 @@ export function periodAt(manifest: Manifest, timeUtc: string): Manifest['periods
   return manifest.periods.find((p) => Date.parse(p.start_utc) <= t && t < Date.parse(p.end_utc)) ?? null
 }
 
-// Landing time = the landing date (a UTC day) at the chosen hour, UTC.
-export function landingAt(dateUtc: string, hourUtc: number): string {
+// Landing time = the landing date (a UTC day) plus the chosen time of day, in minutes after 00:00 UTC.
+export function landingAt(dateUtc: string, minuteUtc: number): string {
   const d = new Date(dateUtc)
-  d.setUTCHours(hourUtc, 0, 0, 0)
+  d.setUTCHours(Math.floor(minuteUtc / 60), minuteUtc % 60, 0, 0)
   return d.toISOString().replace('.000Z', 'Z')
 }
 

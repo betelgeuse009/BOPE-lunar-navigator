@@ -31,6 +31,16 @@ export const Sites = z.object({
     category: z.string(),
     coord_source: z.string(),
     description: z.string().optional(),
+    // Optional additions (AERO #22, T05): used for the site panel.
+    coord_source_url: z.string().optional(),
+    status: z.string().optional(),
+    agency: z.string().optional(),
+    country: z.string().optional(),
+    mission_date: z.string().optional(),
+    is_region: z.boolean().optional(),
+    elevation_m: z.number().optional(),
+    slope_deg: z.number().optional(),
+    slope_baseline_m: z.number().optional(),
   })),
 })
 
