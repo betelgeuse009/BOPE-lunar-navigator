@@ -231,3 +231,24 @@ Needs from AERO: nothing new. When evaluate/area schemas land, FE will switch it
 Questions for AERO: none
 Next: limits (feasibility) in the settings panel, mission profiles when the crewed preset has sources (T30).
 Commits: fe/api-hybrid
+
+## 2026-11-14 15:59 · AERO
+Done: read FE 16:10 (great, thanks). Maps checked and documented, ready for the terrain work (T28):
+  - All 11 LOLA/LROC maps downloaded by Gabriele and checked: every file opens, same 1737.4 km sphere and polar stereographic
+    projection, heights agree between products (5 m vs 80 m median -0.1 m; 240 m vs 80 m median -0.2 m).
+  - NEW data/MAPS.md (shared reference: paths, units, coverage, sources, checks, which map is used where). It replaces the
+    old maps README with the backend/ paths you flagged at 13:40.
+  - NEW analysis/download_maps.py: --check reports what you have; without flags it downloads what is missing
+    (~3 GB, plus 3.3 GB with --all). URLs and sizes verified today. You already have the 80 m DEM; you only need the rest
+    if you run the terrain API yourself once T28 lands.
+  - Decision (DECISIONS.md): slope = official 80 m map south of 80°S, computed from the DEM elsewhere. Our slope from the 80 m
+    DEM reproduces the official map (median |diff| 0.10-0.17°, r = 0.996-0.999). No extra maps for now; north polar set is
+    optional (T31).
+Changed contract: no
+Heads-up for T28 (coming next): slope_deg and elevation_m will become numbers instead of null, with the DEM baseline
+  reported (80/240/237 m); /api/horizon will return a real profile (horizon.schema.json); /api/area scores will start to
+  vary across ridges and craters.
+Needs from FE: nothing.
+Questions for FE: none
+Next: T28 terrain in the API (horizon profile, slope, elevation), then evaluate/area JSON Schemas.
+Commits: see PR aero -> main

@@ -63,3 +63,18 @@ Short dated entries: decision, why, alternatives rejected. This becomes the "met
 - Reproducible: `python -m analysis.validate_horizons` (raw replies cached in `data/validation/horizons/`, report in
   `docs/validation/horizons.md`); `analysis/tests/test_horizons.py` reruns it offline in every test run.
 - Not covered by this check: terrain (horizon, slope), which has its own validation plan (vs LOLA `AVGVISIB`, T23).
+
+## 2026-11-14 · Maps: south-pole LOLA set + global 237 m; slope computed from the DEMs where no slope map exists
+- The 11 maps in `data/MAPS.md` are downloaded and checked: all open, same sphere (1737.4 km) and polar stereographic
+  projection; heights agree between products (5 m vs 80 m median -0.1 m, 240 m vs 80 m median -0.2 m).
+- Slope: use the official LOLA 80 m slope map south of 80°S; elsewhere compute slope from the DEM (central differences,
+  stereographic scale factor). Check: our slope from the 80 m DEM reproduces the official map, median |diff| 0.10-0.17°,
+  correlation 0.996-0.999 (four 16 km windows). Every slope is reported with its baseline (80/240/237 m).
+- Why not download a slope map: the LOLA archive has no slope map from 80°S to the north pole at a useful resolution
+  (global `LDSM_16` is ~1.9 km per pixel; polar slope maps only above 75° and 85°). Computing it is consistent, already
+  validated, and costs no download.
+- Coverage: no more maps for now. The challenge centres on the south pole, which is fully covered (5 m / 80 m / 240 m).
+  Mid-latitudes use the 237 m global map: the Sun is high there, so the horizon needs little detail.
+  Optional later: north polar set `LDEM_80N_80M` + `LDEM_60N_240M` (225 MB) if north polar sites are wanted.
+  Rejected: global 512 px/deg tiles (32 GB) for little gain.
+- Limitation: no map resolves metre-scale slopes or boulders; slope is a regional indicator, not landing safety.
