@@ -129,3 +129,46 @@ Needs from AERO: nothing new (T17 PARAMETERS.md still the one the colouring wait
 Questions for AERO: none
 Next: globe on data/samples/, real Sun lighting from scene/.
 Commits: 92eef37, 10cea06 (in #8)
+
+## 2026-11-14 14:25 · AERO
+Done: API-first, as agreed in person today (decision recorded in docs/DECISIONS.md; replaces "no live API in v0.1").
+  - LIVE API: analysis/api.py (FastAPI). Reference for you: contracts/API.md. Interactive docs at http://localhost:8000/docs.
+    Endpoints: /api/health, /sites, /scene, /ephemeris, /metrics, /matrix (same shapes as the contract schemas, tested against
+    them), plus two new ones:
+      /api/evaluate  one site + window + user settings → 21 site parameters, feasible yes/no with violations, score 0..1
+      /api/area      disc around a clicked point → parallel arrays (lat, lon, east_km, north_km, score, feasible, parameters),
+                     score_range for the colour gradient, best point, center_is_best. Index 0 = the clicked point.
+    User settings are query parameters: obs_height_m (mast), sun_threshold_frac, earth_min_elev_deg, load_w, panel_area_m2,
+    panel_efficiency_frac, weights w_*, limits min_*/max_*. Any lat/lon on the Moon, or site_id.
+  - Speed (measured): evaluate/metrics in ms once a time window is cached (first call < 1 s for 14 d at 1 min);
+    area 317 points 0.3 s, 1257 points 0.7 s; ephemeris 30 d 0.2 s.
+  - T17: docs/PARAMETERS.md (parameters, formulas, sources, feasibility limits, score). v0, Gabriele may still tune weights.
+  - analysis/ is now a package: config, ephemeris, horizon, visibility, metrics, scoring, sites, products, api, build,
+    download_kernels, tests (36 pass). How to run everything: analysis/README.md.
+  - data/samples/ rebuilt with the new code (python -m analysis.build); still 17 files, all valid. matrix.json now also has
+    a "score" grid (default weights) for the globe colouring.
+To run the API on your machine (once):
+    python -m venv .venv
+    .venv/Scripts/python.exe -m pip install -r analysis/requirements.txt      (Linux/macOS: .venv/bin/python)
+    .venv/Scripts/python.exe -m analysis.download_kernels                     (45 MB from NASA NAIF, URLs verified)
+    .venv/Scripts/python.exe -m uvicorn analysis.api:app --port 8000
+Changed contract: yes, additions only. New contracts/API.md (the API itself; evaluate and area responses are documented there
+  with real examples, no JSON Schema yet). Existing schemas unchanged; contract stays v0.1.
+Changed since the 12:32 samples (values differ slightly):
+  - Horizon model is now "smooth-sphere": the horizon sits at -acos(R/(R+h)) (-0.087 deg at 2 m) instead of flat 0 deg, so the
+    mast height already has an effect. Metrics are computed at 1 min (series still exported at 10 min).
+  - source.datasets now carries the NAIF URL of each kernel.
+Limits you should show or know:
+  - Terrain is NOT in yet: slope_deg and elevation_m are null, /api/horizon returns 501, terrain_available=false in every
+    evaluation. Without terrain, neighbouring points in /api/area differ very little (e.g. score 0.892..0.900 over 5 km).
+    The gradient will become meaningful with the LOLA horizon and slope (T28).
+  - null means "not available", never 0. All uncertainties are null.
+  - Checked against SPICE azlcpo (< 3e-5 deg), NOT yet against JPL Horizons (T06).
+  - /api/sites still returns the three example points (T05 open).
+Needs from FE: T27: call /api/evaluate on click and /api/area for the gradient; settings panel for the inputs.
+  Tell me if a response shape is awkward for the globe and I will change it now, while it is cheap.
+Questions for FE:
+  1. Public demo (T29): hosted Python server, or static fallback only for the judges' link?
+  2. Your Drive maps/README note (13:40): noted, I will fix the old backend paths when the LOLA download script lands (T19).
+Next: JPL Horizons cross-check (T06), then LOLA terrain: horizon, slope, elevation (T07/T28), then curated sites (T05).
+Commits: see PR aero → main
