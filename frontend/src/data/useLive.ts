@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useApp, type Pin } from '../state/store'
 import { Area, Evaluation, apiAvailable, apiGet, areaSpacingKm, settingsQuery } from './api'
 import { createLatestRunner } from './latest'
-import { parseFile } from './load'
+import { landingAt, parseFile } from './load'
 import { Matrix } from './schemas'
 
 function useDebounced<T>(value: T, ms: number): T {
@@ -56,10 +56,10 @@ export function useApiHealth() {
 
 // Live site x date matrix with the user's settings; the static matrix supplies the site list and dates.
 export function useLiveMatrix(base: Matrix | null): Result<Matrix> {
-  const { mode, settings } = useApp()
+  const { mode, settings, hourUtc } = useApp()
   const s = useDebounced(settings, 300)
   const params = base && mode === 'live'
-    ? { ...settingsQuery(s), site_ids: base.site_ids.join(','), start_utc: base.landing_dates_utc[0],
+    ? { ...settingsQuery(s), site_ids: base.site_ids.join(','), start_utc: landingAt(base.landing_dates_utc[0], hourUtc),
         n_dates: String(base.landing_dates_utc.length), date_step_h: '24' }
     : null
   return useApiRequest(params && JSON.stringify(params), async (p) =>
@@ -75,14 +75,14 @@ export function useEvaluation(startUtc: string | undefined): Result<Evaluation> 
   return useApiRequest(params && JSON.stringify(params), (p) => apiGet('evaluate', p, Evaluation))
 }
 
-// /api/evaluate for every pinned place at its own landing date, with the current settings. Keyed by pin id,
+// /api/evaluate for every pinned place at its own landing date and hour, with the current settings. Keyed by pin id,
 // so a stale result never lands in the wrong column while a new pin is loading. Cheap after the first call:
 // AERO caches Sun/Earth per month and skylines per point.
 export function useCompareEvaluations(pins: Pin[], dates: string[]): Result<Record<string, Evaluation>> {
   const { mode, settings } = useApp()
   const s = useDebounced(settings, 300)
   const reqs = mode === 'live'
-    ? pins.map((p) => ({ id: p.id, params: { ...settingsQuery(s), lat_deg: p.lat.toFixed(4), lon_deg: p.lon.toFixed(4), start_utc: dates[p.dateIdx] } }))
+    ? pins.map((p) => ({ id: p.id, params: { ...settingsQuery(s), lat_deg: p.lat.toFixed(4), lon_deg: p.lon.toFixed(4), start_utc: landingAt(dates[p.dateIdx], p.hourUtc) } }))
     : []
   return useApiRequest(reqs.length ? JSON.stringify(reqs) : null, async (list: typeof reqs) =>
     Object.fromEntries(await Promise.all(list.map(async (r) => [r.id, await apiGet('evaluate', r.params, Evaluation)] as const))))

@@ -4,13 +4,14 @@ import type { ScaleMode } from '../ui/colors'
 
 export type Mode = 'checking' | 'live' | 'static'
 export type Point = { lat: number; lon: number }
-// A place pinned for comparison, with the landing date it was pinned at. siteId is set for catalogue sites.
-export type Pin = { id: string; label: string; lat: number; lon: number; dateIdx: number; siteId?: string }
+// A place pinned for comparison, with the landing date and hour it was pinned at. siteId is set for catalogue sites.
+export type Pin = { id: string; label: string; lat: number; lon: number; dateIdx: number; hourUtc: number; siteId?: string }
 export const MAX_PINS = 4
 
 type AppState = {
   dateIdx: number
   dateCount: number
+  hourUtc: number          // landing hour of day, UTC (live mode; offline data is at 00:00)
   metric: string
   hoveredSite: string | null
   selectedSite: string | null
@@ -23,6 +24,7 @@ type AppState = {
   compareOpen: boolean
   setDateIdx: (i: number) => void
   setDateCount: (n: number) => void
+  setHourUtc: (h: number) => void
   setMetric: (m: string) => void
   setHovered: (id: string | null) => void
   setSelected: (id: string | null) => void
@@ -41,6 +43,7 @@ const clamp = (i: number, n: number) => Math.min(Math.max(0, Math.round(i)), Mat
 export const useApp = create<AppState>((set) => ({
   dateIdx: 0,
   dateCount: 0,
+  hourUtc: 0,
   metric: 'score',
   hoveredSite: null,
   selectedSite: null,
@@ -53,6 +56,7 @@ export const useApp = create<AppState>((set) => ({
   compareOpen: false,
   setDateIdx: (i) => set((s) => ({ dateIdx: clamp(i, s.dateCount) })),
   setDateCount: (n) => set((s) => ({ dateCount: n, dateIdx: clamp(s.dateIdx, n) })),
+  setHourUtc: (hourUtc) => set({ hourUtc }),
   setMetric: (metric) => set({ metric }),
   setHovered: (hoveredSite) => set({ hoveredSite }),
   setSelected: (selectedSite) => set({ selectedSite }),

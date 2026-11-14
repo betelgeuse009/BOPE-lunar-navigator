@@ -6,9 +6,11 @@ import { goodness } from './metrics'
 
 const fmt = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' })
 
-// Landing-date slider whose track is a strip of days, each coloured by the best site's score that day.
+const HOURS = Array.from({ length: 24 }, (_, h) => h)
+
+// Landing-date slider (plus the landing hour, UTC, in live mode) whose track is a strip of days, each coloured by the best site's score that day.
 export function DateRail({ matrix }: { matrix: Matrix }) {
-  const { dateIdx, metric, setDateIdx } = useApp()
+  const { dateIdx, hourUtc, mode, metric, setDateIdx, setHourUtc } = useApp()
   const dates = matrix.landing_dates_utc
   const best = dates.map((_, d) => {
     const vals = matrix.site_ids
@@ -21,6 +23,13 @@ export function DateRail({ matrix }: { matrix: Matrix }) {
       <div className="rail-head">
         <label htmlFor="landing-date">Landing date</label>
         <output htmlFor="landing-date">{fmt.format(new Date(dates[dateIdx]))}</output>
+        <label className="hour" title={mode === 'live' ? undefined : 'Offline data is computed for landings at 00:00 UTC. Start the analysis server to pick another hour.'}>
+          at
+          <select value={mode === 'live' ? hourUtc : 0} disabled={mode !== 'live'} onChange={(e) => setHourUtc(Number(e.target.value))}>
+            {HOURS.map((h) => <option key={h} value={h}>{String(h).padStart(2, '0')}:00</option>)}
+          </select>
+          UTC
+        </label>
       </div>
       <div className="rail-track">
         <div className="rail-cells" aria-hidden>

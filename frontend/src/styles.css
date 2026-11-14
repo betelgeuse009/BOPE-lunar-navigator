@@ -197,3 +197,6 @@ h1 { text-shadow: 0 1px 6px rgba(0, 0, 0, 0.9); }
 @media (max-width: 640px) {
   .compare { top: 80px; max-height: calc(100% - 300px); }
 }
+.rail-head .hour { display: flex; align-items: baseline; gap: 6px; color: var(--regolith-2); }
+.rail-head .hour select { font: 600 20px var(--font); color: var(--regolith-1); background: var(--shade); border: 1px solid var(--regolith-3); border-radius: 2px; padding: 0 4px; }
+.rail-head .hour select:disabled { color: var(--regolith-2); }

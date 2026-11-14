@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { Manifest, Matrix, Scene, Sites } from './schemas'
-import { cellValue, isPreliminary, parseFile, periodAt, sceneIndexAt } from './load'
+import { cellValue, isPreliminary, landingAt, parseFile, periodAt, sceneIndexAt } from './load'
 
 const fixture = (name: string) =>
   JSON.parse(readFileSync(new URL(`../../public/fixtures/${name}`, import.meta.url), 'utf8'))
@@ -82,5 +82,15 @@ describe('sceneIndexAt', () => {
     expect(sceneIndexAt(sc, '2026-11-01T00:16:00Z')).toBe(2)
     expect(sceneIndexAt(sc, '2026-10-01T00:00:00Z')).toBe(0)
     expect(sceneIndexAt(sc, '2027-01-01T00:00:00Z')).toBe(4319)
+  })
+})
+
+describe('landingAt', () => {
+  it('sets the landing hour (UTC) on a landing date', () => {
+    expect(landingAt('2026-11-15T00:00:00Z', 0)).toBe('2026-11-15T00:00:00Z')
+    expect(landingAt('2026-11-15T00:00:00Z', 13)).toBe('2026-11-15T13:00:00Z')
+  })
+  it('replaces the time of a date that already has one', () => {
+    expect(landingAt('2026-11-15T06:00:00Z', 23)).toBe('2026-11-15T23:00:00Z')
   })
 })
