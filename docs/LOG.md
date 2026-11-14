@@ -252,3 +252,46 @@ Needs from FE: nothing.
 Questions for FE: none
 Next: T28 terrain in the API (horizon profile, slope, elevation), then evaluate/area JSON Schemas.
 Commits: see PR aero -> main
+
+
+## 2026-11-14 16:57 · FE
+Re-sent: my 15:30 (uv proposal) and 15:55 (date-slider bug + caching request) entries were lost when a LOG merge
+  conflict was resolved on GitHub (PR #16 merged without them). Their full text, unchanged, is below. Also: the FE entry
+  stamped "16:10" was written at about 15:10.
+Read AERO 15:59: thanks, data/MAPS.md and the slope check (r = 0.996-0.999) are great. FE waits for T28.
+Changed contract: no
+---- original 15:30 entry ----
+Proposal for AERO (your folder, your decision): manage the analysis Python dependencies with uv (https://docs.astral.sh/uv/).
+  Why:
+  - One lockfile (uv.lock) pins exact versions of numpy, spiceypy, fastapi, uvicorn..., so your Windows machine, Erdeniz's
+    Linux machine and a hosted server for the judges' link (T29) run identical packages. requirements.txt is unpinned today.
+  - No venv/pip steps and no python3-venv system package: `uv sync` creates .venv, `uv run ...` uses it. Same commands on
+    Windows and Linux (no .venv/Scripts vs .venv/bin difference).
+  - Fast installs, and hosting gets simpler (`uv sync --frozen` in a container).
+  What it would look like:
+  - pyproject.toml at the repo root (or analysis/pyproject.toml), dependencies moved from analysis/requirements.txt,
+    pytest/httpx as a dev group; `uv lock` writes uv.lock (committed). Python >= 3.11 as your README says.
+  - Commands become: `uv sync`, `uv run python -m analysis.download_kernels`, `uv run uvicorn analysis.api:app --port 8000`,
+    `uv run pytest analysis`. Install uv on Windows: `powershell -c "irm https://astral.sh/uv/install.ps1 | iex"`.
+  - requirements.txt can stay for a while (or be generated with `uv export`) so nothing breaks during the switch.
+  Meanwhile, without touching your files: FE added `npm run api` (frontend/package.json) =
+    `uv run --with-requirements analysis/requirements.txt uvicorn analysis.api:app --port 8000`, which works with your
+    current requirements.txt. If you adopt the full setup, FE switches that script to `uv run uvicorn ...`.
+Changed contract: no
+Needs from AERO: yes/no on the uv proposal (and who does it: you, or FE prepares the pyproject.toml as a PR for you to review).
+Questions for AERO: see above.
+Commits: fe/api-hybrid 074baf4 (npm run api)
+---- original 15:55 entry ----
+Bug found while testing the API from the globe (Erdeniz): after moving the landing-date slider, scores stopped updating,
+  even for new clicks. Root cause, measured here: every new landing date is a new time window, and /evaluate needs ~2.7 s
+  for a new window; FE sent one request per slider step, the server cannot cancel them, so a 15-date drag queued
+  ~40 s of work and the next click answered after 53 s. Your numbers were right all along (checked 4 dates x 4 points).
+  FE fix (fe/api-hybrid dee7c48): at most one request in flight per panel; newer ones replace each other.
+Request for AERO (performance, your call how): make a new landing date cheap. Idea: cache the Sun/Earth vectors on a fixed
+  grid (for example per calendar month at calc_step_s) and slice any window out of it, instead of caching per exact
+  [start, end]. Then dragging through 30 dates in the same month would cost one computation, not 30.
+  Even better for the slider: an /evaluate variant that takes several start dates in one call (like /matrix does for points).
+Changed contract: no
+Needs from AERO: the caching change above (or tell me it is not feasible).
+Questions for AERO: none
+Commits: fe/api-hybrid dee7c48
