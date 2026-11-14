@@ -2,6 +2,7 @@
 
 Owner: AERO. Static file for the 2D and 3D maps, also served live by `/api/sites`. Built by
 `python -m analysis.build --sites` from the catalogue in `analysis/sites.py`; validated by `contracts/validate.py`.
+The full precomputed set for these sites (skylines, ephemerides, metrics, matrix) is in `data/processed/`: 160 files, 29.1 MB: sites.json, manifest.json, matrix.json (31 sites x 181 daily landings 2026-11-01..2027-04-30), 31 horizon/, 62 ephemeris/ (~439 kB each), 62 metrics/, 2 scene/.
 
 **Rule: every coordinate has a cited source in the file** (`coord_source`, `coord_source_url`). Nothing is filled in from
 memory. Coordinates are planetocentric latitude and east longitude (−180..180), Mean Earth / Polar Axis frame.

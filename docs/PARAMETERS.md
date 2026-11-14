@@ -30,13 +30,15 @@ Visible fraction = part of the disk above the horizon (circular-segment formula,
 |---|---|---|---|
 | `sunlit_frac` | 0..1 | share of the window with `lit` | power availability |
 | `longest_dark_h` | h | longest continuous period without `lit` | battery sizing, thermal survival |
-| `hours_to_first_dark_h` | h | time from landing to the first dark step (`null` = never dark) | operations planning |
+| `hours_to_first_dark_h` | h | time left before sunset: from landing to the first dark step (0 = dark at landing, `null` = never dark) | operations planning, power window |
+| `hours_to_first_sun_h` | h | time to sunrise: from landing to the first sunlit step (0 = Sun already up, `null` = no sunrise in the window) | landing in darkness: how long on batteries |
 | `mean_sun_el_when_lit_deg`, `sun_el_min_deg`, `sun_el_max_deg` | deg | Sun elevation statistics | array pointing (vertical arrays at the poles), shadows |
 | `sun_energy_tracking_kwh_m2` | kWh/m² | ∫ S₀ · (1 AU / d)² · Sun visible fraction · dt | energy reaching 1 m² that always faces the Sun |
 | `mean_irradiance_w_m2` | W/m² | the same, divided by the window length | average power density |
 | `earth_visible_frac` | 0..1 | share of the window with `comm` | direct-to-Earth link availability |
 | `longest_no_earth_h` | h | longest continuous period without `comm` | longest communication blackout |
-| `hours_to_first_earth_loss_h` | h | time from landing to the first step without `comm` | operations planning |
+| `hours_to_first_earth_loss_h` | h | time left before Earthset: from landing to the first step without `comm` (0 = no Earth at landing, `null` = never lost) | communication window |
+| `hours_to_first_earth_h` | h | time to Earthrise: from landing to the first step with `comm` (0 = Earth already up, `null` = never visible) | first contact after landing |
 | `mean_earth_el_when_visible_deg`, `earth_el_min_deg`, `earth_el_max_deg` | deg | Earth elevation statistics | antenna pointing, link margin near the horizon |
 | `both_frac` | 0..1 | share of the window with `lit` and `comm` together | time for powered, commandable operations |
 | `energy_generated_kwh` | kWh | `sun_energy_tracking_kwh_m2 · panel_area_m2 · panel_efficiency_frac` | needs the panel inputs |
