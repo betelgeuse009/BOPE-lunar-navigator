@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { latLonToVec3, polarCapUV } from './geo'
+import { latLonToVec3, polarCapUV, vec3ToLatLon } from './geo'
 
 describe('latLonToVec3', () => {
   it('puts (0,0) on +x', () => {
@@ -31,5 +31,14 @@ describe('polarCapUV', () => {
   it('puts lon 90E at the top', () => {
     const [u, v] = polarCapUV(-80, 90, 20)
     expect(u).toBeCloseTo(0.5); expect(v).toBeCloseTo(0.75)
+  })
+})
+
+describe('vec3ToLatLon', () => {
+  it('inverts latLonToVec3', () => {
+    for (const [lat, lon] of [[0, 0], [-89.5, -135], [45, 120], [-10, -170]]) {
+      const [la, lo] = vec3ToLatLon(...latLonToVec3(lat, lon, 1.0005))
+      expect(la).toBeCloseTo(lat, 6); expect(lo).toBeCloseTo(lon, 6)
+    }
   })
 })
