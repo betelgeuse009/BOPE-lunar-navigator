@@ -35,6 +35,8 @@ export const REFS = {
   // Journal details of the next two added by the front end from memory; AERO to confirm (LOG).
   de440: { text: 'Park, R. S. et al. (2021), "The JPL Planetary and Lunar Ephemerides DE440 and DE441", Astron. J. 161, 105. Kernel used: de440s.bsp.' },
   spice: { text: 'Acton, C. H. (1996), "Ancillary data services of NASA\'s Navigation and Ancillary Information Facility", Planet. Space Sci. 44, 65-70 (SPICE toolkit).' },
+  contract: { text: 'BOPE team, "Data contract", contracts/README.md and contracts/schemas/ in the project repository.' },
+  wikipedia: { text: 'Wikipedia, the free encyclopedia: opening paragraphs of each mission article, licence CC BY-SA 4.0; images from Wikimedia Commons under the licence shown on each card.', url: 'https://en.wikipedia.org' },
   nssdca: { text: 'NASA NSSDCA, lunar landing and impact site coordinates.', url: 'https://nssdc.gsfc.nasa.gov/planetary/lunar/lunar_sites.html' },
   lroc: { text: 'LROC (Lunar Reconnaissance Orbiter Camera) image measurements of landing sites.', url: 'https://lroc.im-ldi.com' },
 } satisfies Record<string, { text: string; url?: string }>
@@ -55,8 +57,12 @@ const DEFS = {
       { h: 'Description', p: [
         'All parameters are computed over the mission window $[t_0,\\ t_0 + T]$, with $t_0$ the landing time and $T$ the surface stay. On the Moon the Sun and the Earth move slowly along the horizon (a lunar day lasts about 29.5 Earth days), so the same place can be a good or a bad choice depending on the day and hour of landing.',
       ] },
+      { h: 'Calendar', p: [
+        'With the analysis server running, any landing day from 1850 to 2149 can be chosen in the calendar. This is the span of the ephemeris file in use (de440s.bsp, 1849 to 2150), less a margin for the date strip and the stay.',
+        'A past date gives the sky of that day, for example of an Apollo landing, over the terrain as the LOLA maps record it today.',
+      ] },
       { h: 'The two strips', p: [
-        'Landing date: one cell per day. Each cell shows the value of the best known site for a mission landing on that day (at the surface stay of the site table, 14 days by default), for the quantity chosen under "Colour sites by".',
+        'Landing date: 30 days starting at the day chosen in the calendar, one cell per day. Each cell shows the value of the best known site for a mission landing on that day, for the quantity chosen under "Colour sites by".',
         'Landing time: one value every 10 minutes of the chosen day, for the chosen place (or the best known site if none is chosen). Its colours are stretched between the worst and the best value of that day, which are printed under the strip, so small differences within a day stay visible.',
       ] },
       { h: 'Limitations', p: [
@@ -64,7 +70,7 @@ const DEFS = {
         DISC_LIMITS[1],
       ] },
     ],
-    refs: ['parameters', 'api'], seeAlso: ['surface-stay', 'ephemeris'],
+    refs: ['parameters', 'api', 'de440'], seeAlso: ['surface-stay', 'ephemeris', 'time-series'],
   },
   'mission-type': {
     title: 'Mission type', category: 'Mission setup',
@@ -175,6 +181,9 @@ const DEFS = {
           ['Commercial', 'HAKUTO-R Mission 1 and 2 (impact points)', 'LROC [3]'],
         ],
       } },
+      { h: 'Mission cards', p: [
+        'Pointing at a site, in the list or on the Moon, shows a card with one image and the opening of the mission\'s Wikipedia article [4]. Text and images are stored with the application, so the cards work offline. Each card names the author and the licence of its image; a mission without a freely licensed image has a card without one.',
+      ] },
       { h: 'Conventions', p: [
         'Coordinates are planetocentric latitude and east longitude, Mean Earth / Polar Axis frame.',
         'Crewed or robotic is derived from the group: Apollo and Artemis are crewed, every other group is robotic.',
@@ -184,7 +193,7 @@ const DEFS = {
         'IM-3 is a region, shown at its centre.',
       ] },
     ],
-    refs: ['sites', 'nssdca', 'lroc'], seeAlso: ['site-record'],
+    refs: ['sites', 'nssdca', 'lroc', 'wikipedia'], seeAlso: ['site-record'],
   },
 
   // ---------------- Results ----------------
@@ -360,6 +369,121 @@ const DEFS = {
       ] },
     ],
     refs: ['pgda69', 'valAvgvisib'], seeAlso: ['sunlight', 'earth-in-view'],
+  },
+  'sun-position': {
+    title: 'Sun position', category: 'Results',
+    summary: 'Where the Sun is in the sky of the place: elevation, azimuth, distance and apparent size, at the landing time and over the stay.',
+    sections: [
+      { h: 'Definition', p: [
+        'Angles are topocentric, in the local East-North-Up frame of the place. Elevation $h$ is measured from the local tangent plane of the 1737.4 km reference sphere, positive upwards. Azimuth $A$ is measured clockwise from local north (the direction toward the lunar north pole), $0^\\circ \\le A < 360^\\circ$ [1].',
+        'Both angles are geometric: they ignore the terrain. A positive elevation therefore does not mean that the Sun is in view. Whether it is in view is given by the visible part of the disc, which includes the terrain skyline.',
+      ] },
+      { h: 'Apparent size', p: ['The angular radius of the solar disc follows from the Sun\'s radius $R_\\odot = 695\\,700\\ \\text{km}$ and the distance $d$ from the place to the Sun:'], eq: '\\rho_\\odot = \\arcsin\\!\\left( \\frac{R_\\odot}{d} \\right)' },
+      { h: 'Values shown', table: {
+        head: ['Row', 'Meaning'],
+        rows: [
+          ['Elevation, azimuth', 'direction of the centre of the Sun at the landing time'],
+          ['Distance', 'from the place to the centre of the Sun at the landing time'],
+          ['Angular radius', '$\\rho_\\odot$ at the landing time'],
+          ['Lowest, highest elevation', 'extremes of $h$ over the mission window'],
+        ],
+      } },
+      { h: 'Limitations', p: ['Right ascension and declination are not provided by the analysis server, so they are not shown.'] },
+    ],
+    refs: ['contract', 'de440', 'spice', 'valHorizons'], seeAlso: ['ephemeris', 'sunlight', 'sun-elevation', 'time-series'],
+  },
+  'earth-position': {
+    title: 'Earth position', category: 'Results',
+    summary: 'Where the Earth is in the sky of the place: elevation, azimuth, distance, apparent size and phase, at the landing time and over the stay.',
+    sections: [
+      { h: 'Definition', p: [
+        'Angles are topocentric, in the local East-North-Up frame of the place. Elevation $h$ is measured from the local tangent plane of the 1737.4 km reference sphere; azimuth $A$ clockwise from local north (toward the lunar north pole), $0^\\circ \\le A < 360^\\circ$ [1].',
+        'Both angles are geometric: they ignore the terrain. Whether the Earth is in view is given by the visible part of the disc, which includes the terrain skyline.',
+        'Seen from one place on the Moon the Earth stays in nearly the same part of the sky and only sways slowly (libration), which is why near the poles it hovers at the horizon.',
+      ] },
+      { h: 'Apparent size and phase', p: [
+        'The angular radius follows from the Earth\'s radius $R_\\oplus = 6378.1366\\ \\text{km}$ and the distance $d$. The illuminated part of the Earth\'s disc, $k$, follows from the phase angle $\\varphi$ (Sun, Earth, observer) [1]:',
+        'A full Earth has $k = 1$, a new Earth $k = 0$.',
+      ], eq: '\\rho_\\oplus = \\arcsin\\!\\left( \\frac{R_\\oplus}{d} \\right), \\qquad k = \\frac{1 + \\cos\\varphi}{2}' },
+      { h: 'Values shown', table: {
+        head: ['Row', 'Meaning'],
+        rows: [
+          ['Elevation, azimuth', 'direction of the centre of the Earth at the landing time'],
+          ['Distance', 'from the place to the centre of the Earth at the landing time'],
+          ['Angular radius', '$\\rho_\\oplus$ at the landing time'],
+          ['Illuminated part (phase)', '$k$ at the landing time'],
+          ['Mean elevation when in view', 'mean of $h$ over the time steps with the Earth in view'],
+          ['Lowest, highest elevation', 'extremes of $h$ over the mission window'],
+        ],
+      } },
+      { h: 'Limitations', p: ['Right ascension and declination are not provided by the analysis server, so they are not shown.'] },
+    ],
+    refs: ['contract', 'de440', 'spice', 'valHorizons'], seeAlso: ['ephemeris', 'earth-in-view', 'time-series'],
+  },
+  'visibility-windows': {
+    title: 'Periods in view', category: 'Results',
+    summary: 'The start and end of every period with sunlight, and of every period with the Earth in view, during the stay.',
+    sections: [
+      { h: 'Definition', p: [
+        'A sunlit period is an unbroken run of time steps with at least half of the solar disc above the skyline. A period with the Earth in view is an unbroken run of steps with at least half of the Earth\'s disc visible and the Earth above the antenna\'s minimum elevation. The analysis server lists the exact start and end of each [1].',
+      ] },
+      { h: 'Reading', p: [
+        'The end of a sunlit period is a sunset and the start of the next one a sunrise; likewise Earthset and Earthrise.',
+        'A period that starts exactly at the landing time, or ends exactly at the end of the stay, is cut by the mission window: the Sun (or Earth) was already up before, or stays up after.',
+      ] },
+      { h: 'Limitations', p: ['Times have the resolution of the time step, 60 s.', 'Ground-station availability is not included in the Earth periods.'] },
+    ],
+    refs: ['contract', 'parameters'], seeAlso: ['sunlight', 'earth-in-view', 'countdowns'],
+  },
+  'solar-energy': {
+    title: 'Irradiance and solar energy', category: 'Results',
+    summary: 'Sunlight power reaching a surface that always faces the Sun: the average over the stay in W/m², and the total in kWh/m².',
+    sections: [
+      { h: 'Definition', p: [
+        'The energy reaching one square metre that always faces the Sun, over the mission window of length $T$:',
+        'Here $S_0 = 1360.8 \\pm 0.5\\ \\text{W/m}^2$ is the solar constant at 1 AU [2], $d(t)$ the distance to the Sun and $v(t)$ the visible part of the solar disc. The mean irradiance is $E / T$.',
+      ], eq: 'E = \\int_{t_0}^{t_0 + T} S_0 \\left( \\frac{1\\ \\text{AU}}{d(t)} \\right)^{2} v(t)\\, \\mathrm{d}t' },
+      { h: 'Use', p: ['Shown for context: it is what a Sun-tracking array could collect before its efficiency. It is not one of the scored factors.'] },
+      { h: 'Limitations', p: [
+        'Limb darkening is ignored: a half-hidden disc counts as half the light.',
+        'No array area, efficiency or pointing loss is applied.',
+      ] },
+    ],
+    refs: ['parameters', 'kopp2011'], seeAlso: ['sunlight', 'longest-night'],
+  },
+  'time-series': {
+    title: 'Plot over time and CSV', category: 'Results',
+    summary: 'The Sun and the Earth in the sky of the place through the whole stay, as a chart and as a table you can download.',
+    sections: [
+      { h: 'Description', p: [
+        'The analysis server computes the position of the Sun and the Earth every 10 minutes from the landing time to the end of the stay, with the mast height you set. The chart shows one quantity at a time for both bodies, because they share its unit.',
+      ] },
+      { h: 'Quantities', table: {
+        head: ['Quantity', 'Meaning'],
+        rows: [
+          ['Elevation above the horizontal', 'geometric elevation, terrain ignored; the line at $0^\\circ$ is the local horizontal, not the skyline'],
+          ['Azimuth, clockwise from north', '$0^\\circ$ to $360^\\circ$; the line is broken where it passes north'],
+          ['Visible part of the disc', 'share of the disc above the terrain skyline, 0 to 100 %'],
+        ],
+      } },
+      { h: 'CSV file', table: {
+        head: ['Column', 'Unit', 'Content'],
+        rows: [
+          ['time_utc', 'ISO 8601, UTC', 'time of the step'],
+          ['sun_az_deg, earth_az_deg', 'degree', 'azimuth, clockwise from local north'],
+          ['sun_el_deg, earth_el_deg', 'degree', 'elevation above the local horizontal'],
+          ['sun_visible_frac, earth_visible_frac', '0 to 1', 'visible part of the disc, terrain included'],
+          ['sun_dist_km, earth_dist_km', 'km', 'distance from the place'],
+          ['sun_radius_deg, earth_radius_deg', 'degree', 'apparent angular radius'],
+          ['earth_phase_frac', '0 to 1', 'illuminated part of the Earth\'s disc'],
+        ],
+      } },
+      { h: 'Limitations', p: [
+        'The file name carries the latitude, the longitude and the landing time; the other settings are not stored in the file.',
+        'The 10-minute step is coarser than the 60 s used for the numbers in the other blocks.',
+      ] },
+    ],
+    refs: ['contract', 'api'], seeAlso: ['sun-position', 'earth-position', 'ephemeris'],
   },
   'site-record': {
     title: 'Site record', category: 'Results',

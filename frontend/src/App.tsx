@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
 import { isPreliminary, landingAt, loadAll, loadScene, periodAt, sceneIndexAt } from './data/load'
 import type { Scene } from './data/schemas'
-import { useApiHealth, useAreaSearch, useEvaluation, useLiveMatrix } from './data/useLive'
+import { useApiHealth, useAreaSearch, useEvaluation, useLiveMatrix, useLiveScene } from './data/useLive'
 import { DocsPage } from './docs/DocsPage'
 import { useDocTopic } from './docs/useDocTopic'
 import { Viewport } from './scene/Viewport'
-import { useApp } from './state/store'
+import { STRIP_DAYS, landingDay, useApp } from './state/store'
 import { ComparePanel } from './ui/ComparePanel'
 import { InputPanel } from './ui/InputPanel'
 import { OutputPanel } from './ui/OutputPanel'
@@ -21,18 +21,21 @@ export default function App() {
   const [scene, setScene] = useState<Scene | null>(null)
   const [leftOpen, setLeftOpen] = useState(true)
   const [rightOpen, setRightOpen] = useState(true)
-  const { metric, dateIdx, minuteUtc, mode, setMetric, setDateCount } = useApp()
+  const { metric, minuteUtc, mode, setMetric, setDateCount, setStaticDates } = useApp()
   useApiHealth()
   const docTopic = useDocTopic()
 
   useEffect(() => {
     loadAll(DATA_BASE)
-      .then((d) => { setData(d); setDateCount(d.matrix.landing_dates_utc.length) })
+      .then((d) => { setData(d); setStaticDates(d.matrix.landing_dates_utc) })
       .catch((e: Error) => setError(e.message))
-  }, [setDateCount])
+  }, [setStaticDates])
+  // Days on the date strip: the precomputed ones offline, a fixed number from the calendar's day when live.
+  const staticCount = data?.matrix.landing_dates_utc.length ?? 0
+  useEffect(() => setDateCount(mode === 'live' ? STRIP_DAYS : staticCount), [mode, staticCount, setDateCount])
 
   // Landing time: the chosen date at the chosen time of day (live only; the offline files are computed at 00:00 UTC).
-  const landingDate = data?.matrix.landing_dates_utc[dateIdx]
+  const landingDate = useApp(landingDay)
   const landingUtc = landingDate && landingAt(landingDate, mode === 'live' ? minuteUtc : 0)
   // Scene file (sub-solar point over time) for the month that contains the selected landing time.
   const periodId = data && landingUtc && data.manifest.has_scene ? periodAt(data.manifest, landingUtc)?.id : undefined
@@ -52,8 +55,11 @@ export default function App() {
   const ev = useEvaluation(landingUtc)
   const area = useAreaSearch(landingUtc)
 
-  const i = scene && landingUtc ? sceneIndexAt(scene, landingUtc) : -1
-  const subsolar = scene && i >= 0 ? { lat: scene.subsolar_lat_deg[i], lon: scene.subsolar_lon_deg[i] } : null
+  // Sun direction for the lighting: asked from the server for the exact landing time, or read from the precomputed file.
+  const liveScene = useLiveScene(landingUtc || undefined).data
+  const sun = liveScene ?? scene
+  const i = sun && landingUtc ? (sun === liveScene ? 0 : sceneIndexAt(sun, landingUtc)) : -1
+  const subsolar = sun && i >= 0 ? { lat: sun.subsolar_lat_deg[i], lon: sun.subsolar_lon_deg[i] } : null
 
   // Layout: three isolated regions. Inputs (left) write the store, the viewport (centre) draws it,
   // outputs (right) show the server's answers. Both side panes collapse.
@@ -77,7 +83,7 @@ export default function App() {
         {matrix && isPreliminary(matrix) && (
           <p className="fixture" title={matrix.source.notes}>Preliminary data: {matrix.source.notes}</p>
         )}
-        {data && matrix && <OutputPanel sites={data.sites.sites} matrix={matrix} ev={ev} area={area} />}
+        {data && matrix && <OutputPanel sites={data.sites.sites} matrix={matrix} ev={ev} area={area} landingUtc={landingUtc || undefined} />}
       </Pane>
 
       {data && matrix && <ComparePanel matrix={matrix} />}

@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
-import { useApp, type Pin } from '../state/store'
-import { Area, Evaluation, apiAvailable, apiGet, areaSpacingKm, limitsQuery, settingsQuery } from './api'
+import { STRIP_DAYS, useApp, type Pin } from '../state/store'
+import { Area, Ephemeris, Evaluation, Windows, apiAvailable, apiGet, areaSpacingKm, limitsQuery, settingsQuery } from './api'
 import { createLatestRunner } from './latest'
 import { landingAt, parseFile } from './load'
-import { Matrix } from './schemas'
+import { Matrix, Scene } from './schemas'
 import { STRIP_STEP_MIN } from '../ui/timeStrip'
 
 function useDebounced<T>(value: T, ms: number): T {
@@ -55,13 +55,14 @@ export function useApiHealth() {
   }, [setMode])
 }
 
-// Live site x date matrix with the user's settings for the catalogue sites; the static matrix supplies the dates.
+// Live site x date matrix with the user's settings for the catalogue sites: STRIP_DAYS days from the day chosen in
+// the calendar, or from the first day of the static matrix.
 export function useLiveMatrix(base: Matrix | null, siteIds: string[]): Result<Matrix> {
-  const { mode, settings, minuteUtc } = useApp()
+  const { mode, settings, minuteUtc, stripStart } = useApp()
   const s = useDebounced(settings, 300)
   const params = base && mode === 'live'
-    ? { ...settingsQuery(s), site_ids: siteIds.join(','), start_utc: landingAt(base.landing_dates_utc[0], minuteUtc),
-        n_dates: String(base.landing_dates_utc.length), date_step_h: '24' }
+    ? { ...settingsQuery(s), site_ids: siteIds.join(','), start_utc: landingAt(stripStart ?? base.landing_dates_utc[0], minuteUtc),
+        n_dates: String(STRIP_DAYS), date_step_h: '24' }
     : null
   return useApiRequest(params && JSON.stringify(params), async (p) =>
     parseFile(Matrix, await apiGet('matrix', p, Matrix.passthrough()), '/api/matrix'))
@@ -93,11 +94,11 @@ export function useDayStrip(dateUtc: string | undefined, siteIds: string[]): Res
 // /api/evaluate for every pinned place at its own landing date and time, with the current settings. Keyed by pin id,
 // so a stale result never lands in the wrong column while a new pin is loading. Cheap after the first call:
 // AERO caches Sun/Earth per month and skylines per point.
-export function useCompareEvaluations(pins: Pin[], dates: string[]): Result<Record<string, Evaluation>> {
+export function useCompareEvaluations(pins: Pin[]): Result<Record<string, Evaluation>> {
   const { mode, settings } = useApp()
   const s = useDebounced(settings, 300)
   const reqs = mode === 'live'
-    ? pins.map((p) => ({ id: p.id, params: { ...settingsQuery(s), ...limitsQuery(s), lat_deg: p.lat.toFixed(4), lon_deg: p.lon.toFixed(4), start_utc: landingAt(dates[p.dateIdx], p.minuteUtc) } }))
+    ? pins.map((p) => ({ id: p.id, params: { ...settingsQuery(s), ...limitsQuery(s), lat_deg: p.lat.toFixed(4), lon_deg: p.lon.toFixed(4), start_utc: landingAt(p.dateUtc, p.minuteUtc) } }))
     : []
   return useApiRequest(reqs.length ? JSON.stringify(reqs) : null, async (list: typeof reqs) =>
     Object.fromEntries(await Promise.all(list.map(async (r) => [r.id, await apiGet('evaluate', r.params, Evaluation)] as const))))
@@ -112,4 +113,31 @@ export function useAreaSearch(startUtc: string | undefined): Result<Area> {
         radius_km: String(r), spacing_km: areaSpacingKm(r).toFixed(3) }
     : null
   return useApiRequest(params && JSON.stringify(params), (p) => apiGet('area', p, Area))
+}
+
+// Where the Sun is overhead at the landing time, for the lighting of the globe on any date (live mode).
+export function useLiveScene(startUtc: string | undefined): Result<Scene> {
+  const mode = useApp((s) => s.mode)
+  const params = mode === 'live' && startUtc ? { start_utc: startUtc, mission_h: '2', step_s: '3600' } : null
+  return useApiRequest(params && JSON.stringify(params), async (p) => parseFile(Scene, await apiGet('scene', p, Scene.passthrough()), '/api/scene'))
+}
+
+function useSiteWindow(startUtc: string | undefined): Record<string, string> | null {
+  const { mode, settings, point } = useApp()
+  const s = useDebounced(settings, 300)
+  return mode === 'live' && point && startUtc
+    ? { lat_deg: point.lat.toFixed(4), lon_deg: point.lon.toFixed(4), start_utc: startUtc, mission_h: String(s.missionDays * 24), obs_height_m: String(s.obsHeightM) }
+    : null
+}
+
+// Sun and Earth in the sky of the chosen place over the stay, every 10 min: the position at landing, the plot, the CSV.
+export function useEphemeris(startUtc: string | undefined): Result<Ephemeris> {
+  const site = useSiteWindow(startUtc)
+  return useApiRequest(site && JSON.stringify({ ...site, step_s: '600' }), (p) => apiGet('ephemeris', p, Ephemeris))
+}
+
+// The periods with the Sun up and with the Earth in view during the stay.
+export function useWindows(startUtc: string | undefined): Result<Windows> {
+  const site = useSiteWindow(startUtc)
+  return useApiRequest(site && JSON.stringify(site), (p) => apiGet('metrics', p, Windows))
 }

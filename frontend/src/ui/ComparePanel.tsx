@@ -2,7 +2,7 @@ import { limitsQuery, type Evaluation } from '../data/api'
 import { cellValue, landingAt } from '../data/load'
 import type { Matrix } from '../data/schemas'
 import { useCompareEvaluations } from '../data/useLive'
-import { MAX_PINS, useApp, type Mode, type Pin } from '../state/store'
+import { MAX_PINS, useApp, type Mode, type Pin, landingDay } from '../state/store'
 import { ROWS, bestColumns, formatCell, type Cell } from './compare'
 import { domain } from './metrics'
 import { describeViolation, limitLabel } from './profiles'
@@ -13,12 +13,13 @@ const HORIZON: Record<string, string> = { 'lola-terrain': 'LOLA terrain', 'smoot
 // Pins a catalogue site or a clicked point, at the landing date and time currently on the rails.
 export function PinButton({ label, lat, lon, siteId }: { label: string; lat: number; lon: number; siteId?: string }) {
   const { dateIdx, minuteUtc: m, mode, pins, addPin } = useApp()
+  const dateUtc = useApp(landingDay)
   const minuteUtc = mode === 'live' ? m : 0
-  const id = `${siteId ?? `${lat.toFixed(4)},${lon.toFixed(4)}`}@${dateIdx}T${minuteUtc}`
+  const id = `${siteId ?? `${lat.toFixed(4)},${lon.toFixed(4)}`}@${dateUtc}T${minuteUtc}`
   const pinned = pins.some((p) => p.id === id)
   const full = pins.length >= MAX_PINS
   return (
-    <button type="button" className="pin" disabled={pinned || full} onClick={() => addPin({ id, label, lat, lon, dateIdx, minuteUtc, siteId })}>
+    <button type="button" className="pin" disabled={pinned || full || !dateUtc} onClick={() => dateUtc && addPin({ id, label, lat, lon, dateIdx, dateUtc, minuteUtc, siteId })}>
       {pinned ? 'In the comparison' : full ? `Comparison is full (${MAX_PINS})` : '+ Compare at this date'}
     </button>
   )
@@ -37,8 +38,7 @@ function columnCells(pin: Pin, ev: Evaluation | undefined, mode: Mode, matrix: M
 export function ComparePanel({ matrix }: { matrix: Matrix }) {
   const { pins, removePin, mode, compareOpen, setCompareOpen, settings } = useApp()
   const hasLimits = Object.keys(limitsQuery(settings)).length > 0
-  const dates = matrix.landing_dates_utc
-  const evs = useCompareEvaluations(pins, dates)
+  const evs = useCompareEvaluations(pins)
   if (!compareOpen || pins.length === 0) return null
 
   const cols = pins.map((p) => columnCells(p, evs.data?.[p.id], mode, matrix))
@@ -64,7 +64,7 @@ export function ComparePanel({ matrix }: { matrix: Matrix }) {
               {pins.map((p) => (
                 <th scope="col" key={p.id}>
                   <div className="col-head">
-                    <span>{p.label}<small>landing {timeFmt.format(new Date(landingAt(dates[p.dateIdx], p.minuteUtc)))} UTC</small></span>
+                    <span>{p.label}<small>landing {timeFmt.format(new Date(landingAt(p.dateUtc, p.minuteUtc)))} UTC</small></span>
                     <button type="button" className="close" onClick={() => removePin(p.id)} aria-label={`Remove ${p.label}`}>×</button>
                   </div>
                 </th>

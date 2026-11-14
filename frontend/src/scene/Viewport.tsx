@@ -6,6 +6,7 @@ import type { Matrix, Site } from '../data/schemas'
 import { useApp } from '../state/store'
 import { metricColor } from '../ui/colors'
 import { metricMeta } from '../ui/metrics'
+import { MissionCard } from '../ui/MissionCard'
 import { AreaDots, PointMarkers } from './AreaLayer'
 import { CameraFocus } from './CameraFocus'
 import { vec3ToLatLon } from './geo'
@@ -58,6 +59,8 @@ export function Viewport({ sites, matrix, area, subsolar, updating }: {
           </button>
         )}
       </header>
+
+      <MissionCard />
 
       <div className="stage-foot">
         {matrix && (

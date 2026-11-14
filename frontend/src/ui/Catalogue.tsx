@@ -45,7 +45,8 @@ function Group({ title, sites, matrix }: { title: string; sites: Site[]; matrix:
           return (
             <li key={s.id}>
               <button type="button" className={`site-row${chosen ? ' chosen' : ''}`} aria-pressed={chosen}
-                onClick={() => choose(s)} onMouseEnter={() => setHovered(s.id)} onMouseLeave={() => setHovered(null)}>
+                onClick={() => choose(s)} onMouseEnter={() => setHovered(s.id)} onMouseLeave={() => setHovered(null)}
+                onFocus={() => setHovered(s.id)} onBlur={() => setHovered(null)}>
                 <i className="dot" style={{ background: metricColor(v) }} aria-hidden />
                 <span className="site-name">{s.name}</span>
                 <span className="site-year">{s.mission_date?.slice(0, 4)}</span>

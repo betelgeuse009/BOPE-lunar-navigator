@@ -92,6 +92,23 @@ export const Area = z.object({
 })
 export type Area = z.infer<typeof Area>
 
+const nums = z.array(z.number())
+// /api/ephemeris: Sun and Earth as seen from the place, one entry per time step (contracts/schemas/ephemeris.schema.json).
+export const Ephemeris = z.object({
+  contract_version: z.string(),
+  time_utc: z.array(z.string()),
+  sun_az_deg: nums, sun_el_deg: nums, sun_visible_frac: nums,
+  earth_az_deg: nums, earth_el_deg: nums, earth_visible_frac: nums,
+  sun_dist_km: nums.optional(), earth_dist_km: nums.optional(),
+  sun_radius_deg: nums.optional(), earth_radius_deg: nums.optional(), earth_phase_frac: nums.optional(),
+})
+export type Ephemeris = z.infer<typeof Ephemeris>
+
+// /api/metrics: only the periods with the Sun up and with the Earth in view are used here.
+const win = z.object({ start_utc: z.string(), end_utc: z.string() })
+export const Windows = z.object({ contract_version: z.string(), sun_windows: z.array(win), earth_windows: z.array(win) })
+export type Windows = z.infer<typeof Windows>
+
 export async function apiAvailable(signal?: AbortSignal): Promise<boolean> {
   if (!API_BASE) return false
   try {

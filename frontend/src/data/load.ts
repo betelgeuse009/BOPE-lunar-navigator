@@ -51,6 +51,10 @@ export function landingAt(dateUtc: string, minuteUtc: number): string {
   return d.toISOString().replace('.000Z', 'Z')
 }
 
+// n days after a UTC date.
+export const addDays = (dateUtc: string, n: number): string =>
+  new Date(Date.parse(dateUtc) + n * 86_400_000).toISOString().replace('.000Z', 'Z')
+
 // Nearest time step (series are strictly increasing with a uniform step, per the contract).
 export function sceneIndexAt(scene: Scene, timeUtc: string): number {
   const t0 = Date.parse(scene.time_utc[0])
