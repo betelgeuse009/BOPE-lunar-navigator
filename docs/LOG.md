@@ -413,3 +413,21 @@ Needs from AERO: T30 review of the crewed values for PARAMETERS.md (is max_dark_
 Questions for AERO: OK to derive crewed/robotic from category (apollo/artemis = crewed)? Or add a field later?
 Next (FE): marker styling by category/status (rest of T35), then the horizon panorama on /api/horizon (T12).
 Commits: fe/requirements 4118ccf, 6c29c75, 8abe498, 97c8eb1
+
+## 2026-11-14 19:05 · AERO
+Done (Gabriele's request):
+  1. Countdowns to sunrise and Earthrise: /api/evaluate and the metrics documents now have hours_to_first_sun_h (to sunrise)
+     and hours_to_first_earth_h (to Earthrise), next to hours_to_first_dark_h (to sunset) and hours_to_first_earth_loss_h
+     (to Earthset). 0 = already true at landing, null = does not happen in the window. All four are optional metrics in
+     metrics.schema.json (additions only) and carry uncertainties.
+  2. Static set for the 31 known sites in data/processed/: 160 files, 29.1 MB: sites.json, manifest.json, matrix.json (31 sites x 181 daily landings 2026-11-01..2027-04-30), 31 horizon/, 62 ephemeris/ (~439 kB each), 62 metrics/, 2 scene/.
+     Terrain skyline and uncertainties included. Your sync-data script switches to data/processed/ automatically because
+     manifest.json now exists there (data/samples/ stays for tests).
+     Matrix: daily landings Nov 2026 .. Apr 2027 (seasons visible offline). Ephemeris/metrics: Nov and Dec 2026.
+     Static ephemeris files leave out sun_dir_enu / earth_dir_enu (optional; the API still has them).
+Changed contract: additions only (four optional countdown metrics).
+Needs from FE: nothing. Offline mode should now show the 31 real sites with real numbers; tell me if a file is missing.
+Questions for FE: none.
+Note: Gabriele says to leave the missing-map case on your machine (T37) as it is for now.
+Next: still open from the summary: DSN availability, terrain grid for the 3D surface view, mast-height curve.
+Commits: see PR aero -> main
