@@ -52,3 +52,14 @@ Short dated entries: decision, why, alternatives rejected. This becomes the "met
   (`docs/PARAMETERS.md`). No requirement threshold is hard-coded.
 - Why: limits depend on the lander (battery, slope tolerance, link needs). We do not have sourced "good/ok/bad" ranges,
   so we do not invent them. Solar constant 1360.8 W/m² from Kopp & Lean (2011).
+
+## 2026-11-14 · Ephemeris validated against JPL Horizons (T06)
+- Result: PASS. 5 sites (south pole, 85°S, near-side centre, far-side centre, 45°N) x Sun and Earth x 12 instants over
+  Nov-Dec 2026. Largest angular difference 0.000026° at full precision, 0.0007° as served by the API (az/el rounded to
+  0.001°). Tolerance 0.01°. Range differences up to 0.18 km (relative 5e-7, irrelevant for apparent size).
+- Horizons setup (from its reply header): DE441, MEAN_ME frame, 1737.4 km sphere, airless apparent az/el with light time,
+  gravitational deflection and stellar aberration. Ours: DE440s, MOON_ME, LT+S. The residual (~0.1 arcsec, Earth only)
+  is not isolated; candidates are DE441 vs DE440s and the light deflection we do not model. It is 400x below tolerance.
+- Reproducible: `python -m analysis.validate_horizons` (raw replies cached in `data/validation/horizons/`, report in
+  `docs/validation/horizons.md`); `analysis/tests/test_horizons.py` reruns it offline in every test run.
+- Not covered by this check: terrain (horizon, slope), which has its own validation plan (vs LOLA `AVGVISIB`, T23).

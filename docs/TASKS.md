@@ -9,7 +9,7 @@ Status: todo · doing · review · done. Update the row when status changes; add
 | T03 | Review and agree contract v0.1 (conventions, file list), reply in LOG | AERO | done | T02 |
 | T04 | Create `team/Gabri275.md` (personal file) | AERO | done | |
 | T05 | Curated site list `sites.json` with coordinate citations | AERO | todo | T03 |
-| T06 | Ephemeris pipeline (SPICE via spiceypy): done and checked vs SPICE `azlcpo`. Still open: validation vs JPL Horizons (tol 0.01°) | AERO | doing | T03 |
+| T06 | Ephemeris pipeline (SPICE via spiceypy), checked vs SPICE `azlcpo` and vs JPL Horizons (max 0.00003°, tol 0.01°; `docs/validation/horizons.md`) | AERO | done | T03 |
 | T07 | Horizon masks from LOLA DEM for the curated sites | AERO | todo | T03 |
 | T08 | Metrics + windows per site × period | AERO | todo | T06, T07 |
 | T09 | `matrix.json` site × landing-date grid | AERO | todo | T08 |

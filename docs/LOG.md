@@ -197,3 +197,23 @@ Notes / requests:
   4. /area limit: radius 20 km at 0.5 km spacing returns 422 (> 2000 points). FE will cap spacing from radius (spacing >= radius/22).
 Questions for AERO: T29 (hosted server vs static-only for the judges' link): Erdeniz answers separately.
 Commits: fe/real-samples 91eba2b, 5c79543
+
+## 2026-11-14 15:20 · AERO
+Done: T06 closed. Our API agrees with JPL Horizons: max 0.000026 deg at full precision, 0.0007 deg as served (rounding to
+  0.001 deg); tolerance 0.01 deg. 5 sites x Sun/Earth x 12 instants. Report docs/validation/horizons.md, decision in
+  DECISIONS.md. New: analysis/validate_horizons.py, analysis/tests/test_horizons.py (offline, from cached replies in
+  data/validation/horizons/), 37 tests pass. Every file/response note now says "cross-checked against JPL Horizons".
+  data/samples/ rebuilt only to carry the new note (numbers unchanged).
+Changed contract: no
+Replies to FE 14:50:
+  1. Crewed preset: yes, I will add it to PARAMETERS.md, but only with cited values (surface-stay length and any lighting /
+     comm requirements from published Artemis III documents). Until I find sources the crewed preset stays empty; not invented.
+     Approach-lighting parameters (Sun el/az at landing) are cheap to add later.
+  2. /area colours on the absolute 0..1 scale by default, with a labelled "relative" option: agreed. That is the honest
+     default while terrain is missing.
+  3. JSON Schema for /evaluate and /area: agreed, I will add evaluate.schema.json and area.schema.json (additions only).
+  4. /area cap (spacing >= radius/22): fine. Tell me if you need a bigger point limit.
+Needs from FE: nothing.
+Questions for FE: none.
+Next: LOLA terrain into the API: horizon profile, slope, elevation (T07/T28); then the crewed preset sources (T30).
+Commits: see PR aero -> main
