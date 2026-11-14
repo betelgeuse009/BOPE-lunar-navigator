@@ -20,13 +20,14 @@ export function EvaluationPanel({ ev, loading, error, area, areaLoading, areaErr
   const wSum = FACTORS.reduce((s, f) => s + (comps[f.api]?.score != null ? comps[f.api].weight : 0), 0)
 
   return (
-    <aside className="panel evaluation" aria-busy={loading}>
+    <aside className={`panel evaluation${loading ? ' stale' : ''}`} aria-busy={loading}>
       <div className="panel-head">
         <h2>{Math.abs(point.lat).toFixed(2)}° {point.lat < 0 ? 'S' : 'N'}, {Math.abs(point.lon).toFixed(2)}° {point.lon < 0 ? 'W' : 'E'}</h2>
         <button type="button" className="close" onClick={() => setPoint(null)} aria-label="Close">×</button>
       </div>
       {error && <p className="error-inline">{error}</p>}
       {!ev && loading && <p className="note">Computing…</p>}
+      {ev && loading && <p className="note updating">Updating for the new date or place…</p>}
       {ev && (
         <>
           <p className="score">
@@ -70,7 +71,7 @@ export function EvaluationPanel({ ev, loading, error, area, areaLoading, areaErr
         <div className="nearby">
           <h3>Within {radiusKm} km</h3>
           {areaError && <p className="error-inline">{areaError}</p>}
-          {!area && areaLoading && <p className="note">Searching…</p>}
+          {areaLoading && <p className="note updating">{area ? 'Updating…' : 'Searching…'}</p>}
           {area && (
             area.center_is_best || !area.best
               ? <p>No nearby point scores better. Scores here range {area.score_range[0].toFixed(3)} to {area.score_range[1].toFixed(3)}.</p>
