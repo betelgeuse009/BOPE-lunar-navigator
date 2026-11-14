@@ -4,7 +4,7 @@ import { metricColor } from './colors'
 import { FACTORS } from './factors'
 import { describeViolation, limitLabel } from './profiles'
 import { PinButton } from './ComparePanel'
-import { fmtCoords, fmtDeg, fmtH, fmtM, fmtPct, untilLoss } from './format'
+import { fmtCoords, fmtDeg, fmtH, fmtM, fmtPct, fmtUnc, untilLoss } from './format'
 
 // Result for the clicked point: score, what makes it up, the key numbers, and the nearby search.
 export function EvaluationPanel({ ev, loading, error, area, areaLoading, areaError }: {
@@ -16,6 +16,12 @@ export function EvaluationPanel({ ev, loading, error, area, areaLoading, areaErr
   if (!point) return null
   const p = ev?.parameters
   const v = (k: string) => p?.[k]?.value ?? null
+  // Value ± uncertainty, or the range found when ± would cross a physical limit (contracts/API.md).
+  const u = (k: string, fmt: (x: number) => string, bounds?: [number, number]) => {
+    const c = p?.[k]
+    return c?.value == null ? 'n/a' : fmtUnc(fmt, c.value, c.uncertainty, ev?.uncertainty_model?.components?.[k]?.range, bounds)
+  }
+  const pos = ev?.uncertainty_model?.position_uncertainty_m
   const comps = ev?.score.components ?? {}
   const wSum = FACTORS.reduce((s, f) => s + (comps[f.api]?.score != null ? comps[f.api].weight : 0), 0)
 
@@ -34,12 +40,19 @@ export function EvaluationPanel({ ev, loading, error, area, areaLoading, areaErr
           <p className="score">
             <i style={{ background: metricColor(ev.score.value) }} />
             Score <strong>{ev.score.value?.toFixed(2) ?? 'n/a'}</strong>
+            {ev.score.uncertainty ? <span className="unc">± {ev.score.uncertainty.toFixed(2)}</span> : null}
             {hasLimits
               ? <span className={ev.feasible ? 'ok' : 'bad'}>{!ev.feasible ? 'breaks a requirement' : ev.not_checked.length ? 'meets the checked requirements' : 'meets all requirements'}</span>
               : <span className="nolimits">no requirements set</span>}
           </p>
           {ev.violations.length > 0 && (
             <ul className="violations">{ev.violations.map((x) => <li key={x.limit}>{describeViolation(x)}</li>)}</ul>
+          )}
+          {(ev.requirements_at_risk?.length ?? 0) > 0 && (
+            <p className="at-risk">
+              At risk: {ev.requirements_at_risk!.map(limitLabel).join(', ')}. Met at this exact point but broken
+              {pos ? ` within ${pos} m` : ' within the landing uncertainty'} or within the horizon accuracy.
+            </p>
           )}
           {ev.not_checked.length > 0 && <p className="note">Not checked, data missing on the server: {ev.not_checked.map(limitLabel).join(', ')}</p>}
           <table className="breakdown">
@@ -61,14 +74,14 @@ export function EvaluationPanel({ ev, loading, error, area, areaLoading, areaErr
             </tbody>
           </table>
           <dl className="numbers">
-            <div><dt>Sunlight</dt><dd>{fmtPct(v('sunlit_frac'))}</dd></div>
-            <div><dt>Longest night</dt><dd>{fmtH(v('longest_dark_h'))}</dd></div>
+            <div><dt>Sunlight</dt><dd>{u('sunlit_frac', fmtPct, [0, 1])}</dd></div>
+            <div><dt>Longest night</dt><dd>{u('longest_dark_h', fmtH, [0, ev.window.duration_h])}</dd></div>
             <div><dt>First sunset after landing</dt><dd>{untilLoss(v('hours_to_first_dark_h'), 'dark at landing')}</dd></div>
-            <div><dt>Mean Sun elevation when lit</dt><dd>{fmtDeg(v('mean_sun_el_when_lit_deg'))}</dd></div>
-            <div><dt>Earth in view</dt><dd>{fmtPct(v('earth_visible_frac'))}</dd></div>
-            <div><dt>Longest blackout</dt><dd>{fmtH(v('longest_no_earth_h'))}</dd></div>
+            <div><dt>Mean Sun elevation when lit</dt><dd>{u('mean_sun_el_when_lit_deg', fmtDeg)}</dd></div>
+            <div><dt>Earth in view</dt><dd>{u('earth_visible_frac', fmtPct, [0, 1])}</dd></div>
+            <div><dt>Longest blackout</dt><dd>{u('longest_no_earth_h', fmtH, [0, ev.window.duration_h])}</dd></div>
             <div><dt>First Earthset after landing</dt><dd>{untilLoss(v('hours_to_first_earth_loss_h'), 'no Earth at landing')}</dd></div>
-            <div><dt>Slope{ev.terrain?.slope_baseline_m ? ` (over ${Math.round(ev.terrain.slope_baseline_m)} m)` : ''}</dt><dd>{fmtDeg(v('slope_deg'))}</dd></div>
+            <div><dt>Slope{ev.terrain?.slope_baseline_m ? ` (over ${Math.round(ev.terrain.slope_baseline_m)} m)` : ''}</dt><dd>{u('slope_deg', fmtDeg, [0, 90])}</dd></div>
             <div><dt>Elevation (LOLA)</dt><dd>{fmtM(p?.elevation_m)}</dd></div>
             {v('lola_mean_sun_visibility_frac') != null && (
               <div><dt>NASA long-term Sun visibility</dt><dd>{fmtPct(v('lola_mean_sun_visibility_frac'))}</dd></div>

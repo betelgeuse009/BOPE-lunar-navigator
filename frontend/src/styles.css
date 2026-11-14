@@ -145,7 +145,7 @@ legend { padding: 0; font-weight: 600; font-size: 16px; }
 .credit { margin: 8px 0 0; font-size: 13px; color: var(--regolith-3); max-width: 80ch; }
 
 .error {
-  position: absolute; left: var(--gutter); right: var(--gutter); top: 50%;
+  position: absolute; z-index: 3; left: var(--gutter); right: var(--gutter); bottom: 310px; /* just above the two rails */
   margin: 0; padding: 14px 16px; background: var(--shade); border-left: 2px solid #c9a24a;
 }
 
@@ -225,3 +225,12 @@ h1 { text-shadow: 0 1px 6px rgba(0, 0, 0, 0.9); }
 .score .nolimits { margin-left: auto; font-size: 14px; color: var(--regolith-2); }
 .compare td.ok { color: #2fb39a; }
 .compare td.bad { color: #c9a24a; }
+
+/* Catalogue site details (site panel) */
+.site-meta { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; margin: 0 0 8px; font-size: 14px; color: var(--regolith-2); }
+.site-meta .type { padding: 0 6px; border: 1px solid var(--regolith-3); border-radius: 2px; color: var(--regolith-1); }
+.site-meta .type-crewed { border-color: #2fb39a; }
+.site-desc { margin: 0 0 8px; }
+.panel a { color: var(--regolith-1); }
+.score .unc { font-size: 14px; color: var(--regolith-2); }
+.at-risk { margin: 6px 0 0; font-size: 14px; color: #c9a24a; }

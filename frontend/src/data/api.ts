@@ -60,8 +60,15 @@ export const Evaluation = z.object({
   not_checked: z.array(z.string()),
   score: z.object({
     value: z.number().nullable(),
+    uncertainty: z.number().nullable().optional(),
     components: z.record(z.object({ score: z.number().nullable(), weight: z.number() })),
   }),
+  // AERO #22 (T22): limits met at the point but broken within the landing/skyline uncertainty, and the ranges found.
+  requirements_at_risk: z.array(z.string()).optional(),
+  uncertainty_model: z.object({
+    position_uncertainty_m: z.number().optional(),
+    components: z.record(z.object({ range: z.tuple([z.number(), z.number()]).nullable().optional() })).optional(),
+  }).optional(),
 })
 export type Evaluation = z.infer<typeof Evaluation>
 

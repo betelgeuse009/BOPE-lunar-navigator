@@ -1,4 +1,3 @@
-import type { Matrix } from '../data/schemas'
 import { useDayStrip } from '../data/useLive'
 import { useApp } from '../state/store'
 import { metricColor } from './colors'
@@ -7,10 +6,10 @@ import { STRIP_STEP_MIN, fmtClock, relativeToDay } from './timeStrip'
 
 // Landing time of day, 1 min steps. The strip behind it is sampled every 10 min (cheap: one /api/matrix call per day)
 // and coloured relative to that day. Live mode only: the offline files exist for 00:00 UTC landings.
-export function TimeRail({ dateUtc, matrix }: { dateUtc: string; matrix: Matrix }) {
+export function TimeRail({ dateUtc, siteIds }: { dateUtc: string; siteIds: string[] }) {
   const { minuteUtc, setMinuteUtc, mode, metric, point } = useApp()
   const live = mode === 'live'
-  const strip = useDayStrip(dateUtc, matrix.site_ids)
+  const strip = useDayStrip(dateUtc, siteIds)
   const day = strip.data
   const field = day && metric in day.cells ? metric : 'score'
   // Per 10-min slot: the best place's goodness (for the colour) and its value in real units (for the label).
@@ -54,7 +53,7 @@ export function TimeRail({ dateUtc, matrix }: { dateUtc: string; matrix: Matrix 
         <span>
           {rel.min !== null
             ? `${metricMeta(field).label} for ${what}, every ${STRIP_STEP_MIN} min. Colours stretched over this day: worst ${formatValue(worstV, field)}, best ${formatValue(bestV, field)}`
-            : live ? 'Computing the day…' : ''}
+            : live && !strip.error ? 'Computing the day…' : ''}
         </span>
         <span>23:59</span>
       </div>

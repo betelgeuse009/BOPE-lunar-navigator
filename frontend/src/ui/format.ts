@@ -8,3 +8,11 @@ export const fmtDeg = (v: number | null | undefined) => (v == null ? 'n/a' : `${
 export const untilLoss = (v: number | null, atLanding: string) => (v == null ? 'not during the stay' : v === 0 ? atLanding : fmtH(v))
 export const fmtCoords = (lat: number, lon: number) =>
   `${Math.abs(lat).toFixed(2)}° ${lat < 0 ? 'S' : 'N'}, ${Math.abs(lon).toFixed(2)}° ${lon < 0 ? 'W' : 'E'}`
+// Value with its uncertainty (AERO /api/evaluate): "v ± u", or the range actually found when v ± u would leave the
+// physical limits (e.g. a negative night length), as contracts/API.md asks.
+export function fmtUnc(fmt: (v: number) => string, v: number, u: number | null | undefined,
+  range?: [number, number] | null, bounds?: [number, number]): string {
+  if (u == null || u === 0) return fmt(v)
+  if (range && bounds && (v - u < bounds[0] || v + u > bounds[1])) return `${fmt(v)} (${fmt(range[0])} to ${fmt(range[1])})`
+  return `${fmt(v)} ± ${fmt(u)}`
+}

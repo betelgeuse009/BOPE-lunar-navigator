@@ -76,7 +76,7 @@ export function ComparePanel({ matrix }: { matrix: Matrix }) {
               return (
                 <tr key={r.field}>
                   <th scope="row">{r.label}</th>
-                  {cols.map((c, i) => <td key={pins[i].id} className={best.has(i) ? 'best' : ''}>{formatCell(r, c[r.field])}</td>)}
+                  {cols.map((c, i) => <td key={pins[i].id} className={best.has(i) ? 'best' : ''}>{formatCell(r, c[r.field], evs.data?.[pins[i].id]?.uncertainty_model?.components?.[r.field]?.range)}</td>)}
                 </tr>
               )
             })}

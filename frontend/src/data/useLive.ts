@@ -55,12 +55,12 @@ export function useApiHealth() {
   }, [setMode])
 }
 
-// Live site x date matrix with the user's settings; the static matrix supplies the site list and dates.
-export function useLiveMatrix(base: Matrix | null): Result<Matrix> {
+// Live site x date matrix with the user's settings for the catalogue sites; the static matrix supplies the dates.
+export function useLiveMatrix(base: Matrix | null, siteIds: string[]): Result<Matrix> {
   const { mode, settings, minuteUtc } = useApp()
   const s = useDebounced(settings, 300)
   const params = base && mode === 'live'
-    ? { ...settingsQuery(s), site_ids: base.site_ids.join(','), start_utc: landingAt(base.landing_dates_utc[0], minuteUtc),
+    ? { ...settingsQuery(s), site_ids: siteIds.join(','), start_utc: landingAt(base.landing_dates_utc[0], minuteUtc),
         n_dates: String(base.landing_dates_utc.length), date_step_h: '24' }
     : null
   return useApiRequest(params && JSON.stringify(params), async (p) =>

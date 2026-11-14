@@ -36,6 +36,9 @@ describe('formatCell', () => {
   it('adds the uncertainty when the data has one', () => {
     expect(formatCell(row('elevation_m'), { value: 1758.94, uncertainty: 0.1 })).toBe('1758.9 m ± 0.1 m')
   })
+  it('shows the range instead of a ± that would go below zero', () => {
+    expect(formatCell(row('longest_dark_h'), { value: 65.27, uncertainty: 66.16 }, [55.25, 131.35])).toBe('65 h (55 h to 131 h)')
+  })
   it('spells out the special meanings of time to first sunset', () => {
     expect(formatCell(row('hours_to_first_dark_h'), { value: null, uncertainty: null })).toBe('not during the stay')
     expect(formatCell(row('hours_to_first_dark_h'), { value: 0, uncertainty: null })).toBe('dark at landing')
@@ -47,5 +50,21 @@ describe('fmtM', () => {
     const { fmtM } = await import('./format')
     expect(fmtM({ value: 1758.94, uncertainty: 0.08 })).toBe('1758.9 m ± 0.1 m')
     expect(fmtM({ value: null, uncertainty: null })).toBe('n/a')
+  })
+})
+
+describe('fmtUnc', () => {
+  it('shows ± when the bound stays inside the physical limits', async () => {
+    const { fmtUnc, fmtH } = await import('./format')
+    expect(fmtUnc(fmtH, 65.3, 5, [60, 70], [0, Infinity])).toBe('65 h ± 5 h')
+  })
+  it('shows the range found when ± would leave the physical limits (AERO API.md)', async () => {
+    const { fmtUnc, fmtH } = await import('./format')
+    expect(fmtUnc(fmtH, 65.2667, 66.1552, [55.25, 131.35], [0, Infinity])).toBe('65 h (55 h to 131 h)')
+  })
+  it('shows the bare value without an uncertainty', async () => {
+    const { fmtUnc, fmtPct } = await import('./format')
+    expect(fmtUnc(fmtPct, 0.8, null)).toBe('80 %')
+    expect(fmtUnc(fmtPct, 0.8, 0)).toBe('80 %')
   })
 })
