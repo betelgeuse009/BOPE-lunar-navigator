@@ -20,7 +20,11 @@
           "lon_deg": { "type": "number", "minimum": -180, "maximum": 180, "description": "selenographic longitude, east positive" },
           "category": { "type": "string", "enum": ["apollo", "clps", "artemis", "international", "commercial", "other"] },
           "coord_source": { "type": "string", "description": "citation for the coordinates (paper, NASA page, etc.)" },
-          "description": { "type": "string", "description": "one or two sentences for the public/educator view" }
+          "description": { "type": "string", "description": "one or two sentences for the public/educator view" },
+          "elevation_m": { "type": "number", "description": "OPTIONAL: terrain height relative to the 1737.4 km sphere (LOLA)" },
+          "slope_deg": { "type": "number", "minimum": 0, "maximum": 90, "description": "OPTIONAL: local slope from LOLA" },
+          "is_region": { "type": "boolean", "description": "OPTIONAL: true if the site is a region (e.g. Artemis III candidate) given by a centre point" },
+          "mission_date": { "type": "string", "description": "OPTIONAL: landing date (YYYY-MM-DD) of a past or planned mission" }
         },
         "additionalProperties": false
       }

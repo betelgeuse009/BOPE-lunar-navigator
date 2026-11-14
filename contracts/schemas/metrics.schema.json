@@ -29,6 +29,10 @@
     "sun_windows": { "type": "array", "items": { "$ref": "common.schema.json#/$defs/window" } },
     "earth_windows": { "type": "array", "items": { "$ref": "common.schema.json#/$defs/window" } },
     "dsn_windows": { "type": "array", "items": { "$ref": "common.schema.json#/$defs/window" }, "description": "LATER" },
+    "earth_min_elev_deg": {
+      "type": "number", "minimum": -90, "maximum": 90,
+      "description": "OPTIONAL: antenna mask; a step is Earth-visible only if earth_el_deg >= this AND earth_visible_frac >= 0.5"
+    },
     "mast_curve": {
       "type": "array", "description": "LATER: sunlit fraction vs mast height",
       "items": {

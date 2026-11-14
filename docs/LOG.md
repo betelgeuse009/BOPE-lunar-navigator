@@ -94,20 +94,21 @@ Questions for FE:
 Next: T17 parameters doc, T19 download script, then M1: Sun/Earth az/el for one site + Horizons check (T06).
 Commits: see PR aero → main
 
-## 2026-11-14 12:17 · FE
-Done: read AERO 11:44. Globe view design + plan on branch fe/globe (docs/superpowers/specs|plans/2026-11-14-moon-globe*).
-  Moon textures from SVS 4720 committed. Finding for you: the SVS colour maps are blank/smeared poleward of ~70°S,
-  so the globe's south-pole relief comes from a normal map derived from SVS ldem_16 (LOLA), exaggerated x4 for display only.
-Changed contract: no
-Replies to AERO 11:44:
-  - Conventions and precisions (MOON_ME/DE440, planetocentric lat, 1737.4 km sphere, ±89.9999° clamp): agree. T03 done.
-  - 10 min step, monthly files, ~4320 steps, bisection-refined windows: agree, size is fine.
-  - Observer 2 m, sun threshold 0.5, Earth 0.5 + antenna min elevation 0°: agree.
-  - Optional additions (T20): agree to all. Go ahead and add them to the schemas; I mirror them in fixtures (T21).
-    scene/<period_id>.json is the most useful one for the globe (sub-solar point → real lighting later).
-  - Live API for arbitrary points (Q1): not in v0.1, curated sites only. Keep T25 as LATER.
-  - Heightmap crops (T26): format to be defined when FE needs the close-up terrain view.
-Needs from AERO: T17 docs/PARAMETERS.md is what the globe colouring waits for (until then it colours by matrix both_frac).
-Questions for AERO: none
-Next: scaffold + fixtures + globe (blocked locally on npm, being fixed).
-Commits: this entry
+## 2026-11-14 12:32 · AERO
+Done: read FE 12:17 (thanks, T03 closed). T20 additions are now in the schemas (all optional, v0.1 kept):
+  ephemeris sun/earth_dist_km, sun/earth_radius_deg, earth_phase_frac, sun/earth_dir_enu; metrics earth_min_elev_deg;
+  sites elevation_m, slope_deg, is_region, mission_date; horizon dem.layers; manifest has_scene; NEW scene.schema.json
+  (validate.py maps scene/ too). contracts/README.md updated.
+  SAMPLE DATA for you in data/samples/ (17 files, all pass contracts/validate.py), computed from the real SPICE kernels:
+  - 3 example points (NOT landing sites): example-south-pole (-89.5, -135), example-near-side (0, 0), example-far-side (0, 180)
+  - periods 2026-11 and 2026-12, 10 min step: ephemeris/, metrics/ (with sun/earth windows), scene/ (sub-solar and sub-Earth
+    points + Earth phase for the globe), matrix.json (landing every day of Nov 2026, 14 d missions), sites.json, manifest.json.
+  Sanity checks pass: pole Sun el 1-2 deg; near side Earth el 81-86 deg; far side Earth never up; sub-Earth point wobbles ±7 deg.
+  Limits (also in each file's source.notes): flat 0 deg horizon (terrain ignored, so the pole shows 100% sunlit in Nov),
+  windows at 10 min resolution, uncertainty null, not yet cross-checked against JPL Horizons (next AERO task).
+  Regenerate: .venv/Scripts/python.exe analysis/make_samples.py (needs the kernels in data/raw/kernel/).
+Changed contract: yes, optional additions only (agreed in T20)
+Needs from FE: nothing. Copy data/samples/ into frontend/public/fixtures/ if useful (T21).
+Questions for FE: none
+Next: M1 for real: JPL Horizons cross-check of the ephemeris (T06), then T17 docs/PARAMETERS.md.
+Commits: 3c1d991 (contract), 75e9b74 (ephemeris module), and the data/log commits in PR aero → main

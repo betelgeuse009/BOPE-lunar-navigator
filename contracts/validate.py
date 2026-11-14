@@ -23,7 +23,7 @@ def load_registry():
 
 def schema_for(rel: Path):
     """Map a path relative to the data dir to its schema file name."""
-    if rel.parent.name in ("horizon", "ephemeris", "metrics"):
+    if rel.parent.name in ("horizon", "ephemeris", "metrics", "scene"):
         return f"{rel.parent.name}.schema.json"
     if rel.name in ("manifest.json", "sites.json", "matrix.json"):
         return rel.name.replace(".json", ".schema.json")
@@ -36,7 +36,7 @@ def extra_checks(name: str, data: dict) -> list[str]:
     if name == "horizon.schema.json":
         if len(data["azimuth_deg"]) != len(data["horizon_elev_deg"]):
             errs.append("azimuth_deg and horizon_elev_deg differ in length")
-    if name == "ephemeris.schema.json":
+    if name in ("ephemeris.schema.json", "scene.schema.json"):
         n = len(data["time_utc"])
         for k, v in data.items():
             if isinstance(v, list) and k != "time_utc" and len(v) != n:

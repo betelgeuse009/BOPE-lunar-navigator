@@ -35,6 +35,22 @@
     "earth_dir_mcmf": {
       "type": "array", "description": "OPTIONAL, for the 3D view: unit vector site->Earth in the Moon-fixed frame",
       "items": { "type": "array", "items": { "type": "number" }, "minItems": 3, "maxItems": 3 }
+    },
+    "sun_dist_km": { "type": "array", "items": { "type": "number", "exclusiveMinimum": 0 }, "description": "OPTIONAL: site->Sun distance (km)" },
+    "earth_dist_km": { "type": "array", "items": { "type": "number", "exclusiveMinimum": 0 }, "description": "OPTIONAL: site->Earth distance (km)" },
+    "sun_radius_deg": { "type": "array", "items": { "type": "number", "exclusiveMinimum": 0 }, "description": "OPTIONAL: apparent angular radius of the Sun = asin(R_sun / dist)" },
+    "earth_radius_deg": { "type": "array", "items": { "type": "number", "exclusiveMinimum": 0 }, "description": "OPTIONAL: apparent angular radius of the Earth = asin(R_earth / dist)" },
+    "earth_phase_frac": {
+      "type": "array", "items": { "$ref": "common.schema.json#/$defs/frac" },
+      "description": "OPTIONAL: illuminated fraction of the Earth disk seen from the Moon, (1 + cos(phase angle)) / 2"
+    },
+    "sun_dir_enu": {
+      "type": "array", "description": "OPTIONAL, for the panorama: unit vector site->Sun in local East-North-Up, one [e,n,u] per step",
+      "items": { "type": "array", "items": { "type": "number" }, "minItems": 3, "maxItems": 3 }
+    },
+    "earth_dir_enu": {
+      "type": "array", "description": "OPTIONAL, for the panorama: unit vector site->Earth in local East-North-Up, one [e,n,u] per step",
+      "items": { "type": "array", "items": { "type": "number" }, "minItems": 3, "maxItems": 3 }
     }
   },
   "additionalProperties": false

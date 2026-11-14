@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "scene.schema.json",
+  "title": "scene/<period_id>.json: site-independent Sun/Earth geometry for the 3D globe (OPTIONAL file)",
+  "description": "Parallel arrays, one entry per time step. Sub-solar point = where the Sun is at zenith (drives the terminator); sub-Earth point = where the Earth is at zenith. MOON_ME frame, planetocentric lat, east-positive lon.",
+  "allOf": [
+    {
+      "$ref": "common.schema.json#/$defs/header"
+    }
+  ],
+  "type": "object",
+  "required": [
+    "period_id",
+    "aberration_correction",
+    "time_utc",
+    "subsolar_lat_deg",
+    "subsolar_lon_deg",
+    "subearth_lat_deg",
+    "subearth_lon_deg",
+    "earth_phase_frac"
+  ],
+  "properties": {
+    "contract_version": true,
+    "generated_at": true,
+    "source": true,
+    "period_id": {
+      "$ref": "common.schema.json#/$defs/id"
+    },
+    "aberration_correction": {
+      "type": "string"
+    },
+    "time_utc": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "$ref": "common.schema.json#/$defs/time_utc"
+      }
+    },
+    "subsolar_lat_deg": {
+      "type": "array",
+      "description": "planetocentric latitude of the sub-solar point (deg)",
+      "items": {
+        "type": "number",
+        "minimum": -180,
+        "maximum": 180
+      }
+    },
+    "subsolar_lon_deg": {
+      "type": "array",
+      "description": "east longitude of the sub-solar point, -180..180 (deg)",
+      "items": {
+        "type": "number",
+        "minimum": -180,
+        "maximum": 180
+      }
+    },
+    "subearth_lat_deg": {
+      "type": "array",
+      "description": "planetocentric latitude of the sub-Earth point (deg)",
+      "items": {
+        "type": "number",
+        "minimum": -180,
+        "maximum": 180
+      }
+    },
+    "subearth_lon_deg": {
+      "type": "array",
+      "description": "east longitude of the sub-Earth point, -180..180 (deg)",
+      "items": {
+        "type": "number",
+        "minimum": -180,
+        "maximum": 180
+      }
+    },
+    "earth_phase_frac": {
+      "type": "array",
+      "description": "illuminated fraction of the Earth disk seen from the Moon's centre",
+      "items": {
+        "$ref": "common.schema.json#/$defs/frac"
+      }
+    }
+  },
+  "additionalProperties": false
+}

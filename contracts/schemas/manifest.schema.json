@@ -38,7 +38,8 @@
         "additionalProperties": false
       }
     },
-    "has_matrix": { "type": "boolean" }
+    "has_matrix": { "type": "boolean" },
+    "has_scene": { "type": "boolean", "description": "OPTIONAL: true if scene/<period_id>.json exists for every period" }
   },
   "additionalProperties": false
 }

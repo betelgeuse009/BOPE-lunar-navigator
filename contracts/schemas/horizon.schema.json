@@ -16,7 +16,20 @@
       "properties": {
         "product": { "type": "string" },
         "resolution_m": { "type": "number", "exclusiveMinimum": 0 },
-        "max_range_km": { "type": "number", "exclusiveMinimum": 0, "description": "how far out terrain was considered" }
+        "max_range_km": { "type": "number", "exclusiveMinimum": 0, "description": "how far out terrain was considered" },
+        "layers": {
+          "type": "array", "description": "OPTIONAL: multi-resolution DEM, innermost first",
+          "items": {
+            "type": "object",
+            "required": ["product", "resolution_m"],
+            "properties": {
+              "product": { "type": "string" },
+              "resolution_m": { "type": "number", "exclusiveMinimum": 0 },
+              "max_range_km": { "type": "number", "exclusiveMinimum": 0 }
+            },
+            "additionalProperties": false
+          }
+        }
       },
       "additionalProperties": false
     },
