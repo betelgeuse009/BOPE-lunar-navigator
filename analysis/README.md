@@ -20,7 +20,7 @@ python -m venv .venv
 | What | Command |
 |---|---|
 | Start the API | `.venv/Scripts/python.exe -m uvicorn analysis.api:app --port 8000` then open http://localhost:8000/docs |
-| Rebuild the static sample files | `.venv/Scripts/python.exe -m analysis.build` |
+| Rebuild the static files (`data/processed/sites.json` + `data/samples/`) | `.venv/Scripts/python.exe -m analysis.build` (`--sites` for the sites file only) |
 | Check files against the contract | `.venv/Scripts/python.exe contracts/validate.py data/samples` |
 | Run the tests | `.venv/Scripts/python.exe -m pytest analysis` |
 | Check the terrain against the LOLA visibility maps | `.venv/Scripts/python.exe -m analysis.validate_avgvisib` (about 2.5 min, needs the maps) |
@@ -37,7 +37,8 @@ python -m venv .venv
 | `visibility.py` | Visible disk fraction, runs and time windows |
 | `metrics.py` | Time series per site and the summary parameters (`docs/PARAMETERS.md`) |
 | `scoring.py` | Feasibility against user limits and the weighted score |
-| `sites.py` | Site catalogue (example points until T05) |
+| `uncertainty.py` | ± of every parameter: landing-position ring and skyline accuracy |
+| `sites.py` | Catalogue of 31 known landing sites with cited coordinates (`data/SITES.md`) + the 3 example points |
 | `products.py` | Builds the contract JSON documents; shared by the API and the static build |
 | `api.py` | FastAPI server |
 | `build.py` | Writes the static files |
@@ -64,4 +65,6 @@ from the cached replies in `data/validation/horizons/`.
 The terrain skyline (step 3) is checked against NASA's LOLA long-term visibility maps: Sun r = 0.981, Earth r = 0.987 over
 150 random polar points (`docs/validation/avgvisib.md`). The tests that need the maps are skipped when the maps are missing.
 
-Performance: Sun/Earth vectors are cached per calendar month, the skyline per point. Still to do: uncertainties.
+Performance: Sun/Earth vectors are cached per calendar month, the skyline per point.
+
+Uncertainties (`uncertainty.py`): landing-position ring + skyline shift, see `docs/PARAMETERS.md` §6.

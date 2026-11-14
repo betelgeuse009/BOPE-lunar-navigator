@@ -24,7 +24,14 @@
           "elevation_m": { "type": "number", "description": "OPTIONAL: terrain height relative to the 1737.4 km sphere (LOLA)" },
           "slope_deg": { "type": "number", "minimum": 0, "maximum": 90, "description": "OPTIONAL: local slope from LOLA" },
           "is_region": { "type": "boolean", "description": "OPTIONAL: true if the site is a region (e.g. Artemis III candidate) given by a centre point" },
-          "mission_date": { "type": "string", "description": "OPTIONAL: landing date (YYYY-MM-DD) of a past or planned mission" }
+          "mission_date": { "type": "string", "description": "OPTIONAL: landing date (YYYY-MM-DD) of a past or planned mission" },
+          "coord_source_url": { "type": "string", "description": "OPTIONAL: link to the page that gives the coordinates" },
+          "coord_kind": { "type": "string", "enum": ["landed", "impact", "target", "region-centre"], "description": "OPTIONAL: what the point marks: landed position, impact point of a failed landing, a published target point, or the centre of a named target region" },
+          "coord_accuracy_m": { "type": "number", "minimum": 0, "description": "OPTIONAL: horizontal accuracy stated by the source, m" },
+          "status": { "type": "string", "enum": ["landed", "crashed", "planned"], "description": "OPTIONAL: mission outcome" },
+          "agency": { "type": "string", "description": "OPTIONAL: agency or company that flew the mission" },
+          "country": { "type": "string", "description": "OPTIONAL: country of the agency or company" },
+          "slope_baseline_m": { "type": "number", "exclusiveMinimum": 0, "description": "OPTIONAL: pixel size the slope was measured over (80, 240 or 237 m)" }
         },
         "additionalProperties": false
       }

@@ -52,9 +52,11 @@ def model_inputs(
     panel_area_m2: Annotated[float | None, Query(ge=0, description="Sun-tracking solar array area, m^2")] = None,
     panel_efficiency_frac: Annotated[float | None, Query(ge=0, le=1, description="Solar array efficiency, 0..1")] = None,
     use_terrain: Annotated[bool, Query(description="Use the real LOLA terrain (skyline, slope, elevation). false = smooth sphere")] = True,
+    position_uncertainty_m: Annotated[float, Query(ge=0, le=5000, description="Landing accuracy, m: parameters are re-evaluated on a ring of this radius (0 = ignore)")] = config.POSITION_UNCERTAINTY_M,
+    horizon_uncertainty_deg: Annotated[float, Query(ge=0, le=5, description="Skyline accuracy, deg: the skyline is shifted by +/- this (0 = ignore)")] = config.HORIZON_UNCERTAINTY_DEG,
 ) -> Inputs:
     return Inputs(obs_height_m, sun_threshold_frac, earth_min_elev_deg, load_w, panel_area_m2, panel_efficiency_frac,
-                  use_terrain)
+                  use_terrain, position_uncertainty_m, horizon_uncertainty_deg)
 
 
 def score_weights(

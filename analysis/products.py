@@ -10,7 +10,7 @@ from functools import lru_cache
 
 import numpy as np
 
-from . import config, ephemeris as eph, horizon, metrics, scoring, sites, terrain, visibility as vis
+from . import config, ephemeris as eph, horizon, metrics, scoring, sites, terrain, uncertainty, visibility as vis
 from .metrics import Inputs
 
 _TERRAIN_MAPS = ("dem_87s_5m", "dem_80s_80m", "dem_60s_240m", "dem_global", "slope_80s_80m", "dem_err_80s_80m")
@@ -20,8 +20,9 @@ def notes(terrain_used: bool) -> str:
     model = ("Horizon model: lola-terrain (real skyline from the LOLA DEMs out to 200 km, target accuracy 0.1 deg)."
              if terrain_used else
              "Horizon model: smooth-sphere (terrain ignored: the LOLA maps are missing or use_terrain is off).")
-    return (f"{model} Uncertainty of the metrics not estimated yet. Sun/Earth az/el cross-checked against "
-            "JPL Horizons: max 0.00003 deg (docs/validation/horizons.md).")
+    return (f"{model} Metric uncertainties (where given) combine the landing-position spread and the skyline accuracy "
+            "(analysis/uncertainty.py). Sun/Earth az/el cross-checked against JPL Horizons: max 0.00003 deg "
+            "(docs/validation/horizons.md).")
 
 
 @lru_cache(maxsize=1)
@@ -105,17 +106,18 @@ def metrics_doc(site_id: str, period_id: str, lat: float, lon: float, start: str
     bv = _grid(start, end, calc_step_s)
     s = metrics.site_series(bv, lat, lon, inp)
     p = metrics.summarize(s, 0, slice(None), calc_step_s, inp)
+    u = uncertainty.spread(bv, lat, lon, inp, calc_step_s, p)["uncertainty"]
     end_utc = eph.format_utc(eph.parse_utc(end))
     doc = {
         **header("metrics.py", s["terrain"]), "site_id": site_id, "period_id": period_id,
         "sun_threshold_frac": inp.sun_threshold_frac, "earth_min_elev_deg": inp.earth_min_elev_deg,
-        "metrics": {k: _metric(p[k]) for k in ("sunlit_frac", "earth_visible_frac", "both_frac", "longest_dark_h",
-                                               "longest_no_earth_h", "mean_sun_el_when_lit_deg")},
+        "metrics": {k: _metric(p[k], 4, u[k]) for k in ("sunlit_frac", "earth_visible_frac", "both_frac", "longest_dark_h",
+                                                        "longest_no_earth_h", "mean_sun_el_when_lit_deg")},
         "sun_windows": vis.windows(s["lit"][0], bv.times_utc, end_utc),
         "earth_windows": vis.windows(s["comm"][0], bv.times_utc, end_utc),
     }
     if p["battery_needed_wh"] is not None:
-        doc["metrics"]["battery_needed_wh"] = _metric(p["battery_needed_wh"], 1)
+        doc["metrics"]["battery_needed_wh"] = _metric(p["battery_needed_wh"], 1, u["battery_needed_wh"])
     return doc
 
 
@@ -175,23 +177,30 @@ def matrix_doc(site_ids: list[str], lats, lons, first_landing: str, n_dates: int
     }
 
 
-def sites_doc() -> dict:
-    out = [dict(s) for s in sites.SITES]
+def sites_doc(site_list: list[dict] | None = None) -> dict:
+    """Site list with terrain elevation and slope at each point (when the maps are on disk)."""
+    out = [dict(s) for s in (sites.SITES if site_list is None else site_list)]
     use_terrain = horizon.terrain_available()
     if use_terrain:
         lats, lons = [s["lat_deg"] for s in out], [s["lon_deg"] for s in out]
-        elev, slope = terrain.elevation_m(lats, lons), terrain.slope_deg(lats, lons)[0]
-        for s, e, sl in zip(out, elev, slope):
-            s["elevation_m"], s["slope_deg"] = round(float(e), 1), round(float(sl), 2)
-    return {**header("sites.py", use_terrain), "sites": out}
+        elev = terrain.elevation_m(lats, lons)
+        slope, baseline, _src = terrain.slope_deg(lats, lons)
+        for s, e, sl, b in zip(out, elev, slope, baseline):
+            s["elevation_m"], s["slope_deg"], s["slope_baseline_m"] = round(float(e), 1), round(float(sl), 2), float(b)
+    doc = {**header("sites.py", use_terrain), "sites": out}
+    doc["source"]["notes"] = ("Coordinates: see coord_source / coord_source_url of each site (NASA NSSDCA tables, LROC, "
+                              "USGS planetary nomenclature). elevation_m / slope_deg: LOLA maps at the point. "
+                              "Catalogue and exclusions: data/SITES.md.")
+    return doc
 
 
-def manifest_doc(periods: list[tuple[str, str, str]], step_s: int, has_matrix: bool, has_horizon: bool) -> dict:
+def manifest_doc(periods: list[tuple[str, str, str]], step_s: int, has_matrix: bool, has_horizon: bool,
+                 site_list: list[dict] | None = None) -> dict:
     return {
         **header("build.py", has_horizon),
         "periods": [{"id": p, "label": p, "start_utc": s, "end_utc": e, "step_s": step_s} for p, s, e in periods],
         "available": [{"site_id": s["id"], "has_horizon": has_horizon, "period_ids": [p for p, _, _ in periods]}
-                      for s in sites.SITES],
+                      for s in (sites.SITES if site_list is None else site_list)],
         "has_matrix": has_matrix, "has_scene": True,
     }
 
@@ -217,8 +226,11 @@ def evaluate_doc(lat: float, lon: float, start: str, end: str, calc_step_s: int,
     bv = _grid(start, end, calc_step_s)
     s = metrics.site_series(bv, lat, lon, inp)
     p = metrics.summarize(s, 0, slice(None), calc_step_s, inp)
-    params = {k: _metric(v) for k, v in p.items() if k != "window_h"}
-    params["elevation_m"] = _metric(p["elevation_m"], 1, s["height_error_m"][0])   # LOLA height error where mapped
+    feasibility = scoring.feasibility(p, limits)
+    unc = uncertainty.spread(bv, lat, lon, inp, calc_step_s, p, weights, limits, s["height_error_m"][0])
+    u = unc["uncertainty"]
+    params = {k: _metric(v, 4, u.get(k)) for k, v in p.items() if k != "window_h"}
+    params["elevation_m"] = _metric(p["elevation_m"], 1, u["elevation_m"])
     if s["terrain"]:
         mean_sun, mean_earth = terrain.lola_mean_visibility(lat, lon)
         params["lola_mean_sun_visibility_frac"] = _metric(mean_sun[0])       # long-term LOLA average, for context
@@ -232,8 +244,20 @@ def evaluate_doc(lat: float, lon: float, start: str, end: str, calc_step_s: int,
         "horizon_source": horizon.source(inp.use_terrain), "terrain_available": horizon.terrain_available(),
         "terrain": _terrain_block(s, lat, lon, inp),
         "parameters": params,
-        **scoring.feasibility(p, limits),
-        "score": scoring.score(p, weights),
+        "uncertainty_model": {
+            "position_uncertainty_m": inp.position_uncertainty_m, "horizon_uncertainty_deg": inp.horizon_uncertainty_deg,
+            "method": ("uncertainty = sqrt(position^2 + horizon^2): position = largest change over "
+                       f"{uncertainty.RING_POINTS} points on a ring of radius position_uncertainty_m; horizon = largest "
+                       "change when the skyline is shifted by +/- horizon_uncertainty_deg. elevation_m adds the LOLA "
+                       "height error. A +/- bound in the unit of each parameter; range = lowest and highest value found."),
+            "components": {k: {c: ([_num(x) for x in v] if isinstance(v, list) else _num(v)) for c, v in parts.items()}
+                           for k, parts in unc["components"].items()},
+        },
+        **feasibility,
+        "requirements_at_risk": unc["requirements_at_risk"],
+        "requirements_violated_within_uncertainty": int(feasibility["requirements_violated"] == 1
+                                                        or bool(unc["requirements_at_risk"])),
+        "score": {**scoring.score(p, weights), "uncertainty": _num(unc["score_uncertainty"])},
     }
 
 
@@ -251,15 +275,7 @@ def disc_grid(radius_km: float, spacing_km: float) -> tuple[np.ndarray, np.ndarr
     return x, y
 
 
-def offsets_to_latlon(lat: float, lon: float, east_km: np.ndarray, north_km: np.ndarray):
-    """Points reached from (lat, lon) by moving along great circles; exact on the sphere, safe near the poles."""
-    r_moon = eph.body_radius_km("MOON")
-    east, north, up = (a[0] for a in eph.enu_axes(eph.site_positions_km(lat, lon)))
-    rho = np.hypot(east_km, north_km)
-    safe = np.where(rho > 0, rho, 1.0)
-    d = rho / r_moon
-    p = np.cos(d)[:, None] * up + np.sin(d)[:, None] * (east_km[:, None] * east + north_km[:, None] * north) / safe[:, None]
-    return np.degrees(np.arcsin(np.clip(p[:, 2], -1, 1))), np.degrees(np.arctan2(p[:, 1], p[:, 0]))
+offsets_to_latlon = eph.offset_points
 
 
 AREA_PARAMETERS = ("sunlit_frac", "longest_dark_h", "earth_visible_frac", "longest_no_earth_h", "both_frac",

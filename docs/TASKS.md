@@ -8,7 +8,7 @@ Status: todo · doing · review · done. Update the row when status changes; add
 | T02 | Contract v0.1 draft (`contracts/`) | FE | review | |
 | T03 | Review and agree contract v0.1 (conventions, file list), reply in LOG | AERO | done | T02 |
 | T04 | Create `team/Gabri275.md` (personal file) | AERO | done | |
-| T05 | Curated site list `sites.json` with coordinate citations | AERO | todo | T03 |
+| T05 | Known landing sites with cited coordinates: 31 sites in `data/processed/sites.json` and `/api/sites` (`data/SITES.md`); Artemis III regions pending official coordinates | AERO | review | T03 |
 | T06 | Ephemeris pipeline (SPICE via spiceypy), checked vs SPICE `azlcpo` and vs JPL Horizons (max 0.00003°, tol 0.01°; `docs/validation/horizons.md`) | AERO | done | T03 |
 | T07 | Horizon from the LOLA DEMs for any site (`analysis/terrain.py`, `/api/horizon`, `data/samples/horizon/`) | AERO | done | T03 |
 | T08 | Metrics + windows per site × period, with the terrain skyline | AERO | done | T06, T07 |
@@ -25,7 +25,7 @@ Status: todo · doing · review · done. Update the row when status changes; add
 | T19 | Download scripts: SPICE kernels (`python -m analysis.download_kernels`) and LOLA maps (`python -m analysis.download_maps`, list in `data/MAPS.md`) | AERO | done | |
 | T20 | Agree optional contract additions proposed in LOG 2026-11-14 11:44 (distances, angular radius, Earth phase, ENU vectors, `scene/<period>.json`, site extras, multi-res DEM) | Both | done | T03 |
 | T21 | Mirror T20 additions in schemas (AERO) and in `frontend/public/fixtures/` (FE) | Both | review | T20 |
-| T22 | Uncertainty bands: neighbour ring (100–500 m) + LOLA height-error map → metric `uncertainty` | AERO | todo | T08 |
+| T22 | Metric uncertainties: landing-position ring + skyline accuracy, `requirements_at_risk` (`analysis/uncertainty.py`, PARAMETERS §6) | AERO | review | T08 |
 | T23 | Validate long-term Sun / Earth visibility vs LOLA `AVGVISIB` maps: Sun r = 0.981, Earth r = 0.987 (`docs/validation/avgvisib.md`) | AERO | done | T08 |
 | T24 | LATER: map layers (slope, mean illumination, Earth visibility, PSRs) as web PNGs + index file (needs contract addition) | AERO | todo | T07 |
 | T25 | Live API for arbitrary coordinates and user settings (`analysis/api.py`, `contracts/API.md`): ephemeris, metrics, scene, matrix, evaluate, area | AERO | review | |
@@ -38,3 +38,5 @@ Status: todo · doing · review · done. Update the row when status changes; add
 | T32 | JSON Schemas for `/api/evaluate` and `/api/area` (promised to FE) | AERO | todo | T28 |
 | T33 | Decide on FE's proposal to manage the Python dependencies with `uv` (LOG 2026-11-14 16:57) | AERO | todo | |
 | T34 | Landing hour (UTC) next to the landing date, live mode (`fe/compare`) | FE | review | T27 |
+| T35 | Show the known landing sites (`data/processed/sites.json` / `/api/sites`) on the 3D globe and the 2D map, styled by `category` and `status` | FE | todo | T05 |
+| T36 | Artemis III candidate regions on the map: find official region outlines or coordinates (NASA gives names only) | AERO | todo | T05 |

@@ -102,3 +102,30 @@ Short dated entries: decision, why, alternatives rejected. This becomes the "met
 - Why: FE measured ~2.7 s for every new landing date (cache was per exact time window), which stalled the date slider.
 - Now any window on the midnight grid is cut out of cached months: a new date in a computed month costs ~0.07 s
   (14 d at 1 min). Numbers are identical to a direct computation (test).
+
+## 2026-11-14 · The Earth difference against NASA's LOLA maps is a definition difference, not an error
+- The AVGVISIB PDS labels (imbrium.mit.edu/EXTRAS/ILLUMINATION/IMG/*.LBL) define the value as "the percentage of
+  timesteps where each pixel was sunlit (by any fraction of the ... disc)". We compared our time-averaged visible disk
+  fraction, which is smaller by construction, more so for the 1.9° Earth disk than for the 0.5° Sun.
+- With NASA's definition: Earth r = 0.996, mean difference +0.005 (was −0.037); Sun r = 0.982, +0.010
+  (`docs/validation/avgvisib.md`, which now reports all three definitions).
+- Kept our metrics as they are (sunlit / Earth-visible = at least half the disk, as agreed in T03); the docs state that
+  NASA's long-term maps use the looser "any part" rule.
+
+## 2026-11-14 · Uncertainty model: landing-position ring + skyline accuracy
+- ± = sqrt(position² + horizon²): position = largest change over 8 points at `position_uncertainty_m` (default 100 m),
+  horizon = largest change for a ± `horizon_uncertainty_deg` skyline shift (default 0.1°). Both are user inputs; the
+  defaults are AERO's choices. Also returned: [min, max] range, `requirements_at_risk`, score uncertainty.
+- Why: at the pole the dominant uncertainty is where exactly the lander ends up (shadows change within 100 m) and the
+  skyline accuracy (the Sun grazes it). Sun/Earth directions (< 0.0001°) are negligible in comparison.
+- Rejected: Monte Carlo over the DEM error map (slow, and the height error 0.03–1 m is small next to the position effect).
+- Not computed per point in `/area` or per cell in `/matrix` (cost x 11); there the grid shows the spatial variation.
+
+## 2026-11-14 · Known landing sites: cited coordinates only
+- 31 sites (Apollo, Surveyor, Luna, Chang'e, Chandrayaan-3, SLIM, CLPS, ispace) from NASA NSSDCA tables and LROC image
+  measurements; the modern landers agree between the two sources. Our LOLA elevation at the cited coordinates matches the
+  sources' stated elevations within 30 m (test). File: `data/processed/sites.json`; list and exclusions: `data/SITES.md`.
+- Excluded: Artemis III regions and future CLPS targets without published coordinates (only names are public).
+  IM-3 is shown at the IAU centre of Reiner Gamma, flagged as a region.
+- Contract: optional site fields added (`status`, `coord_kind`, `coord_source_url`, `coord_accuracy_m`, `agency`,
+  `country`, `slope_baseline_m`).

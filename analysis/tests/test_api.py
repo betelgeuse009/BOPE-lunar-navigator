@@ -61,7 +61,8 @@ def test_scene_matches_contract():
 def test_matrix_matches_contract():
     doc = get("/api/matrix", start_utc="2026-11-01T00:00:00Z", n_dates=5)
     assert_valid(doc, "matrix.schema.json")
-    assert len(doc["cells"]["score"]) == 3 and len(doc["cells"]["score"][0]) == 5
+    from analysis import sites
+    assert len(doc["cells"]["score"]) == len(sites.SITES) and len(doc["cells"]["score"][0]) == 5
     custom = get("/api/matrix", start_utc="2026-11-01T00:00:00Z", n_dates=2, points="-89.5,-135;0,0")
     assert custom["site_ids"] == ["point-1", "point-2"]
 

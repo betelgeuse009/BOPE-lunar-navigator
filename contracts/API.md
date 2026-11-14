@@ -49,6 +49,8 @@ which maps are present. `python -m analysis.download_maps --all` adds the 3.3 GB
 | `load_w` | – | Average electrical load. Enables `battery_needed_wh`, `energy_required_kwh` |
 | `panel_area_m2`, `panel_efficiency_frac` | – | Sun-tracking array. Enables `energy_generated_kwh`, `energy_margin_kwh` |
 | `use_terrain` | true | `false` = ignore the terrain (smooth sphere), to see what the terrain changes |
+| `position_uncertainty_m` | 100 | Landing accuracy for the uncertainty: parameters are re-evaluated on a ring of this radius (0 = off) |
+| `horizon_uncertainty_deg` | 0.1 | Skyline accuracy for the uncertainty: the skyline is shifted by ± this (0 = off) |
 
 **Score weights** (`/evaluate`, `/area`, `/matrix`): `w_sunlit`, `w_dark`, `w_earth`, `w_no_earth`, `w_slope` (default 1 each, 0 = ignore).
 
@@ -62,7 +64,7 @@ Parameter definitions, formulas and sources: `docs/PARAMETERS.md`.
 | Endpoint | Extra parameters | Returns |
 |---|---|---|
 | `GET /api/health` | – | status, kernels, `horizon_source`, `terrain_available`, `maps` present |
-| `GET /api/sites` | – | `sites.schema.json` (with `elevation_m`, `slope_deg` when the maps are present) |
+| `GET /api/sites` | – | `sites.schema.json`: the 31 known landing sites (`data/SITES.md`), with `elevation_m`, `slope_deg` when the maps are present. Same content as the static file `data/processed/sites.json` |
 | `GET /api/scene` | `step_s` (600) | `scene.schema.json`: sub-solar / sub-Earth points, Earth phase |
 | `GET /api/ephemeris` | site, model inputs, `step_s` (600) | `ephemeris.schema.json` with all optional fields; `*_visible_frac` include the terrain |
 | `GET /api/horizon` | site, `obs_height_m` | `horizon.schema.json`: the terrain skyline, 720 azimuths (0.5°), out to 200 km |
@@ -95,59 +97,56 @@ With `use_terrain=false` everything is as fast as before (area of 317 points in 
 
 ## `GET /api/evaluate`: is this site good for this landing date?
 
-`/api/evaluate?lat_deg=-89.5&lon_deg=-135&start_utc=2026-11-15T00:00:00Z&load_w=100&panel_area_m2=2&panel_efficiency_frac=0.3&max_no_earth_h=100&max_slope_deg=8`
+`/api/evaluate?lat_deg=-89.5&lon_deg=-135&start_utc=2026-11-15T00:00:00Z&load_w=100&panel_area_m2=2&panel_efficiency_frac=0.3&max_no_earth_h=100&max_dark_h=70&max_slope_deg=8`
 
 ```json
 {
-  "contract_version": "0.1", "generated_at": "2026-11-14T16:04:06Z", "source": { "...": "as in every file" },
-  "site": { "lat_deg": -89.5, "lon_deg": -135.0, "obs_height_m": 2.0 },
-  "window": { "start_utc": "2026-11-15T00:00:00Z", "end_utc": "2026-11-29T00:00:00Z", "duration_h": 336.0, "calc_step_s": 60 },
-  "inputs": { "obs_height_m": 2.0, "sun_threshold_frac": 0.5, "earth_min_elev_deg": 0.0, "load_w": 100.0,
-              "panel_area_m2": 2.0, "panel_efficiency_frac": 0.3, "use_terrain": true,
-              "weights": { "sunlit_frac": 1.0, "longest_dark_h": 1.0, "earth_visible_frac": 1.0, "longest_no_earth_h": 1.0, "slope_deg": 1.0 },
-              "limits": { "min_sunlit_frac": null, "max_dark_h": null, "min_earth_visible_frac": null,
-                          "max_no_earth_h": 100.0, "max_slope_deg": 8.0, "min_energy_margin_kwh": null } },
+  "contract_version": "0.1", "generated_at": "2026-11-14T16:49:34Z", "source": { "...": "as in every file" },
+  "site": {"lat_deg": -89.5, "lon_deg": -135.0, "obs_height_m": 2.0},
+  "window": {"start_utc": "2026-11-15T00:00:00Z", "end_utc": "2026-11-29T00:00:00Z", "duration_h": 336.0, "calc_step_s": 60},
+  "inputs": {"obs_height_m": 2.0, "sun_threshold_frac": 0.5, "earth_min_elev_deg": 0.0, "load_w": 100.0, "panel_area_m2": 2.0, "panel_efficiency_frac": 0.3, "use_terrain": true, "position_uncertainty_m": 100.0, "horizon_uncertainty_deg": 0.1, "weights": {"sunlit_frac": 1.0, "longest_dark_h": 1.0, "earth_visible_frac": 1.0, "longest_no_earth_h": 1.0, "slope_deg": 1.0}, "limits": {"min_sunlit_frac": null, "max_dark_h": 70.0, "min_earth_visible_frac": null, "max_no_earth_h": 100.0, "max_slope_deg": 8.0, "min_energy_margin_kwh": null}},
+  "terrain": {"used": true, "horizon_source": "lola-terrain", "dem_product": "ldem_87s_5mpp.tif", "dem_resolution_m": 5.0, "horizon_layers": [{"product": "ldem_87s_5mpp.tif", "resolution_m": 5.0}, {"product": "LDEM_80S_80MPP_ADJ.tiff", "resolution_m": 80.0}], "horizon_max_range_km": 200.0, "slope_source": "LDSM_80S_80MPP_ADJ (official slope map)", "slope_baseline_m": 80.0, "height_error_m": 0.079},
   "horizon_source": "lola-terrain", "terrain_available": true,
-  "terrain": { "used": true, "horizon_source": "lola-terrain",
-               "dem_product": "ldem_87s_5mpp.tif", "dem_resolution_m": 5.0,
-               "horizon_layers": [ { "product": "ldem_87s_5mpp.tif", "resolution_m": 5.0 },
-                                   { "product": "LDEM_80S_80MPP_ADJ.tiff", "resolution_m": 80.0 } ],
-               "horizon_max_range_km": 200.0,
-               "slope_source": "LDSM_80S_80MPP_ADJ (official slope map)", "slope_baseline_m": 80.0,
-               "height_error_m": 0.079 },
   "parameters": {
-    "sunlit_frac":                     { "value": 0.8058,   "uncertainty": null },
-    "longest_dark_h":                  { "value": 65.2667,  "uncertainty": null },
-    "hours_to_first_dark_h":           { "value": 0.0,      "uncertainty": null },
-    "mean_sun_el_when_lit_deg":        { "value": 1.195,    "uncertainty": null },
-    "sun_el_min_deg":                  { "value": 1.0417,   "uncertainty": null },
-    "sun_el_max_deg":                  { "value": 1.5758,   "uncertainty": null },
-    "sun_energy_tracking_kwh_m2":      { "value": 376.5824, "uncertainty": null },
-    "mean_irradiance_w_m2":            { "value": 1120.781, "uncertainty": null },
-    "earth_visible_frac":              { "value": 0.7918,   "uncertainty": null },
-    "longest_no_earth_h":              { "value": 69.9667,  "uncertainty": null },
-    "hours_to_first_earth_loss_h":     { "value": 0.0,      "uncertainty": null },
-    "mean_earth_el_when_visible_deg":  { "value": 3.9313,   "uncertainty": null },
-    "earth_el_min_deg":                { "value": -3.89,    "uncertainty": null },
-    "earth_el_max_deg":                { "value": 5.9212,   "uncertainty": null },
-    "both_frac":                       { "value": 0.7918,   "uncertainty": null },
-    "energy_generated_kwh":            { "value": 225.9494, "uncertainty": null },
-    "energy_required_kwh":             { "value": 33.6,     "uncertainty": null },
-    "energy_margin_kwh":               { "value": 192.3494, "uncertainty": null },
-    "battery_needed_wh":               { "value": 6526.6667, "uncertainty": null },
-    "slope_deg":                       { "value": 13.0759,  "uncertainty": null },
-    "elevation_m":                     { "value": 1758.9,   "uncertainty": 0.1 },
-    "lola_mean_sun_visibility_frac":   { "value": 0.4411,   "uncertainty": null },
-    "lola_mean_earth_visibility_frac": { "value": 0.5772,   "uncertainty": null }
+    "sunlit_frac":                       {"value": 0.8058, "uncertainty": 0.1969},
+    "longest_dark_h":                    {"value": 65.2667, "uncertainty": 66.1552},
+    "hours_to_first_dark_h":             {"value": 0.0, "uncertainty": 0.0},
+    "mean_sun_el_when_lit_deg":          {"value": 1.195, "uncertainty": 0.0333},
+    "sun_el_min_deg":                    {"value": 1.0417, "uncertainty": 0.0033},
+    "sun_el_max_deg":                    {"value": 1.5758, "uncertainty": 0.0032},
+    "sun_energy_tracking_kwh_m2":        {"value": 376.5824, "uncertainty": 92.0996},
+    "mean_irradiance_w_m2":              {"value": 1120.781, "uncertainty": 274.1061},
+    "earth_visible_frac":                {"value": 0.7918, "uncertainty": 0.0001},
+    "longest_no_earth_h":                {"value": 69.9667, "uncertainty": 0.05},
+    "hours_to_first_earth_loss_h":       {"value": 0.0, "uncertainty": 0.0},
+    "mean_earth_el_when_visible_deg":    {"value": 3.9313, "uncertainty": 0.0026},
+    "earth_el_min_deg":                  {"value": -3.89, "uncertainty": 0.0033},
+    "earth_el_max_deg":                  {"value": 5.9212, "uncertainty": 0.0033},
+    "both_frac":                         {"value": 0.7918, "uncertainty": 0.1827},
+    "energy_generated_kwh":              {"value": 225.9494, "uncertainty": 55.2598},
+    "energy_required_kwh":               {"value": 33.6, "uncertainty": 0.0},
+    "energy_margin_kwh":                 {"value": 192.3494, "uncertainty": 55.2598},
+    "battery_needed_wh":                 {"value": 6526.6667, "uncertainty": 6615.5249},
+    "slope_deg":                         {"value": 13.0759, "uncertainty": 4.6354},
+    "elevation_m":                       {"value": 1758.9, "uncertainty": 28.3},
+    "lola_mean_sun_visibility_frac":     {"value": 0.4411, "uncertainty": null},
+    "lola_mean_earth_visibility_frac":   {"value": 0.5772, "uncertainty": null}
   },
+  "uncertainty_model": { "position_uncertainty_m": 100.0, "horizon_uncertainty_deg": 0.1,
+                         "method": "...",
+                         "components": {
+                           "sunlit_frac": {"position": 0.1969, "horizon": 0.0025, "range": [0.6091, 0.8356]},
+                           "longest_dark_h": {"position": 66.15, "horizon": 0.8333, "range": [55.25, 131.35]},
+                           "battery_needed_wh": {"position": 6615.0, "horizon": 83.3333, "range": [5525.0, 13135.0]},
+                           "elevation_m": {"position": 28.3452, "horizon": 0.0, "height_error": 0.0788, "range": [1730.5298, 1785.3654]},
+                           "...": "one entry per parameter" } },
   "feasible": false,
   "requirements_violated": 1,
-  "violations": [ { "limit": "max_slope_deg", "parameter": "slope_deg", "value": 13.0759, "limit_value": 8.0 } ],
+  "violations": [{"limit": "max_slope_deg", "parameter": "slope_deg", "value": 13.0759, "limit_value": 8.0}],
   "not_checked": [],
-  "score": { "value": 0.7082,
-             "components": { "sunlit_frac": { "score": 0.8058, "weight": 1.0 }, "longest_dark_h": { "score": 0.8058, "weight": 1.0 },
-                             "earth_visible_frac": { "score": 0.7918, "weight": 1.0 }, "longest_no_earth_h": { "score": 0.7918, "weight": 1.0 },
-                             "slope_deg": { "score": 0.3462, "weight": 1.0 } } }
+  "requirements_at_risk": ["max_dark_h"],
+  "requirements_violated_within_uncertainty": 1,
+  "score": { "value": 0.7082, "uncertainty": 0.0927, "components": { "...": "sub-score and weight per parameter" } }
 }
 ```
 
@@ -159,7 +158,15 @@ With `use_terrain=false` everything is as fast as before (area of 317 points in 
   (`slope_deg`, `elevation_m`). Show it as "n/a", never as 0.
 - `terrain` says what the terrain values are based on, so the UI can state it: the DEM at the site, the DEM layers used
   for the skyline, where the slope comes from and over which baseline (80, 240 or 237 m), the LOLA height error.
-- `elevation_m.uncertainty` is the LOLA height error where it is mapped (south of 80°S). Other uncertainties are `null`.
+- **Uncertainties** (`/evaluate` and the `metrics` documents): each `uncertainty` is a ± bound in the parameter's unit from
+  two sources: the **landing position** (largest change over 8 points on a ring of radius `position_uncertainty_m`) and the
+  **skyline accuracy** (largest change when the skyline is shifted by ± `horizon_uncertainty_deg`), combined as
+  sqrt(position² + horizon²). `elevation_m` also includes the LOLA height error. `uncertainty_model.components` gives
+  both parts and the **`range` [lowest, highest]** actually found: show the range when ± would leave the physical limits
+  (here `longest_dark_h` = 65.2667 ± 66.1552 h, range [55.25, 131.35]: one point 100 m away is dark much longer).
+- **`requirements_at_risk`**: limits that are respected at the point itself but broken somewhere within the uncertainty
+  (here `max_dark_h`). **`requirements_violated_within_uncertainty`** = 1 if a limit is broken at the point or at risk.
+- `score.uncertainty`: the same ± for the score.
 - `lola_mean_*_visibility_frac`: NASA's long-term average for this spot (LOLA AVGVISIB maps, south of 85°S), for context
   next to our value for the chosen dates. Only present when the terrain is used.
 - `score.value` is 0..1 (1 = best). `components` shows each sub-score so the UI can explain the score.
@@ -218,8 +225,10 @@ visible when its elevation is above the skyline at its azimuth (the API already 
 
 - Sun/Earth az/el/range vs **JPL Horizons**: largest difference 0.00003° at full precision, 0.0007° as served
   (az/el rounded to 0.001°); tolerance 0.01°. `docs/validation/horizons.md`.
-- Terrain skyline vs NASA's **LOLA long-term visibility maps** at 150 random points south of 85.5°S: Sun r = 0.981,
-  mean difference −0.005; Earth r = 0.987, mean difference −0.037; all 26 permanently shadowed points agree.
+- Terrain skyline vs NASA's **LOLA long-term visibility maps** at 150 random points south of 85.5°S, using NASA's own
+  definition ("any fraction of the disc" visible): Sun r = 0.982, mean difference +0.010; Earth r = 0.996, mean
+  difference +0.005; all 26 permanently shadowed points agree. (The earlier −0.037 for the Earth came from comparing
+  our time-averaged *visible fraction* with NASA's *any part visible*.)
   `docs/validation/avgvisib.md`.
 - Slope computed from the DEM vs the official LOLA slope map: median difference 0.10–0.17°, r = 0.996–0.999.
 
@@ -229,6 +238,7 @@ visible when its elevation is above the skyline at its azimuth (the API already 
   resolves boulders or metre-scale slopes, so it is not a landing-safety certificate.
 - Away from the south pole the skyline uses the 237 m global map (fine there: the Sun is high). North polar sites would
   need the north polar DEMs (not downloaded).
-- Uncertainties of the metrics are still `null` (only `elevation_m` has one).
+- Uncertainties are given by `/evaluate` and the `metrics` documents, not per point in `/area` or per cell in `/matrix`
+  (there the grid itself shows how the values vary).
 - `/evaluate` and `/area` responses have no JSON Schema yet (documented here by example).
-- `/api/sites` returns three example points, not landing sites, until the curated list exists (T05).
+- The Artemis III candidate regions are not in `/api/sites`: NASA has published no coordinates for them (`data/SITES.md`).

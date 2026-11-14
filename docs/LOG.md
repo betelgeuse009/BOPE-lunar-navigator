@@ -350,3 +350,36 @@ Questions for AERO: does /api/matrix accept a start_utc that is not at 00:00 (FE
 Next (FE): slope as the 5th factor in the score breakdown + remove the stale "terrain not included" text,
   then the horizon panorama on /api/horizon (T12), then limits + robotic/crewed (T30).
 Commits: fe/compare 3de453f, b844d75 (+ 142fb64, 53c24cf, fd0eb07)
+
+## 2026-11-14 17:49 · AERO
+Done (Gabriele asked for three things):
+  1. Earth -0.037 vs NASA explained: NASA's AVGVISIB labels count a step as visible if ANY fraction of the disc is visible;
+     we averaged the visible fraction. With their definition: Earth r = 0.996, mean diff +0.005; Sun r = 0.982, +0.010.
+     docs/validation/avgvisib.md now shows all three definitions. Our metrics are unchanged (half-disk rule, as agreed).
+  2. Uncertainties in the API (T22): /api/evaluate fills "uncertainty" for every parameter, adds uncertainty_model
+     (inputs, method, per-parameter position / horizon parts and [min, max] range), score.uncertainty,
+     requirements_at_risk (limits met at the point but broken within the uncertainty) and
+     requirements_violated_within_uncertainty (0/1). metrics documents (/api/metrics, data/samples) carry uncertainties too.
+     New inputs: position_uncertainty_m (default 100, landing accuracy), horizon_uncertainty_deg (default 0.1).
+     Example (pole example point, 14 d): sunlit 0.806 +/- 0.197, longest_dark_h 65.3 +/- 66.2 (range 55.3..131.4 h):
+     a point 100 m away is in shadow much longer, so max_dark_h=70 shows up as "at risk". First /evaluate of a new point
+     takes ~1-5 s (8 extra coarse skylines), then ~0.07 s.
+  3. Known landing sites (T05): 31 sites with cited coordinates in data/processed/sites.json (static, for your 3D and 2D
+     maps) and /api/sites: Apollo 11-17, Surveyor, Luna, Chang'e 3-6, Chandrayaan-3, SLIM, IM-1, IM-2, Blue Ghost 1,
+     IM-3 target (Reiner Gamma, region), HAKUTO-R M1/M2 (crashed, impact points). Fields to style markers: category,
+     status (landed/crashed/planned), coord_kind, agency, country, mission_date, is_region; plus elevation_m, slope_deg.
+     Sources: NASA NSSDCA + LROC (agree with each other); check: our LOLA height at each cited point matches the source's
+     stated elevation within 30 m. Artemis III regions are NOT included: NASA published names, no coordinates (T36).
+     List and exclusions: data/SITES.md.
+Changed contract: additions only. sites.schema.json gains optional status, coord_kind, coord_source_url,
+  coord_accuracy_m, agency, country, slope_baseline_m. API.md: uncertainty fields, new inputs, sites.
+Behaviour changes to check in FE:
+  - /api/sites now returns the 31 real sites (no example points). site_id still accepts the example ids.
+  - /api/matrix without site_ids now covers 31 sites: ~5.6 s the first time, 0.1 s after.
+  - metrics "uncertainty" values are numbers now (they were null).
+Needs from FE: T35 (sites on the globe and the 2D map).
+Questions for FE: none.
+Answer to FE 17:27: yes, /api/matrix (and /evaluate, /area) accept any start_utc, e.g. 13:00:00Z; a start on
+  the 10-min grid also uses the monthly cache (tested). Artemis III regions: see above, no coordinates exist publicly.
+Next: JSON Schemas for evaluate/area (T32), Artemis III region outlines (T36), crewed preset sources (T30).
+Commits: see PR aero -> main
