@@ -2,12 +2,8 @@ import type { Area, Evaluation } from '../data/api'
 import { useApp } from '../state/store'
 import { metricColor } from './colors'
 import { FACTORS } from './factors'
-
-const fmtH = (v: number | null | undefined) => (v == null ? 'n/a' : `${Math.round(v)} h`)
-const fmtPct = (v: number | null | undefined) => (v == null ? 'n/a' : `${Math.round(v * 100)} %`)
-// hours_to_first_dark_h / hours_to_first_earth_loss_h (PARAMETERS.md): null = never lost during the stay, 0 = already lost at landing.
-const untilLoss = (v: number | null, atLanding: string) => (v == null ? 'not during the stay' : v === 0 ? atLanding : fmtH(v))
-const fmtDeg = (v: number | null | undefined) => (v == null ? 'n/a' : `${v.toFixed(1)}°`)
+import { PinButton } from './ComparePanel'
+import { fmtCoords, fmtDeg, fmtH, fmtPct, untilLoss } from './format'
 
 // Result for the clicked point: score, what makes it up, the key numbers, and the nearby search.
 export function EvaluationPanel({ ev, loading, error, area, areaLoading, areaError }: {
@@ -24,9 +20,10 @@ export function EvaluationPanel({ ev, loading, error, area, areaLoading, areaErr
   return (
     <aside className={`panel evaluation${loading ? ' stale' : ''}`} aria-busy={loading}>
       <div className="panel-head">
-        <h2>{Math.abs(point.lat).toFixed(2)}° {point.lat < 0 ? 'S' : 'N'}, {Math.abs(point.lon).toFixed(2)}° {point.lon < 0 ? 'W' : 'E'}</h2>
+        <h2>{fmtCoords(point.lat, point.lon)}</h2>
         <button type="button" className="close" onClick={() => setPoint(null)} aria-label="Close">×</button>
       </div>
+      <PinButton label={`Point ${fmtCoords(point.lat, point.lon)}`} lat={point.lat} lon={point.lon} />
       {error && <p className="error-inline">{error}</p>}
       {!ev && loading && <p className="note">Computing…</p>}
       {ev && loading && <p className="note updating">Updating for the new date or place…</p>}

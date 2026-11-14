@@ -166,3 +166,34 @@ legend { padding: 0; font-weight: 600; font-size: 16px; }
 /* Header text sits over the sunlit Moon: give the small grey labels a dark backing so they stay readable */
 .mode, .metric { padding: 3px 8px; background: var(--shade); }
 h1 { text-shadow: 0 1px 6px rgba(0, 0, 0, 0.9); }
+
+/* Side-by-side comparison of pinned places (centre, over the globe while open) */
+.pin {
+  font: 500 14px var(--font); color: var(--regolith-1); cursor: pointer; margin: 0 0 10px;
+  background: transparent; border: 1px solid var(--regolith-3); border-radius: 2px; padding: 3px 10px;
+}
+.pin:disabled { color: var(--regolith-2); cursor: default; }
+.compare-toggle { font: 500 15px var(--font); color: var(--regolith-1); cursor: pointer; padding: 3px 10px;
+  background: var(--shade); border: 1px solid var(--regolith-3); border-radius: 2px; }
+.compare-toggle:disabled { color: var(--regolith-2); cursor: default; }
+.compare {
+  position: absolute; z-index: 2; top: 96px; left: 50%; transform: translateX(-50%);
+  width: max-content; max-width: calc(100% - 2 * var(--gutter)); max-height: calc(100% - 330px);
+  display: flex; flex-direction: column; padding: 14px 16px; background: rgba(0, 0, 0, 0.88);
+  border-top: 2px solid var(--regolith-3);
+}
+.compare h2 { margin: 0; font-size: 21px; font-weight: 600; }
+.compare-scroll { overflow: auto; margin-top: 10px; }
+.compare table { border-collapse: collapse; font-size: 15px; }
+.compare th, .compare td { padding: 5px 10px; text-align: left; border-bottom: 1px solid rgba(91, 95, 102, 0.5); }
+.compare tbody th { font-weight: 400; color: var(--regolith-2); white-space: nowrap; position: sticky; left: 0; background: #000; }
+.compare thead th { vertical-align: top; min-width: 130px; font-weight: 600; }
+.col-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+.col-head small { display: block; font-weight: 400; color: var(--regolith-2); }
+.compare td.best { color: #2fb39a; font-weight: 600; }
+.best-key { color: #2fb39a; font-weight: 600; }
+.stale .compare-scroll { opacity: 0.4; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+@media (max-width: 640px) {
+  .compare { top: 80px; max-height: calc(100% - 300px); }
+}

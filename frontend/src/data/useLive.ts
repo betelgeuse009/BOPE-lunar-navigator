@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useApp } from '../state/store'
+import { useApp, type Pin } from '../state/store'
 import { Area, Evaluation, apiAvailable, apiGet, areaSpacingKm, settingsQuery } from './api'
 import { createLatestRunner } from './latest'
 import { parseFile } from './load'
@@ -19,7 +19,7 @@ const idle = { data: null, loading: false, error: null }
 
 // Runs the request for `key` (null = nothing to fetch). At most one request per hook is in flight; while it runs,
 // newer keys replace each other and only the newest is sent next (see latest.ts). Old data stays visible, marked loading.
-export function useApiRequest<T>(key: string | null, run: (params: Record<string, string>) => Promise<T>): Result<T> {
+export function useApiRequest<T, P = Record<string, string>>(key: string | null, run: (params: P) => Promise<T>): Result<T> {
   const [state, setState] = useState<Result<T>>(idle)
   const keyRef = useRef(key)
   keyRef.current = key
@@ -73,6 +73,19 @@ export function useEvaluation(startUtc: string | undefined): Result<Evaluation> 
     ? { ...settingsQuery(s), lat_deg: point.lat.toFixed(4), lon_deg: point.lon.toFixed(4), start_utc: startUtc }
     : null
   return useApiRequest(params && JSON.stringify(params), (p) => apiGet('evaluate', p, Evaluation))
+}
+
+// /api/evaluate for every pinned place at its own landing date, with the current settings. Keyed by pin id,
+// so a stale result never lands in the wrong column while a new pin is loading. Cheap after the first call:
+// AERO caches Sun/Earth per month and skylines per point.
+export function useCompareEvaluations(pins: Pin[], dates: string[]): Result<Record<string, Evaluation>> {
+  const { mode, settings } = useApp()
+  const s = useDebounced(settings, 300)
+  const reqs = mode === 'live'
+    ? pins.map((p) => ({ id: p.id, params: { ...settingsQuery(s), lat_deg: p.lat.toFixed(4), lon_deg: p.lon.toFixed(4), start_utc: dates[p.dateIdx] } }))
+    : []
+  return useApiRequest(reqs.length ? JSON.stringify(reqs) : null, async (list: typeof reqs) =>
+    Object.fromEntries(await Promise.all(list.map(async (r) => [r.id, await apiGet('evaluate', r.params, Evaluation)] as const))))
 }
 
 export function useAreaSearch(startUtc: string | undefined): Result<Area> {

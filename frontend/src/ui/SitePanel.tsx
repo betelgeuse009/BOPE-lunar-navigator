@@ -2,6 +2,8 @@ import { cellValue } from '../data/load'
 import type { Matrix, Site } from '../data/schemas'
 import { useApp } from '../state/store'
 import { metricColor } from './colors'
+import { PinButton } from './ComparePanel'
+import { fmtCoords } from './format'
 import { formatValue, goodness, metricMeta } from './metrics'
 
 export function SitePanel({ sites, matrix }: { sites: Site[]; matrix: Matrix }) {
@@ -12,9 +14,8 @@ export function SitePanel({ sites, matrix }: { sites: Site[]; matrix: Matrix }) 
   return (
     <aside className="panel">
       <h2>{site.name}</h2>
-      <p className="coords">
-        {Math.abs(site.lat_deg).toFixed(2)}° {site.lat_deg < 0 ? 'S' : 'N'}, {Math.abs(site.lon_deg).toFixed(2)}° {site.lon_deg < 0 ? 'W' : 'E'}
-      </p>
+      <p className="coords">{fmtCoords(site.lat_deg, site.lon_deg)}</p>
+      <PinButton label={site.name} lat={site.lat_deg} lon={site.lon_deg} siteId={site.id} />
       <dl>
         {fields.map((f) => {
           const v = cellValue(matrix, site.id, f, dateIdx)

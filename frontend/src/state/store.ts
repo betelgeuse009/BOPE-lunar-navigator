@@ -4,6 +4,9 @@ import type { ScaleMode } from '../ui/colors'
 
 export type Mode = 'checking' | 'live' | 'static'
 export type Point = { lat: number; lon: number }
+// A place pinned for comparison, with the landing date it was pinned at. siteId is set for catalogue sites.
+export type Pin = { id: string; label: string; lat: number; lon: number; dateIdx: number; siteId?: string }
+export const MAX_PINS = 4
 
 type AppState = {
   dateIdx: number
@@ -16,6 +19,8 @@ type AppState = {
   point: Point | null       // clicked point to evaluate (live mode)
   radiusKm: number          // area search radius, 0 = off
   scaleMode: ScaleMode
+  pins: Pin[]
+  compareOpen: boolean
   setDateIdx: (i: number) => void
   setDateCount: (n: number) => void
   setMetric: (m: string) => void
@@ -26,6 +31,9 @@ type AppState = {
   setPoint: (p: Point | null) => void
   setRadiusKm: (r: number) => void
   setScaleMode: (m: ScaleMode) => void
+  addPin: (p: Pin) => void
+  removePin: (id: string) => void
+  setCompareOpen: (open: boolean) => void
 }
 
 const clamp = (i: number, n: number) => Math.min(Math.max(0, Math.round(i)), Math.max(0, n - 1))
@@ -41,6 +49,8 @@ export const useApp = create<AppState>((set) => ({
   point: null,
   radiusKm: 0,
   scaleMode: 'absolute',
+  pins: [],
+  compareOpen: false,
   setDateIdx: (i) => set((s) => ({ dateIdx: clamp(i, s.dateCount) })),
   setDateCount: (n) => set((s) => ({ dateCount: n, dateIdx: clamp(s.dateIdx, n) })),
   setMetric: (metric) => set({ metric }),
@@ -51,4 +61,7 @@ export const useApp = create<AppState>((set) => ({
   setPoint: (point) => set({ point }),
   setRadiusKm: (radiusKm) => set({ radiusKm }),
   setScaleMode: (scaleMode) => set({ scaleMode }),
+  addPin: (p) => set((s) => (s.pins.length >= MAX_PINS || s.pins.some((q) => q.id === p.id) ? {} : { pins: [...s.pins, p] })),
+  removePin: (id) => set((s) => ({ pins: s.pins.filter((p) => p.id !== id) })),
+  setCompareOpen: (compareOpen) => set({ compareOpen }),
 }))
