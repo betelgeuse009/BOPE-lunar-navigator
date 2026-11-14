@@ -22,6 +22,7 @@ python -m venv .venv
 | Rebuild the static sample files | `.venv/Scripts/python.exe -m analysis.build` |
 | Check files against the contract | `.venv/Scripts/python.exe contracts/validate.py data/samples` |
 | Run the tests | `.venv/Scripts/python.exe -m pytest analysis` |
+| Cross-check against JPL Horizons | `.venv/Scripts/python.exe -m analysis.validate_horizons` (add `--refresh` to query Horizons again) |
 
 ## Modules
 
@@ -38,6 +39,7 @@ python -m venv .venv
 | `api.py` | FastAPI server |
 | `build.py` | Writes the static files |
 | `download_kernels.py` | Fetches the SPICE kernels into `data/raw/kernel/` |
+| `validate_horizons.py` | Compares our API with JPL Horizons; caches the replies, writes the report |
 | `tests/` | Physics checks, cross-check against SPICE `azlcpo`, API responses vs the contract schemas |
 | `PLAN.md` | Physics plan, data sources, milestones |
 
@@ -50,4 +52,8 @@ python -m venv .venv
 5. Feasibility and score from the user's limits and weights.
 
 Step 2 is checked against the SPICE routine `azlcpo` in the tests (agreement better than 0.0001°).
-Still to do: cross-check against JPL Horizons, real terrain horizon, uncertainties.
+Step 2 is also checked against **JPL Horizons** (5 sites x 2 bodies x 12 instants, max difference 0.00003°):
+`python -m analysis.validate_horizons` writes `docs/validation/horizons.md`; `tests/test_horizons.py` repeats it offline
+from the cached replies in `data/validation/horizons/`.
+
+Still to do: real terrain horizon, uncertainties.

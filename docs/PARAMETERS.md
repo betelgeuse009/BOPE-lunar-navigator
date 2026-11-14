@@ -93,5 +93,5 @@ For the globe colouring: use `score` (0..1) from `/api/matrix` (site × date), `
 - Limb darkening is ignored: a half-hidden solar disk counts as half the light.
 - Durations have the resolution of the internal time step (`calc_step_s`, default 60 s).
 - Uncertainties are not estimated yet (`null`). Planned: neighbouring points + LOLA height-error map (T22).
-- Not yet cross-checked against JPL Horizons (T06).
+- Sun/Earth directions agree with JPL Horizons to 0.00003° (tolerance 0.01°): `docs/validation/horizons.md`.
 - Not yet included: ground-station (DSN) availability, thermal environment, permanently shadowed regions.

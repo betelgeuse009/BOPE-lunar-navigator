@@ -13,7 +13,8 @@ from . import config, ephemeris as eph, horizon, metrics, scoring, sites, visibi
 from .metrics import Inputs
 
 NOTES = (f"Horizon model: {horizon.SOURCE} (terrain ignored until the LOLA maps are wired in). "
-         "Uncertainty not estimated yet. Not yet cross-checked against JPL Horizons.")
+         "Uncertainty not estimated yet. Sun/Earth az/el cross-checked against JPL Horizons: max 0.00003 deg "
+         "(docs/validation/horizons.md).")
 
 
 @lru_cache(maxsize=1)
