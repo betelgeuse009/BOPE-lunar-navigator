@@ -17,7 +17,8 @@ describe('parseFile', () => {
     expect(() => parseFile(Sites, bad, 'sites.json')).toThrow(/sites\.json: contract_version 0\.2, expected 0\.1/)
   })
   it('rejects a file with no contract_version', () => {
-    const { contract_version: _, ...bad } = fixture('sites.json')
+    const bad = fixture('sites.json')
+    delete bad.contract_version
     expect(() => parseFile(Sites, bad, 'sites.json')).toThrow(/expected 0\.1/)
   })
 })

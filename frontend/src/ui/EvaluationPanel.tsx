@@ -1,7 +1,7 @@
 import type { Area, Evaluation } from '../data/api'
 import { useApp } from '../state/store'
 import { metricColor } from './colors'
-import { FACTORS } from './SettingsPanel'
+import { FACTORS } from './factors'
 
 const fmtH = (v: number | null | undefined) => (v == null ? 'n/a' : `${Math.round(v)} h`)
 const fmtPct = (v: number | null | undefined) => (v == null ? 'n/a' : `${Math.round(v * 100)} %`)
