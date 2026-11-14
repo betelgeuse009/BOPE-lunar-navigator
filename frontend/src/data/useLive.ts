@@ -19,25 +19,28 @@ const idle = { data: null, loading: false, error: null }
 
 // Runs the request for `key` (null = nothing to fetch). At most one request per hook is in flight; while it runs,
 // newer keys replace each other and only the newest is sent next (see latest.ts). Old data stays visible, marked loading.
-function useApiRequest<T>(key: string | null, run: (params: Record<string, string>) => Promise<T>): Result<T> {
+export function useApiRequest<T>(key: string | null, run: (params: Record<string, string>) => Promise<T>): Result<T> {
   const [state, setState] = useState<Result<T>>(idle)
   const keyRef = useRef(key)
   keyRef.current = key
   const runRef = useRef(run)
   runRef.current = run
   const runner = useRef<ReturnType<typeof createLatestRunner<string, { key: string; data: T }>> | null>(null)
-  if (!runner.current) {
-    runner.current = createLatestRunner(
+  // One runner per mount. React StrictMode mounts twice in development; a runner cancelled by the first
+  // (fake) unmount must not be reused, or every later result is dropped and the panel stays "Computing…".
+  useEffect(() => {
+    const r = createLatestRunner(
       async (k: string) => ({ key: k, data: await runRef.current(JSON.parse(k)) }),
-      (r) => { if (r.key === keyRef.current) setState({ data: r.data, loading: false, error: null }) },
-      (e) => setState((s) => ({ ...s, loading: false, error: e.message })),
+      (res) => { if (res.key === keyRef.current) setState({ data: res.data, loading: false, error: null }) },
+      (e) => setState((st) => ({ ...st, loading: false, error: e.message })),
     )
-  }
-  useEffect(() => () => runner.current?.cancel(), [])
+    runner.current = r
+    return () => { r.cancel(); runner.current = null }
+  }, [])
   useEffect(() => {
     if (key === null) return setState(idle)
-    setState((s) => ({ ...s, loading: true, error: null }))
-    runner.current!.request(key)
+    setState((st) => ({ ...st, loading: true, error: null }))
+    runner.current?.request(key)
   }, [key])
   return state
 }
