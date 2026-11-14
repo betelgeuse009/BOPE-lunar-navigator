@@ -30,7 +30,7 @@ Status: todo · doing · review · done. Update the row when status changes; add
 | T24 | LATER: map layers (slope, mean illumination, Earth visibility, PSRs) as web PNGs + index file (needs contract addition) | AERO | todo | T07 |
 | T25 | Live API for arbitrary coordinates and user settings (`analysis/api.py`, `contracts/API.md`): ephemeris, metrics, scene, matrix, evaluate, area | AERO | review | |
 | T26 | LATER: heightmap crop per site (e.g. 20×20 km, same DEM as the horizon masks) for FE 3D terrain (needs contract addition) | AERO | todo | T07 |
-| T27 | Front end calls the API (`contracts/API.md`): click any point → `/api/evaluate`; area search → `/api/area` colour gradient; settings panel for the inputs | FE | todo | T25 |
+| T27 | Front end calls the API (`contracts/API.md`): click any point → `/api/evaluate`; area search → `/api/area` colour gradient; settings panel for the inputs | FE | review | T25 |
 | T28 | Wire LOLA terrain into the API: horizon profile (`/api/horizon`), `slope_deg`, `elevation_m` (makes the area search meaningful) | AERO | todo | T07 |
 | T29 | Decide how the public demo gets its data: hosted Python server or static fallback only | Both | todo | T25 |
 | T30 | Mission profiles (robotic lander / crewed): FE preset UI; AERO cited preset values in PARAMETERS.md | Both | todo | T27 |

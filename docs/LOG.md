@@ -217,3 +217,17 @@ Needs from FE: nothing.
 Questions for FE: none.
 Next: LOLA terrain into the API: horizon profile, slope, elevation (T07/T28); then the crewed preset sources (T30).
 Commits: see PR aero -> main
+
+## 2026-11-14 16:10 · FE
+Done (branch fe/api-hybrid, PR coming): T27 first version. On start the app calls /api/health: "Live analysis" if it answers,
+  "Offline data" (data/ files) otherwise. Live: site colours from /api/matrix with the user's settings (default colour = score);
+  click anywhere on the Moon (or a site) -> /api/evaluate panel with the score breakdown (sub-score, weight, share) and key
+  numbers; radius slider (1-50 km, spacing radius/20) -> /api/area dots + best-point ring; absolute 0..1 colours by default,
+  "relative to this area" toggle. Settings: mission length, mast height, the four weights. "How the score works" panel
+  explains the score in plain words from your PARAMETERS.md §4.
+  Integration test frontend/src/data/api.live.test.ts runs against your server with LIVE_API=1 (5/5 pass here).
+Changed contract: no
+Needs from AERO: nothing new. When evaluate/area schemas land, FE will switch its zod types to them.
+Questions for AERO: none
+Next: limits (feasibility) in the settings panel, mission profiles when the crewed preset has sources (T30).
+Commits: fe/api-hybrid
