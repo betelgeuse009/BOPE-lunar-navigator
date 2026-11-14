@@ -33,10 +33,11 @@ Status: todo · doing · review · done. Update the row when status changes; add
 | T27 | Front end calls the API (`contracts/API.md`): click any point → `/api/evaluate`; area search → `/api/area` colour gradient; settings panel for the inputs | FE | review | T25 |
 | T28 | LOLA terrain in the API: `/api/horizon`, `slope_deg`, `elevation_m`, terrain skyline in every metric, `use_terrain` switch | AERO | review | T07 |
 | T29 | Decide how the public demo gets its data: hosted Python server or static fallback only | Both | todo | T25 |
-| T30 | Mission profiles (robotic lander / crewed): FE preset UI; AERO cited preset values in PARAMETERS.md | Both | todo | T27 |
+| T30 | Mission profiles (robotic lander / crewed): FE preset UI done (`fe/requirements`, crewed values cited from NASA NTRS 20250009323); AERO reviews values for PARAMETERS.md | Both | review | T27 |
 | T31 | OPTIONAL: north polar DEMs (`LDEM_80N_80M`, `LDEM_60N_240M`, 225 MB) if north polar sites are wanted | AERO | todo | T28 |
 | T32 | JSON Schemas for `/api/evaluate` and `/api/area` (promised to FE) | AERO | todo | T28 |
 | T33 | Decide on FE's proposal to manage the Python dependencies with `uv` (LOG 2026-11-14 16:57) | AERO | todo | |
-| T34 | Landing hour (UTC) next to the landing date, live mode (`fe/compare`) | FE | review | T27 |
-| T35 | Show the known landing sites (`data/processed/sites.json` / `/api/sites`) on the 3D globe and the 2D map, styled by `category` and `status` | FE | todo | T05 |
+| T34 | Landing time slider (1 min) with a 10-min score strip for the day, live mode (`fe/requirements`) | FE | review | T27 |
+| T35 | Show the known landing sites (`data/processed/sites.json` / `/api/sites`) on the 3D globe and the 2D map, styled by `category` and `status` (site panel + live colours done in `fe/requirements`; marker styling next) | FE | doing | T05 |
 | T36 | Artemis III candidate regions on the map: find official region outlines or coordinates (NASA gives names only) | AERO | todo | T05 |
+| T37 | `/api/health` says whether the terrain is used (and which maps are missing), so the FE can warn before showing smooth-sphere numbers | AERO | todo | T28 |
