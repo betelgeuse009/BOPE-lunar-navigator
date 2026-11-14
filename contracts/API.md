@@ -167,6 +167,9 @@ With `use_terrain=false` everything is as fast as before (area of 317 points in 
 - **`requirements_at_risk`**: limits that are respected at the point itself but broken somewhere within the uncertainty
   (here `max_dark_h`). **`requirements_violated_within_uncertainty`** = 1 if a limit is broken at the point or at risk.
 - `score.uncertainty`: the same ± for the score.
+- **Countdowns** (from `start_utc`): `hours_to_first_dark_h` (to sunset), `hours_to_first_sun_h` (to sunrise),
+  `hours_to_first_earth_loss_h` (to Earthset), `hours_to_first_earth_h` (to Earthrise). 0 = the state already holds at
+  landing, `null` = it does not happen within the window. Resolution `calc_step_s` (1 min). Also in the `metrics` documents.
 - `lola_mean_*_visibility_frac`: NASA's long-term average for this spot (LOLA AVGVISIB maps, south of 85°S), for context
   next to our value for the chosen dates. Only present when the terrain is used.
 - `score.value` is 0..1 (1 = best). `components` shows each sub-score so the UI can explain the score.

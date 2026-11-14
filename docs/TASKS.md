@@ -32,7 +32,7 @@ Status: todo · doing · review · done. Update the row when status changes; add
 | T26 | LATER: heightmap crop per site (e.g. 20×20 km, same DEM as the horizon masks) for FE 3D terrain (needs contract addition) | AERO | todo | T07 |
 | T27 | Front end calls the API (`contracts/API.md`): click any point → `/api/evaluate`; area search → `/api/area` colour gradient; settings panel for the inputs | FE | review | T25 |
 | T28 | LOLA terrain in the API: `/api/horizon`, `slope_deg`, `elevation_m`, terrain skyline in every metric, `use_terrain` switch | AERO | review | T07 |
-| T29 | Decide how the public demo gets its data: hosted Python server or static fallback only | Both | todo | T25 |
+| T29 | Public demo data: static set for the 31 sites precomputed in `data/processed/` (AERO, done). Still open: host a Python server or static only | Both | doing | T25 |
 | T30 | Mission profiles (robotic lander / crewed): FE preset UI done (`fe/requirements`, crewed values cited from NASA NTRS 20250009323); AERO reviews values for PARAMETERS.md | Both | review | T27 |
 | T31 | OPTIONAL: north polar DEMs (`LDEM_80N_80M`, `LDEM_60N_240M`, 225 MB) if north polar sites are wanted | AERO | todo | T28 |
 | T32 | JSON Schemas for `/api/evaluate` and `/api/area` (promised to FE) | AERO | todo | T28 |

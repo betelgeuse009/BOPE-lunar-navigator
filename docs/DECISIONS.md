@@ -129,3 +129,10 @@ Short dated entries: decision, why, alternatives rejected. This becomes the "met
   IM-3 is shown at the IAU centre of Reiner Gamma, flagged as a region.
 - Contract: optional site fields added (`status`, `coord_kind`, `coord_source_url`, `coord_accuracy_m`, `agency`,
   `country`, `slope_baseline_m`).
+
+## 2026-11-14 · Precomputed static set for the 31 known sites
+- `data/processed/` now holds the full contract set for the 31 sites (160 files, 29.1 MB: sites.json, manifest.json, matrix.json (31 sites x 181 daily landings 2026-11-01..2027-04-30), 31 horizon/, 62 ephemeris/ (~439 kB each), 62 metrics/, 2 scene/), with the terrain skyline and
+  uncertainties, so the front end works without the Python server (public demo link, T29).
+- Time series only for Nov and Dec 2026 (10 min steps, ENU vectors left out to halve the size); the landing-date matrix
+  covers six months of daily landings so seasonal changes are visible offline. Any other date needs the live API.
+- Rebuild with `python -m analysis.build` only when the model changes: every rebuild adds the files again to the git history.

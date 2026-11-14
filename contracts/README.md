@@ -21,6 +21,10 @@ Optional fields added 2026-11-14 (T20, agreed in LOG; no version bump because th
 - metrics: `earth_min_elev_deg` · sites: `elevation_m`, `slope_deg`, `is_region`, `mission_date`
 - horizon: `dem.layers` (multi-resolution DEM) · manifest: `has_scene`
 
+**Precomputed set for the 31 known landing sites in `data/processed/`** (built 2026-11-14, `python -m analysis.build`):
+160 files, 29.1 MB: sites.json, manifest.json, matrix.json (31 sites x 181 daily landings 2026-11-01..2027-04-30), 31 horizon/, 62 ephemeris/ (~439 kB each), 62 metrics/, 2 scene/. With terrain and uncertainties. The front end switches to it automatically (manifest present).
+Optional metrics added: `hours_to_first_dark_h`, `hours_to_first_sun_h`, `hours_to_first_earth_loss_h`, `hours_to_first_earth_h`.
+
 Sample files computed from the real SPICE kernels for three example points (not landing sites) are in `data/samples/`.
 They are valid against these schemas, so FE can copy them into `frontend/public/fixtures/`.
 

@@ -4,7 +4,7 @@ Computes where the Sun and the Earth are in the sky of any point on the Moon, an
 parameters the navigator shows. Two ways out, same JSON (see `contracts/`):
 
 - **API** (live, any point, any settings): `analysis/api.py` → reference in `contracts/API.md`
-- **Static files** (offline fallback): `analysis/build.py` → `data/samples/` (later `data/processed/`)
+- **Static files** (offline fallback): `analysis/build.py` → `data/processed/` (31 known sites) and `data/samples/` (3 example points)
 
 ## Setup (once, from the repo root)
 
@@ -20,7 +20,7 @@ python -m venv .venv
 | What | Command |
 |---|---|
 | Start the API | `.venv/Scripts/python.exe -m uvicorn analysis.api:app --port 8000` then open http://localhost:8000/docs |
-| Rebuild the static files (`data/processed/sites.json` + `data/samples/`) | `.venv/Scripts/python.exe -m analysis.build` (`--sites` for the sites file only) |
+| Rebuild the static files | `.venv/Scripts/python.exe -m analysis.build` (31 sites → `data/processed/`, several minutes); `--sites` only `sites.json`; `--samples` the 3 example points |
 | Check files against the contract | `.venv/Scripts/python.exe contracts/validate.py data/samples` |
 | Run the tests | `.venv/Scripts/python.exe -m pytest analysis` |
 | Check the terrain against the LOLA visibility maps | `.venv/Scripts/python.exe -m analysis.validate_avgvisib` (about 2.5 min, needs the maps) |

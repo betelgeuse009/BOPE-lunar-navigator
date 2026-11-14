@@ -82,10 +82,10 @@ def end_of_mission(start_utc: str, mission_h: float) -> str:
 # ---------------------------------------------------------------- contract files
 
 def ephemeris_doc(site_id: str, period_id: str, lat: float, lon: float, start: str, end: str,
-                  step_s: int, inp: Inputs) -> dict:
+                  step_s: int, inp: Inputs, include_enu: bool = True) -> dict:
     bv = _grid(start, end, step_s)
     s = metrics.site_series(bv, lat, lon, inp)
-    return {
+    doc = {
         **header("ephemeris.py", s["terrain"]), "site_id": site_id, "period_id": period_id,
         "aberration_correction": config.ABCORR,
         "time_utc": list(bv.times_utc),
@@ -96,9 +96,11 @@ def ephemeris_doc(site_id: str, period_id: str, lat: float, lon: float, start: s
         "sun_dist_km": _r(s["sun_dist_km"][0], 0), "earth_dist_km": _r(s["earth_dist_km"][0], 1),
         "sun_radius_deg": _r(s["sun_radius_deg"][0], 4), "earth_radius_deg": _r(s["earth_radius_deg"][0], 4),
         "earth_phase_frac": _r(bv.earth_phase_frac, 4),
-        "sun_dir_enu": _r(eph.dir_enu(s["sun_az_deg"][0], s["sun_el_deg"][0]), 5),
-        "earth_dir_enu": _r(eph.dir_enu(s["earth_az_deg"][0], s["earth_el_deg"][0]), 5),
     }
+    if include_enu:
+        doc["sun_dir_enu"] = _r(eph.dir_enu(s["sun_az_deg"][0], s["sun_el_deg"][0]), 5)
+        doc["earth_dir_enu"] = _r(eph.dir_enu(s["earth_az_deg"][0], s["earth_el_deg"][0]), 5)
+    return doc
 
 
 def metrics_doc(site_id: str, period_id: str, lat: float, lon: float, start: str, end: str,
@@ -112,7 +114,9 @@ def metrics_doc(site_id: str, period_id: str, lat: float, lon: float, start: str
         **header("metrics.py", s["terrain"]), "site_id": site_id, "period_id": period_id,
         "sun_threshold_frac": inp.sun_threshold_frac, "earth_min_elev_deg": inp.earth_min_elev_deg,
         "metrics": {k: _metric(p[k], 4, u[k]) for k in ("sunlit_frac", "earth_visible_frac", "both_frac", "longest_dark_h",
-                                                        "longest_no_earth_h", "mean_sun_el_when_lit_deg")},
+                                                        "longest_no_earth_h", "mean_sun_el_when_lit_deg",
+                                                        "hours_to_first_dark_h", "hours_to_first_sun_h",
+                                                        "hours_to_first_earth_loss_h", "hours_to_first_earth_h")},
         "sun_windows": vis.windows(s["lit"][0], bv.times_utc, end_utc),
         "earth_windows": vis.windows(s["comm"][0], bv.times_utc, end_utc),
     }
