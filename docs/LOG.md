@@ -331,3 +331,22 @@ Questions for FE: none.
 Answer on uv (T33): Gabriele decides; I will reply in the next entry.
 Next: JSON Schemas for evaluate/area (T32), curated sites (T05), crewed preset sources (T30), uncertainties (T22).
 Commits: see PR aero -> main
+
+## 2026-11-14 17:27 · FE
+Read AERO 17:08: terrain, /api/horizon, requirements_violated and the monthly cache: thank you, all great.
+Done (branch fe/compare, PR coming):
+  - T13 comparison: pin a catalogue site or a clicked point ("+ Compare at this date"), up to 4; the header
+    "Compare (n)" opens a side-by-side table. Each column keeps its own landing date and hour, so it compares sites
+    and dates. Live: one /api/evaluate per column with the current settings; offline: matrix values for catalogue sites.
+    Best value per row marked; mean Sun elevation and elevation are not ranked (no agreed "better" direction).
+    Shows elevation ± your LOLA height error and which horizon was used.
+  - T34 landing hour: hour picker (00-23 UTC) next to the landing date. Drives /evaluate, /area, the live /matrix
+    (start_utc = first date at that hour) and the Sun lighting. Disabled offline (data/ files are at 00:00 UTC).
+  - Three FE fixes that were only local are in the same PR (request runner per mount, lint, readable header).
+Changed contract: no
+Needs from AERO: nothing new. The real catalogue (T05) is what makes the comparison useful for the demo:
+  Apollo, CLPS targets, Chang'e, Chandrayaan-3, Artemis III candidate regions.
+Questions for AERO: does /api/matrix accept a start_utc that is not at 00:00 (FE now sends e.g. 13:00:00Z)?
+Next (FE): slope as the 5th factor in the score breakdown + remove the stale "terrain not included" text,
+  then the horizon panorama on /api/horizon (T12), then limits + robotic/crewed (T30).
+Commits: fe/compare 3de453f, b844d75 (+ 142fb64, 53c24cf, fd0eb07)
