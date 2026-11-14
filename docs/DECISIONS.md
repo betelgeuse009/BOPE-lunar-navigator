@@ -78,3 +78,27 @@ Short dated entries: decision, why, alternatives rejected. This becomes the "met
   Optional later: north polar set `LDEM_80N_80M` + `LDEM_60N_240M` (225 MB) if north polar sites are wanted.
   Rejected: global 512 px/deg tiles (32 GB) for little gain.
 - Limitation: no map resolves metre-scale slopes or boulders; slope is a regional indicator, not landing safety.
+
+## 2026-11-14 · Terrain in the API: skyline by ray marching over the LOLA DEMs
+- Method (`analysis/terrain.py`): from the site, 720 azimuths (0.5°), samples out to 200 km with step =
+  max(pixel, 0.5% of the distance); elevation angle with the exact spherical geometry of PLAN.md §3.5; bilinear
+  sampling. Layers: 5 m map within 10 km (south of 86.7°S), then 80 m, 240 m, 237 m global, finest available first.
+  The observer stands on the terrain (sphere + terrain height + mast height).
+- Area searches use a coarser profile (2° azimuth, 2% steps): within 0.1° of the fine one, about 10 ms per point.
+- Slope: official 80 m LOLA map south of 80°S, otherwise central differences on the 240 m or 237 m DEM; baseline reported.
+- Validation: (1) flat synthetic terrain reproduces the smooth-sphere dip, a synthetic wall the analytic angle (tests);
+  (2) vs NASA's LOLA long-term visibility maps (Mazarico et al. 2011) at 150 random points south of 85.5°S over 18.6 years:
+  Sun r = 0.981, mean difference −0.005, mean abs 0.016; Earth r = 0.987, mean difference −0.037; 26 of 26 permanently
+  shadowed points agree (`docs/validation/avgvisib.md`). The Earth bias is not explained yet.
+- Fallback: without the maps, or with `use_terrain=false`, the smooth-sphere horizon is used and reported
+  (`horizon_source`). The 5 m map and the slope map are optional; the three DEMs (80 m, 240 m, global) are required.
+- Limits: slope is regional (80–240 m baseline), not landing safety; metric uncertainties still not estimated.
+
+## 2026-11-14 · Requirements verdict as a 0/1 flag
+- `/api/evaluate` and `/api/area` return `requirements_violated`: 1 = at least one user limit is not respected,
+  0 = all respected. `feasible` (true/false) stays, with the opposite meaning, because FE already uses it.
+
+## 2026-11-14 · Sun/Earth vectors cached per calendar month
+- Why: FE measured ~2.7 s for every new landing date (cache was per exact time window), which stalled the date slider.
+- Now any window on the midnight grid is cut out of cached months: a new date in a computed month costs ~0.07 s
+  (14 d at 1 min). Numbers are identical to a direct computation (test).

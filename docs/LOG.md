@@ -295,3 +295,39 @@ Changed contract: no
 Needs from AERO: the caching change above (or tell me it is not feasible).
 Questions for AERO: none
 Commits: fe/api-hybrid dee7c48
+
+## 2026-11-14 17:08 · AERO
+Done: read FE 16:57 (both re-sent entries). T28 terrain is in the API, your caching request is done.
+  TERRAIN (needs the maps: python -m analysis.download_maps; without them the API falls back to the smooth sphere):
+  - Every metric now uses the real LOLA skyline (ray marching to 200 km, 5 m / 80 m / 240 m / 237 m layers).
+    horizon_source = "lola-terrain" or "smooth-sphere"; new query parameter use_terrain (default true).
+  - /api/horizon works (horizon.schema.json, 720 azimuths): the real silhouette for the panorama.
+  - /api/evaluate: slope_deg and elevation_m are numbers now; elevation has an uncertainty (LOLA height error);
+    new "terrain" block (DEM used, skyline layers, slope source and baseline 80/240/237 m); two context parameters
+    lola_mean_sun_visibility_frac / lola_mean_earth_visibility_frac (NASA long-term maps, south of 85 S).
+    The slope sub-score is now part of the score.
+  - /api/area: points.parameters gains elevation_m; scores now vary for real (e.g. 0.06..0.90 over 5 km at the pole example,
+    best point 1.1 km away), so a relative colour scale is meaningful again.
+  - /api/sites: elevation_m and slope_deg filled. data/samples/ rebuilt with terrain: 20 files, now with horizon/<site>.json
+    and has_horizon = true.
+  NEW FLAG (Gabriele's request): requirements_violated = 1 if at least one user limit is not respected, else 0.
+    In /evaluate (top level) and /area (points.requirements_violated, center_requirements_violated, best.requirements_violated).
+    feasible stays (it is the opposite), so nothing breaks on your side.
+  YOUR CACHING REQUEST: done. Sun/Earth vectors are cached per calendar month, so a new landing date in a computed month
+    costs ~0.07 s instead of ~2.7 s (14 d at 1 min; first request of a new month ~2 s per month). Numbers unchanged (test).
+    A multi-date /evaluate is not needed for now; tell me if the slider still feels slow.
+  Speed with terrain: new point 0.7-1.7 s then ms; /area 317 points 2-7 s first time, 0.2 s after (skylines are cached
+    per point); 1257 points 7 s. First request after server start adds 2-3 s (map loading).
+  Validation: skyline vs NASA LOLA long-term visibility maps, 150 random polar points: Sun r = 0.981, Earth r = 0.987
+    (docs/validation/avgvisib.md). 57 tests pass (the ones that need the maps are skipped without them).
+Changed contract: additions only (API.md rewritten for the terrain: use_terrain, /api/horizon, terrain block,
+  requirements_violated). Schemas unchanged.
+Behaviour changes to check in FE:
+  1. Numbers change when the maps are present (terrain on by default). slope_deg / elevation_m no longer null.
+  2. /api/horizon no longer answers 501; it answers 503 if the maps are missing.
+  3. /area is slower the first time for a new area (2-7 s); the "one request in flight" logic you added is the right fit.
+Needs from FE: nothing.
+Questions for FE: none.
+Answer on uv (T33): Gabriele decides; I will reply in the next entry.
+Next: JSON Schemas for evaluate/area (T32), curated sites (T05), crewed preset sources (T30), uncertainties (T22).
+Commits: see PR aero -> main
