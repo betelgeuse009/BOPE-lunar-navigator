@@ -1,7 +1,7 @@
 import { OrbitControls } from '@react-three/drei'
 import { Canvas } from '@react-three/fiber'
 import { Suspense, useEffect, useState } from 'react'
-import { isPreliminary, loadAll, loadScene, periodAt, sceneIndexAt } from './data/load'
+import { isPreliminary, landingAt, loadAll, loadScene, periodAt, sceneIndexAt } from './data/load'
 import type { Scene } from './data/schemas'
 import { useApiHealth, useAreaSearch, useEvaluation, useLiveMatrix } from './data/useLive'
 import { AreaDots, PointMarkers } from './scene/AreaLayer'
@@ -11,6 +11,7 @@ import { SiteMarkers } from './scene/SiteMarkers'
 import { SouthCap } from './scene/SouthCap'
 import { useApp } from './state/store'
 import { metricColor } from './ui/colors'
+import { ComparePanel } from './ui/ComparePanel'
 import { DateRail } from './ui/DateRail'
 import { metricMeta } from './ui/metrics'
 import { EvaluationPanel } from './ui/EvaluationPanel'
@@ -25,7 +26,7 @@ export default function App() {
   const [data, setData] = useState<Data | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [scene, setScene] = useState<Scene | null>(null)
-  const { metric, dateIdx, mode, point, scaleMode, setMetric, setDateCount, setSelected, setPoint } = useApp()
+  const { metric, dateIdx, hourUtc, mode, point, scaleMode, pins, compareOpen, setMetric, setDateCount, setSelected, setPoint, setCompareOpen } = useApp()
   useApiHealth()
 
   useEffect(() => {
@@ -34,8 +35,10 @@ export default function App() {
       .catch((e: Error) => setError(e.message))
   }, [setDateCount])
 
-  // Scene file (sub-solar point over time) for the month that contains the selected landing date.
-  const landingUtc = data?.matrix.landing_dates_utc[dateIdx]
+  // Landing time: the chosen date at the chosen hour (live only; the offline files are computed at 00:00 UTC).
+  const landingDate = data?.matrix.landing_dates_utc[dateIdx]
+  const landingUtc = landingDate && landingAt(landingDate, mode === 'live' ? hourUtc : 0)
+  // Scene file (sub-solar point over time) for the month that contains the selected landing time.
   const periodId = data && landingUtc && data.manifest.has_scene ? periodAt(data.manifest, landingUtc)?.id : undefined
   useEffect(() => {
     if (!periodId) return setScene(null)
@@ -93,6 +96,13 @@ export default function App() {
             </select>
           </label>
         )}
+        {data && (
+          <button type="button" className="compare-toggle" disabled={pins.length === 0} aria-pressed={compareOpen}
+            title={pins.length === 0 ? 'Pin a site or a clicked point with "+ Compare at this date" first.' : undefined}
+            onClick={() => setCompareOpen(!compareOpen)}>
+            Compare ({pins.length})
+          </button>
+        )}
         {matrix && isPreliminary(matrix) && (
           <p className="fixture" title={matrix.source.notes}>Preliminary data: {matrix.source.notes}</p>
         )}
@@ -107,6 +117,7 @@ export default function App() {
             ? <EvaluationPanel ev={ev.data} loading={ev.loading} error={ev.error}
                 area={area.data} areaLoading={area.loading} areaError={area.error} />
             : <SitePanel sites={data.sites.sites} matrix={matrix} />}
+          <ComparePanel matrix={matrix} />
           {live.error && <p className="error" role="alert">Live analysis failed: {live.error}. Showing precomputed data.</p>}
           <footer className="bottom">
             <DateRail matrix={matrix} />

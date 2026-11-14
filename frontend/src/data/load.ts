@@ -44,6 +44,13 @@ export function periodAt(manifest: Manifest, timeUtc: string): Manifest['periods
   return manifest.periods.find((p) => Date.parse(p.start_utc) <= t && t < Date.parse(p.end_utc)) ?? null
 }
 
+// Landing time = the landing date (a UTC day) at the chosen hour, UTC.
+export function landingAt(dateUtc: string, hourUtc: number): string {
+  const d = new Date(dateUtc)
+  d.setUTCHours(hourUtc, 0, 0, 0)
+  return d.toISOString().replace('.000Z', 'Z')
+}
+
 // Nearest time step (series are strictly increasing with a uniform step, per the contract).
 export function sceneIndexAt(scene: Scene, timeUtc: string): number {
   const t0 = Date.parse(scene.time_utc[0])
