@@ -23,6 +23,7 @@ python -m venv .venv
 | Rebuild the static sample files | `.venv/Scripts/python.exe -m analysis.build` |
 | Check files against the contract | `.venv/Scripts/python.exe contracts/validate.py data/samples` |
 | Run the tests | `.venv/Scripts/python.exe -m pytest analysis` |
+| Check the terrain against the LOLA visibility maps | `.venv/Scripts/python.exe -m analysis.validate_avgvisib` (about 2.5 min, needs the maps) |
 | Cross-check against JPL Horizons | `.venv/Scripts/python.exe -m analysis.validate_horizons` (add `--refresh` to query Horizons again) |
 
 ## Modules
@@ -31,7 +32,8 @@ python -m venv .venv
 |---|---|
 | `config.py` | Every constant and default in one place, each with its source |
 | `ephemeris.py` | SPICE: Sun/Earth vectors in MOON_ME, then az/el/distance for many sites with numpy |
-| `horizon.py` | Horizon elevation per azimuth. Now: smooth sphere. Next: LOLA terrain (T07) |
+| `terrain.py` | LOLA maps: elevation, slope (official map or computed from the DEM), skyline by ray marching |
+| `horizon.py` | Horizon elevation per azimuth: LOLA terrain when the maps are on disk, smooth sphere otherwise |
 | `visibility.py` | Visible disk fraction, runs and time windows |
 | `metrics.py` | Time series per site and the summary parameters (`docs/PARAMETERS.md`) |
 | `scoring.py` | Feasibility against user limits and the weighted score |
@@ -42,14 +44,15 @@ python -m venv .venv
 | `download_kernels.py` | Fetches the SPICE kernels into `data/raw/kernel/` |
 | `download_maps.py` | Checks / fetches the LOLA maps into `data/raw/maps/` (list: `data/MAPS.md`) |
 | `validate_horizons.py` | Compares our API with JPL Horizons; caches the replies, writes the report |
-| `tests/` | Physics checks, cross-check against SPICE `azlcpo`, API responses vs the contract schemas |
+| `validate_avgvisib.py` | Compares our terrain skyline with NASA's LOLA long-term visibility maps; writes the report |
+| `tests/` | Physics checks, cross-check against SPICE `azlcpo` and JPL Horizons, terrain (synthetic + real maps), API responses vs the contract schemas |
 | `PLAN.md` | Physics plan, data sources, milestones |
 
 ## How the numbers are produced
 
 1. UTC → SPICE time; Moon→Sun and Moon→Earth vectors in the Moon-fixed frame `MOON_ME` (LT+S), once per time grid, cached.
 2. Per site: topocentric vector = body − site, projected on local East-North-Up → azimuth, elevation, distance.
-3. Apparent radius, visible disk fraction against the horizon, Earth phase.
+3. Apparent radius, visible disk fraction against the horizon (LOLA terrain skyline, or smooth sphere), Earth phase.
 4. Sunlit / Earth-visible masks → fractions, longest gaps, windows, energy, battery.
 5. Feasibility and score from the user's limits and weights.
 
@@ -58,4 +61,7 @@ Step 2 is also checked against **JPL Horizons** (5 sites x 2 bodies x 12 instant
 `python -m analysis.validate_horizons` writes `docs/validation/horizons.md`; `tests/test_horizons.py` repeats it offline
 from the cached replies in `data/validation/horizons/`.
 
-Still to do: real terrain horizon, uncertainties.
+The terrain skyline (step 3) is checked against NASA's LOLA long-term visibility maps: Sun r = 0.981, Earth r = 0.987 over
+150 random polar points (`docs/validation/avgvisib.md`). The tests that need the maps are skipped when the maps are missing.
+
+Performance: Sun/Earth vectors are cached per calendar month, the skyline per point. Still to do: uncertainties.

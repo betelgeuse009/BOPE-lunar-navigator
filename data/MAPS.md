@@ -41,14 +41,15 @@ Server file names end in `.TIF`; the local copies are saved as `.tiff`. The down
   80 m slope map: median |diff| 0.10–0.17°, correlation 0.996–0.999 in four 16 km windows (pole, 88°S, 85°S, 82°S).
 - Sample point 88°S 60°E: crater floor 3.45 km deep, AVGVISIB Sun = 0.000 (permanent shadow), as expected.
 
-## Which map is used where (plan for the terrain code, T28)
+## Which map is used where (`analysis/terrain.py`)
 
 | Need | South of 86.7°S | 80–86.7°S | 60–80°S | Rest of the Moon |
 |---|---|---|---|---|
-| Horizon, near terrain (≤ ~15 km) | 5 m | 80 m | 240 m | 237 m global |
+| Horizon, near terrain (≤ 10 km) | 5 m | 80 m | 240 m | 237 m global |
 | Horizon, far terrain (to ~200 km) | 80 m | 80 m | 240 m | 237 m global |
 | Elevation at the site | 5 m | 80 m | 240 m | 237 m global |
 | Slope at the site | official 80 m map | official 80 m map | computed from 240 m | computed from 237 m |
+| Needed to run the terrain | optional (`--all`) | required | required | required |
 | Height uncertainty | ERR map | ERR map | none | none |
 | Validation | AVGVISIB (≥ 85°S) | AVGVISIB (≥ 85°S) | – | – |
 
