@@ -40,7 +40,7 @@ export function EvaluationPanel({ ev, loading, error, area, areaLoading, areaErr
           <p className="score">
             <i style={{ background: metricColor(ev.score.value) }} />
             Score <strong>{ev.score.value?.toFixed(2) ?? 'n/a'}</strong>
-            {ev.score.uncertainty ? <span className="unc">± {ev.score.uncertainty.toFixed(2)}</span> : null}
+            {ev.score.uncertainty != null && ev.score.uncertainty >= 0.005 ? <span className="unc">± {ev.score.uncertainty.toFixed(2)}</span> : null}
             {hasLimits
               ? <span className={ev.feasible ? 'ok' : 'bad'}>{!ev.feasible ? 'breaks a requirement' : ev.not_checked.length ? 'meets the checked requirements' : 'meets all requirements'}</span>
               : <span className="nolimits">no requirements set</span>}

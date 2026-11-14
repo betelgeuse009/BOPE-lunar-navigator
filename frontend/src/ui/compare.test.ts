@@ -66,5 +66,6 @@ describe('fmtUnc', () => {
     const { fmtUnc, fmtPct } = await import('./format')
     expect(fmtUnc(fmtPct, 0.8, null)).toBe('80 %')
     expect(fmtUnc(fmtPct, 0.8, 0)).toBe('80 %')
+    expect(fmtUnc(fmtPct, 0.8, 0.0004)).toBe('80 %')
   })
 })

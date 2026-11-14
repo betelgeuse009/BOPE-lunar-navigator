@@ -12,7 +12,7 @@ export const fmtCoords = (lat: number, lon: number) =>
 // physical limits (e.g. a negative night length), as contracts/API.md asks.
 export function fmtUnc(fmt: (v: number) => string, v: number, u: number | null | undefined,
   range?: [number, number] | null, bounds?: [number, number]): string {
-  if (u == null || u === 0) return fmt(v)
+  if (u == null || fmt(u) === fmt(0)) return fmt(v) // no '± 0 %' when the uncertainty rounds away
   if (range && bounds && (v - u < bounds[0] || v + u > bounds[1])) return `${fmt(v)} (${fmt(range[0])} to ${fmt(range[1])})`
   return `${fmt(v)} ± ${fmt(u)}`
 }
