@@ -11,11 +11,11 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from fastapi import Depends, FastAPI, HTTPException, Query
+from fastapi import Depends, FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from . import config, ephemeris as eph, horizon, products, sites
+from . import config, ephemeris as eph, horizon, products, sites, terrain
 from .metrics import Inputs
 
 app = FastAPI(title="BOPE Lunar Navigator API", version="0.1",
@@ -51,8 +51,10 @@ def model_inputs(
     load_w: Annotated[float | None, Query(ge=0, description="Average electrical load, W (enables battery and energy-balance parameters)")] = None,
     panel_area_m2: Annotated[float | None, Query(ge=0, description="Sun-tracking solar array area, m^2")] = None,
     panel_efficiency_frac: Annotated[float | None, Query(ge=0, le=1, description="Solar array efficiency, 0..1")] = None,
+    use_terrain: Annotated[bool, Query(description="Use the real LOLA terrain (skyline, slope, elevation). false = smooth sphere")] = True,
 ) -> Inputs:
-    return Inputs(obs_height_m, sun_threshold_frac, earth_min_elev_deg, load_w, panel_area_m2, panel_efficiency_frac)
+    return Inputs(obs_height_m, sun_threshold_frac, earth_min_elev_deg, load_w, panel_area_m2, panel_efficiency_frac,
+                  use_terrain)
 
 
 def score_weights(
@@ -60,7 +62,7 @@ def score_weights(
     w_dark: Annotated[float, Query(ge=0, description="Weight of longest_dark_h")] = config.SCORE_WEIGHTS["longest_dark_h"],
     w_earth: Annotated[float, Query(ge=0, description="Weight of earth_visible_frac")] = config.SCORE_WEIGHTS["earth_visible_frac"],
     w_no_earth: Annotated[float, Query(ge=0, description="Weight of longest_no_earth_h")] = config.SCORE_WEIGHTS["longest_no_earth_h"],
-    w_slope: Annotated[float, Query(ge=0, description="Weight of slope_deg (ignored until terrain data exists)")] = config.SCORE_WEIGHTS["slope_deg"],
+    w_slope: Annotated[float, Query(ge=0, description="Weight of slope_deg (left out when the terrain is not used)")] = config.SCORE_WEIGHTS["slope_deg"],
 ) -> dict:
     return {"sunlit_frac": w_sunlit, "longest_dark_h": w_dark, "earth_visible_frac": w_earth,
             "longest_no_earth_h": w_no_earth, "slope_deg": w_slope}
@@ -71,7 +73,7 @@ def feasibility_limits(
     max_dark_h: Annotated[float | None, Query(ge=0, description="Feasible only if longest_dark_h <= this")] = None,
     min_earth_visible_frac: Annotated[float | None, Query(ge=0, le=1, description="Feasible only if earth_visible_frac >= this")] = None,
     max_no_earth_h: Annotated[float | None, Query(ge=0, description="Feasible only if longest_no_earth_h <= this")] = None,
-    max_slope_deg: Annotated[float | None, Query(ge=0, le=90, description="Feasible only if slope_deg <= this (not checked until terrain data exists)")] = None,
+    max_slope_deg: Annotated[float | None, Query(ge=0, le=90, description="Feasible only if slope_deg <= this (not checked when the terrain is not used)")] = None,
     min_energy_margin_kwh: Annotated[float | None, Query(description="Feasible only if energy_margin_kwh >= this (needs load_w, panel_area_m2, panel_efficiency_frac)")] = None,
 ) -> dict:
     return {"min_sunlit_frac": min_sunlit_frac, "max_dark_h": max_dark_h,
@@ -104,8 +106,9 @@ def _end(start: str, end: str | None, mission_h: float) -> str:
 def health() -> dict:
     eph.load_kernels()
     return {"status": "ok", "kernels": list(config.KERNELS), "frame": config.FRAME,
-            "aberration_correction": config.ABCORR, "horizon_source": horizon.SOURCE,
-            "terrain_available": horizon.TERRAIN_AVAILABLE}
+            "aberration_correction": config.ABCORR, "horizon_source": horizon.source(True),
+            "terrain_available": horizon.terrain_available(),
+            "maps": {key: terrain.has(key) for key in config.MAPS}}
 
 
 @app.get("/api/sites", summary="Site catalogue (sites.schema.json)")
@@ -178,7 +181,8 @@ def get_matrix(inp: ModelInputs, weights: Weights, start_utc: Start,
     return products.matrix_doc(ids, lats, lons, start_utc, n_dates, date_step_h, mission_h, calc_step_s, inp, weights)
 
 
-@app.get("/api/horizon", summary="Terrain horizon profile (not available yet)")
-def get_horizon() -> dict:
-    raise HTTPException(status_code=501, detail="Terrain horizon is not available yet (needs the LOLA DEMs, task T07). "
-                        f"All visibility values currently use the '{horizon.SOURCE}' horizon.")
+@app.get("/api/horizon", summary="Terrain skyline seen from a site, 720 azimuths (horizon.schema.json)")
+def get_horizon(lat_deg: Lat = None, lon_deg: Lon = None, site_id: SiteId = None,
+                obs_height_m: Annotated[float, Query(ge=0, le=1000, description="Observer height above the surface, m")] = config.OBS_HEIGHT_M) -> dict:
+    sid, lat, lon = _site(site_id, lat_deg, lon_deg)
+    return products.horizon_doc(sid, lat, lon, obs_height_m)

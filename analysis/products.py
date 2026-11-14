@@ -3,18 +3,25 @@ so a file on disk and an API response are always the same thing.
 """
 from __future__ import annotations
 
+import dataclasses
 import subprocess
 from datetime import datetime, timedelta, timezone
 from functools import lru_cache
 
 import numpy as np
 
-from . import config, ephemeris as eph, horizon, metrics, scoring, sites, visibility as vis
+from . import config, ephemeris as eph, horizon, metrics, scoring, sites, terrain, visibility as vis
 from .metrics import Inputs
 
-NOTES = (f"Horizon model: {horizon.SOURCE} (terrain ignored until the LOLA maps are wired in). "
-         "Uncertainty not estimated yet. Sun/Earth az/el cross-checked against JPL Horizons: max 0.00003 deg "
-         "(docs/validation/horizons.md).")
+_TERRAIN_MAPS = ("dem_87s_5m", "dem_80s_80m", "dem_60s_240m", "dem_global", "slope_80s_80m", "dem_err_80s_80m")
+
+
+def notes(terrain_used: bool) -> str:
+    model = ("Horizon model: lola-terrain (real skyline from the LOLA DEMs out to 200 km, target accuracy 0.1 deg)."
+             if terrain_used else
+             "Horizon model: smooth-sphere (terrain ignored: the LOLA maps are missing or use_terrain is off).")
+    return (f"{model} Uncertainty of the metrics not estimated yet. Sun/Earth az/el cross-checked against "
+            "JPL Horizons: max 0.00003 deg (docs/validation/horizons.md).")
 
 
 @lru_cache(maxsize=1)
@@ -25,12 +32,15 @@ def _git_sha() -> str:
         return "unknown"
 
 
-def header(module: str) -> dict:
+def header(module: str, terrain_used: bool = False) -> dict:
+    datasets = [{"name": n, "url": f"{config.NAIF_BASE_URL}/{p}"} for n, p in config.KERNELS.items()]
+    if terrain_used:
+        datasets += [{"name": config.MAPS[k][0].rsplit("/", 1)[-1], "url": config.MAPS[k][1]}
+                     for k in _TERRAIN_MAPS if terrain.has(k)]
     return {
         "contract_version": "0.1",
         "generated_at": eph.format_utc(datetime.now(timezone.utc)),
-        "source": {"datasets": [{"name": n, "url": f"{config.NAIF_BASE_URL}/{p}"} for n, p in config.KERNELS.items()],
-                   "tool": f"analysis/{module}@{_git_sha()}", "notes": NOTES},
+        "source": {"datasets": datasets, "tool": f"analysis/{module}@{_git_sha()}", "notes": notes(terrain_used)},
     }
 
 
@@ -38,8 +48,12 @@ def _r(a, nd: int) -> list:
     return np.round(np.asarray(a, dtype=float), nd).tolist()
 
 
-def _metric(v, nd: int = 4) -> dict:
-    return {"value": None if v is None else round(float(v), nd), "uncertainty": None}
+def _num(v, nd: int = 4):
+    return None if v is None or np.isnan(v) else round(float(v), nd)
+
+
+def _metric(v, nd: int = 4, uncertainty=None) -> dict:
+    return {"value": _num(v, nd), "uncertainty": _num(uncertainty, nd)}
 
 
 def _check_steps(n_steps: int, n_sites: int = 1) -> None:
@@ -71,7 +85,8 @@ def ephemeris_doc(site_id: str, period_id: str, lat: float, lon: float, start: s
     bv = _grid(start, end, step_s)
     s = metrics.site_series(bv, lat, lon, inp)
     return {
-        **header("ephemeris.py"), "site_id": site_id, "period_id": period_id, "aberration_correction": config.ABCORR,
+        **header("ephemeris.py", s["terrain"]), "site_id": site_id, "period_id": period_id,
+        "aberration_correction": config.ABCORR,
         "time_utc": list(bv.times_utc),
         "sun_az_deg": _r(s["sun_az_deg"][0], 3), "sun_el_deg": _r(s["sun_el_deg"][0], 3),
         "sun_visible_frac": _r(s["sun_visible_frac"][0], 4),
@@ -92,7 +107,7 @@ def metrics_doc(site_id: str, period_id: str, lat: float, lon: float, start: str
     p = metrics.summarize(s, 0, slice(None), calc_step_s, inp)
     end_utc = eph.format_utc(eph.parse_utc(end))
     doc = {
-        **header("metrics.py"), "site_id": site_id, "period_id": period_id,
+        **header("metrics.py", s["terrain"]), "site_id": site_id, "period_id": period_id,
         "sun_threshold_frac": inp.sun_threshold_frac, "earth_min_elev_deg": inp.earth_min_elev_deg,
         "metrics": {k: _metric(p[k]) for k in ("sunlit_frac", "earth_visible_frac", "both_frac", "longest_dark_h",
                                                "longest_no_earth_h", "mean_sun_el_when_lit_deg")},
@@ -117,6 +132,20 @@ def scene_doc(period_id: str, start: str, end: str, step_s: int) -> dict:
     }
 
 
+def horizon_doc(site_id: str, lat: float, lon: float, obs_height_m: float) -> dict:
+    """Terrain skyline of a site: 720 azimuths (0.5 deg), horizon.schema.json."""
+    if not horizon.terrain_available():
+        raise FileNotFoundError("the LOLA maps are not on disk. Run: python -m analysis.download_maps (list in data/MAPS.md)")
+    hz = terrain.horizon(lat, lon, obs_height_m)
+    return {
+        **header("terrain.py", True), "site_id": site_id, "observer_height_m": obs_height_m,
+        "dem": {"product": hz.layers[0]["product"], "resolution_m": hz.layers[0]["resolution_m"],
+                "max_range_km": hz.max_range_km, "layers": list(hz.layers)},
+        "azimuth_deg": _r(hz.az_deg, 2), "horizon_elev_deg": _r(hz.elev_deg, 3),
+        "horizon_elev_uncertainty_deg": None,
+    }
+
+
 def matrix_doc(site_ids: list[str], lats, lons, first_landing: str, n_dates: int, date_step_h: float,
                mission_h: float, calc_step_s: int, inp: Inputs, weights: dict) -> dict:
     """Site x landing-date grid. Cell = parameters over [landing, landing + mission_h]."""
@@ -135,27 +164,33 @@ def matrix_doc(site_ids: list[str], lats, lons, first_landing: str, n_dates: int
             p = metrics.summarize(s, i, slice(j * stride, j * stride + per_mission), calc_step_s, inp)
             for k in names:
                 rows[k].append(round(p[k], 4))
-            sc = scoring.score(p, weights)["value"]
-            rows["score"].append(None if sc is None else round(sc, 4))
+            rows["score"].append(_num(scoring.score(p, weights)["value"]))
         for k in cells:
             cells[k].append(rows[k])
     return {
-        **header("metrics.py"), "site_ids": site_ids,
+        **header("metrics.py", s["terrain"]), "site_ids": site_ids,
         "landing_dates_utc": [bv.times_utc[j * stride] for j in range(n_dates)],
         "mission_duration_h": mission_h, "sun_threshold_frac": inp.sun_threshold_frac, "cells": cells,
-        "uncertainty_notes": "Not estimated yet. " + NOTES,
+        "uncertainty_notes": "Not estimated yet. " + notes(s["terrain"]),
     }
 
 
 def sites_doc() -> dict:
-    return {**header("sites.py"), "sites": sites.SITES}
+    out = [dict(s) for s in sites.SITES]
+    use_terrain = horizon.terrain_available()
+    if use_terrain:
+        lats, lons = [s["lat_deg"] for s in out], [s["lon_deg"] for s in out]
+        elev, slope = terrain.elevation_m(lats, lons), terrain.slope_deg(lats, lons)[0]
+        for s, e, sl in zip(out, elev, slope):
+            s["elevation_m"], s["slope_deg"] = round(float(e), 1), round(float(sl), 2)
+    return {**header("sites.py", use_terrain), "sites": out}
 
 
-def manifest_doc(periods: list[tuple[str, str, str]], step_s: int, has_matrix: bool) -> dict:
+def manifest_doc(periods: list[tuple[str, str, str]], step_s: int, has_matrix: bool, has_horizon: bool) -> dict:
     return {
-        **header("build.py"),
+        **header("build.py", has_horizon),
         "periods": [{"id": p, "label": p, "start_utc": s, "end_utc": e, "step_s": step_s} for p, s, e in periods],
-        "available": [{"site_id": s["id"], "has_horizon": False, "period_ids": [p for p, _, _ in periods]}
+        "available": [{"site_id": s["id"], "has_horizon": has_horizon, "period_ids": [p for p, _, _ in periods]}
                       for s in sites.SITES],
         "has_matrix": has_matrix, "has_scene": True,
     }
@@ -163,8 +198,17 @@ def manifest_doc(periods: list[tuple[str, str, str]], step_s: int, has_matrix: b
 
 # ---------------------------------------------------------------- API-only documents (contracts/API.md)
 
-def _public(p: dict) -> dict:
-    return {k: _metric(v) for k, v in p.items() if k != "window_h"}
+def _terrain_block(s: dict, lat: float, lon: float, inp: Inputs) -> dict:
+    """How the terrain entered the result, so the UI can state it."""
+    if not s["terrain"]:
+        return {"used": False, "horizon_source": horizon.SMOOTH, "dem_product": None, "dem_resolution_m": None,
+                "horizon_layers": [], "horizon_max_range_km": None, "slope_source": None, "slope_baseline_m": None,
+                "height_error_m": None}
+    hz, dem = terrain.horizon(lat, lon, inp.obs_height_m, inp.fast_horizon), terrain.dem_at(lat, lon)
+    return {"used": True, "horizon_source": horizon.TERRAIN, "dem_product": dem["product"],
+            "dem_resolution_m": dem["resolution_m"], "horizon_layers": list(hz.layers),
+            "horizon_max_range_km": hz.max_range_km, "slope_source": s["slope_source"][0] or None,
+            "slope_baseline_m": _num(s["slope_baseline_m"][0], 1), "height_error_m": _num(s["height_error_m"][0], 3)}
 
 
 def evaluate_doc(lat: float, lon: float, start: str, end: str, calc_step_s: int, inp: Inputs,
@@ -173,14 +217,21 @@ def evaluate_doc(lat: float, lon: float, start: str, end: str, calc_step_s: int,
     bv = _grid(start, end, calc_step_s)
     s = metrics.site_series(bv, lat, lon, inp)
     p = metrics.summarize(s, 0, slice(None), calc_step_s, inp)
+    params = {k: _metric(v) for k, v in p.items() if k != "window_h"}
+    params["elevation_m"] = _metric(p["elevation_m"], 1, s["height_error_m"][0])   # LOLA height error where mapped
+    if s["terrain"]:
+        mean_sun, mean_earth = terrain.lola_mean_visibility(lat, lon)
+        params["lola_mean_sun_visibility_frac"] = _metric(mean_sun[0])       # long-term LOLA average, for context
+        params["lola_mean_earth_visibility_frac"] = _metric(mean_earth[0])
     return {
-        **header("metrics.py"),
+        **header("metrics.py", s["terrain"]),
         "site": {"lat_deg": lat, "lon_deg": lon, "obs_height_m": inp.obs_height_m},
         "window": {"start_utc": bv.times_utc[0], "end_utc": eph.format_utc(eph.parse_utc(end)),
                    "duration_h": p["window_h"], "calc_step_s": calc_step_s},
         "inputs": {**inp.as_dict(), "weights": weights, "limits": limits},
-        "horizon_source": horizon.SOURCE, "terrain_available": horizon.TERRAIN_AVAILABLE,
-        "parameters": _public(p),
+        "horizon_source": horizon.source(inp.use_terrain), "terrain_available": horizon.terrain_available(),
+        "terrain": _terrain_block(s, lat, lon, inp),
+        "parameters": params,
         **scoring.feasibility(p, limits),
         "score": scoring.score(p, weights),
     }
@@ -212,17 +263,18 @@ def offsets_to_latlon(lat: float, lon: float, east_km: np.ndarray, north_km: np.
 
 
 AREA_PARAMETERS = ("sunlit_frac", "longest_dark_h", "earth_visible_frac", "longest_no_earth_h", "both_frac",
-                   "sun_energy_tracking_kwh_m2", "energy_margin_kwh", "battery_needed_wh", "slope_deg")
+                   "sun_energy_tracking_kwh_m2", "energy_margin_kwh", "battery_needed_wh", "slope_deg", "elevation_m")
 
 
 def area_doc(lat: float, lon: float, radius_km: float, spacing_km: float, start: str, end: str,
              calc_step_s: int, inp: Inputs, weights: dict, limits: dict) -> dict:
     """Evaluate a disc of points around a site: score and feasibility for each, the best point, and whether
-    the centre is already the best."""
+    the centre is already the best. Uses the fast horizon profile (2 deg azimuth steps) for every point."""
     x, y = disc_grid(radius_km, spacing_km)
     lats, lons = offsets_to_latlon(lat, lon, x, y)
     bv = _grid(start, end, calc_step_s, x.size)
-    s = metrics.site_series(bv, lats, lons, inp)
+    fast = dataclasses.replace(inp, fast_horizon=True)
+    s = metrics.site_series(bv, lats, lons, fast)
     params = [metrics.summarize(s, i, slice(None), calc_step_s, inp) for i in range(x.size)]
     scores = [scoring.score(p, weights)["value"] for p in params]
     feas = [scoring.feasibility(p, limits)["feasible"] for p in params]
@@ -238,25 +290,29 @@ def area_doc(lat: float, lon: float, radius_km: float, spacing_km: float, start:
     valid = [v for v in scores if v is not None]
 
     def col(name):
-        return [None if p[name] is None else round(p[name], 4) for p in params]
+        return [_num(p[name]) for p in params]
 
     return {
-        **header("metrics.py"),
+        **header("metrics.py", s["terrain"]),
         "center": {"lat_deg": lat, "lon_deg": lon, "obs_height_m": inp.obs_height_m},
         "radius_km": radius_km, "spacing_km": spacing_km,
         "window": {"start_utc": bv.times_utc[0], "end_utc": eph.format_utc(eph.parse_utc(end)),
                    "duration_h": params[0]["window_h"], "calc_step_s": calc_step_s},
         "inputs": {**inp.as_dict(), "weights": weights, "limits": limits},
-        "horizon_source": horizon.SOURCE, "terrain_available": horizon.TERRAIN_AVAILABLE,
+        "horizon_source": horizon.source(inp.use_terrain), "terrain_available": horizon.terrain_available(),
+        "terrain": _terrain_block(s, float(lats[0]), float(lons[0]), fast),
         "points": {
             "lat_deg": _r(lats, 5), "lon_deg": _r(lons, 5), "east_km": _r(x, 3), "north_km": _r(y, 3),
-            "score": [None if v is None else round(v, 5) for v in scores], "feasible": feas,
+            "score": [_num(v, 5) for v in scores], "feasible": feas,
+            "requirements_violated": [int(not f) for f in feas],
             "parameters": {k: col(k) for k in AREA_PARAMETERS},
         },
         "score_range": [min(valid), max(valid)] if valid else None,
-        "center_score": scores[0], "center_feasible": feas[0], "center_is_best": center_is_best,
+        "center_score": scores[0], "center_feasible": feas[0], "center_requirements_violated": int(not feas[0]),
+        "center_is_best": center_is_best,
         "best": {"index": best, "lat_deg": round(float(lats[best]), 5), "lon_deg": round(float(lons[best]), 5),
-                 "score": scores[best], "feasible": feas[best], "score_gain": 0.0 if center_is_best else gain,
+                 "score": scores[best], "feasible": feas[best], "requirements_violated": int(not feas[best]),
+                 "score_gain": 0.0 if center_is_best else gain,
                  "dist_km": round(float(np.hypot(x[best], y[best])), 3),
                  "bearing_deg": round(float(np.degrees(np.arctan2(x[best], y[best])) % 360.0), 1)},
     }

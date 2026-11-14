@@ -6,6 +6,7 @@ from analysis import ephemeris as eph, horizon, metrics, products, scoring, visi
 from analysis.metrics import Inputs
 
 START, END = "2026-11-01T00:00:00Z", "2026-12-01T00:00:00Z"
+SMOOTH = Inputs(use_terrain=False)   # these tests check the Sun/Earth geometry, not the terrain (see test_terrain.py)
 
 
 @pytest.fixture(scope="module")
@@ -26,17 +27,17 @@ def test_vector_method_matches_spice_azlcpo(bv, lat, lon, body):
 
 
 def test_sun_grazes_the_horizon_at_the_pole(bv):
-    s = metrics.site_series(bv, -89.5, -135.0, Inputs())
+    s = metrics.site_series(bv, -89.5, -135.0, SMOOTH)
     assert np.abs(s["sun_el_deg"]).max() < 3.0   # lunar obliquity to the ecliptic is ~1.5 deg
 
 
 def test_earth_always_high_from_near_side_centre(bv):
-    s = metrics.site_series(bv, 0.0, 0.0, Inputs())
+    s = metrics.site_series(bv, 0.0, 0.0, SMOOTH)
     assert s["earth_el_deg"].min() > 75.0 and s["comm"].all()
 
 
 def test_earth_never_visible_from_far_side_centre(bv):
-    s = metrics.site_series(bv, 0.0, 180.0, Inputs())
+    s = metrics.site_series(bv, 0.0, 180.0, SMOOTH)
     assert s["earth_el_deg"].max() < -75.0 and not s["comm"].any()
 
 
@@ -66,7 +67,7 @@ def test_runs_and_longest_run():
 
 
 def test_energy_balance_and_battery(bv):
-    inp = Inputs(load_w=100.0, panel_area_m2=2.0, panel_efficiency_frac=0.3)
+    inp = Inputs(load_w=100.0, panel_area_m2=2.0, panel_efficiency_frac=0.3, use_terrain=False)
     p = metrics.summarize(metrics.site_series(bv, 0.0, 0.0, inp), 0, slice(None), 3600, inp)
     assert p["energy_required_kwh"] == pytest.approx(100.0 * p["window_h"] / 1000.0)
     assert p["battery_needed_wh"] == pytest.approx(100.0 * p["longest_dark_h"])
@@ -82,6 +83,8 @@ def test_score_and_feasibility():
     assert scoring.score(p, w)["value"] == pytest.approx((0.8 + 0.8 + 0.5 + 0.5) / 4)   # slope is left out
     f = scoring.feasibility(p, {"max_dark_h": 10.0, "min_sunlit_frac": 0.5, "max_slope_deg": 8.0})
     assert not f["feasible"] and f["violations"][0]["limit"] == "max_dark_h" and f["not_checked"] == ["max_slope_deg"]
+    assert f["requirements_violated"] == 1
+    assert scoring.feasibility(p, {"max_dark_h": 30.0, "min_sunlit_frac": None})["requirements_violated"] == 0
 
 
 def test_disc_grid_and_offsets():
@@ -90,3 +93,15 @@ def test_disc_grid_and_offsets():
     lat, lon = products.offsets_to_latlon(-89.5, -135.0, np.array([0.0, 0.0]), np.array([0.0, 1.0]))
     assert lat[0] == pytest.approx(-89.5) and lon[0] == pytest.approx(-135.0)
     assert lat[1] == pytest.approx(-89.5 + np.degrees(1.0 / 1737.4), abs=1e-6)   # 1 km north
+
+
+def test_month_cache_gives_the_same_vectors_as_a_direct_computation():
+    """Windows are cut out of cached calendar months; that must not change a single number."""
+    start, end = "2026-11-28T06:00:00Z", "2027-01-03T12:00:00Z"            # crosses two month boundaries and a year
+    cached = eph.body_vectors(start, end, 3600)
+    sun, earth, phase = eph._compute(eph.utc_grid(start, end, 3600))
+    assert len(cached) == 36 * 24 + 6
+    assert np.array_equal(cached.sun_km, sun) and np.array_equal(cached.earth_km, earth)
+    assert np.array_equal(cached.earth_phase_frac, phase)
+    odd = eph.body_vectors("2026-11-28T06:00:07Z", "2026-11-28T09:00:07Z", 3600)   # not on the midnight grid: direct path
+    assert len(odd) == 3 and odd.times_utc[0] == "2026-11-28T06:00:07Z"

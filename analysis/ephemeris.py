@@ -88,11 +88,9 @@ class BodyVectors:
         return len(self.times_utc)
 
 
-@lru_cache(maxsize=16)
-def body_vectors(start_utc: str, end_utc: str, step_s: int) -> BodyVectors:
-    """Moon->Sun and Moon->Earth vectors in MOON_ME (LT+S) and Earth phase for a UTC grid. Cached."""
+def _compute(times: list[str]) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """SPICE calls for a list of UTC instants: Moon->Sun, Moon->Earth (MOON_ME, LT+S) and Earth phase."""
     load_kernels()
-    times = utc_grid(start_utc, end_utc, step_s)
     n = len(times)
     sun, earth, phase = np.empty((n, 3)), np.empty((n, 3)), np.empty(n)
     with _LOCK:
@@ -102,17 +100,56 @@ def body_vectors(start_utc: str, end_utc: str, step_s: int) -> BodyVectors:
             earth[i] = sp.spkpos("EARTH", et, config.FRAME, config.ABCORR, "MOON")[0]
             # Phase angle at Earth between Earth->Sun and Earth->Moon; k = (1 + cos(alpha)) / 2.
             phase[i] = (1.0 + math.cos(sp.phaseq(et, "EARTH", "SUN", "MOON", config.ABCORR))) / 2.0
+    return sun, earth, phase
+
+
+def _next_month(t: datetime) -> datetime:
+    return t.replace(year=t.year + t.month // 12, month=t.month % 12 + 1, day=1, hour=0, minute=0, second=0)
+
+
+@lru_cache(maxsize=48)
+def _month(year: int, month: int, step_s: int) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """One calendar month on the grid that starts at 00:00 UTC of the 1st. Shared by every window inside it."""
+    first = datetime(year, month, 1, tzinfo=timezone.utc)
+    return _compute(utc_grid(format_utc(first), format_utc(_next_month(first)), step_s))
+
+
+@lru_cache(maxsize=16)
+def body_vectors(start_utc: str, end_utc: str, step_s: int) -> BodyVectors:
+    """Moon->Sun and Moon->Earth vectors in MOON_ME (LT+S) and Earth phase for a UTC grid.
+
+    When the grid lines up with midnight (step divides a day, start on a step), the window is cut out of cached
+    calendar months, so a new landing date inside an already-computed month costs nothing.
+    """
+    times = utc_grid(start_utc, end_utc, step_s)
+    start = parse_utc(start_utc)
+    since_midnight = start.hour * 3600 + start.minute * 60 + start.second
+    if times and 86400 % step_s == 0 and since_midnight % step_s == 0:
+        parts, t, left = [], start, len(times)
+        while left > 0:
+            first = t.replace(day=1, hour=0, minute=0, second=0)
+            i0 = int((t - first).total_seconds()) // step_s
+            month = _month(t.year, t.month, step_s)
+            take = min(left, len(month[2]) - i0)
+            parts.append([a[i0:i0 + take] for a in month])
+            left, t = left - take, _next_month(t)
+        sun, earth, phase = (np.concatenate([p[k] for p in parts]) for k in range(3))
+    else:
+        sun, earth, phase = _compute(times)
     for a in (sun, earth, phase):
         a.setflags(write=False)
     return BodyVectors(tuple(times), step_s, sun, earth, phase)
 
 
-def site_positions_km(lat_deg, lon_deg, height_m: float = 0.0) -> np.ndarray:
-    """Positions (N, 3) in MOON_ME of points on the reference sphere plus height. Latitude is clamped near the poles."""
+def site_positions_km(lat_deg, lon_deg, height_m=0.0) -> np.ndarray:
+    """Positions (N, 3) in MOON_ME of points at `height_m` (scalar or one per site) above the reference sphere.
+
+    Latitude is clamped near the poles.
+    """
     lat = np.radians(np.clip(np.atleast_1d(np.asarray(lat_deg, dtype=float)), -config.LAT_CLAMP_DEG, config.LAT_CLAMP_DEG))
     lon = np.radians(np.atleast_1d(np.asarray(lon_deg, dtype=float)))
-    r = body_radius_km("MOON") + height_m / 1000.0
-    return r * np.column_stack([np.cos(lat) * np.cos(lon), np.cos(lat) * np.sin(lon), np.sin(lat)])
+    r = body_radius_km("MOON") + np.broadcast_to(np.asarray(height_m, dtype=float), lat.shape) / 1000.0
+    return r[:, None] * np.column_stack([np.cos(lat) * np.cos(lon), np.cos(lat) * np.sin(lon), np.sin(lat)])
 
 
 def enu_axes(pos_km: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray]:

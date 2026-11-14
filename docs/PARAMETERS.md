@@ -5,8 +5,8 @@ Gabriele confirms or changes the weights and defaults; nothing here is a require
 unless a source is given.
 
 What makes a site + landing date good: **power** (sunlight on the solar array), **survival** (the longest time
-without Sun, which sizes the battery), **communication** (direct line of sight to Earth) and, once terrain data
-is in, **landing safety** (slope). Each parameter is computed over the mission window `[landing, landing + mission_h]`.
+without Sun, which sizes the battery), **communication** (direct line of sight to Earth) and **terrain** (slope, as a regional
+landing-safety indicator). Each parameter is computed over the mission window `[landing, landing + mission_h]`.
 
 ## 1. User inputs (settings in the navigator)
 
@@ -43,8 +43,9 @@ Visible fraction = part of the disk above the horizon (circular-segment formula,
 | `energy_required_kwh` | kWh | `load_w · window length` | needs `load_w` |
 | `energy_margin_kwh` | kWh | generated − required | positive = the array covers the load over the window |
 | `battery_needed_wh` | Wh | `load_w · longest_dark_h` | energy to bridge the longest night (no depth-of-discharge or margin factors) |
-| `slope_deg` | deg | LOLA slope map at the site. **Not available yet (`null`)** | landing safety, rover mobility |
-| `elevation_m` | m | LOLA height above the 1737.4 km sphere. **Not available yet (`null`)** | context |
+| `slope_deg` | deg | South of 80°S: official LOLA 80 m slope map. Elsewhere: computed from the DEM by central differences (240 m map for 60–80°S, 237 m global map elsewhere). The baseline and source are reported in `terrain` | landing safety, rover mobility |
+| `elevation_m` | m | LOLA height above the 1737.4 km sphere, bilinear, from the finest DEM at the point (5 / 80 / 240 / 237 m). Uncertainty = LOLA height-error map south of 80°S | context; also sets the observer's position |
+| `lola_mean_sun_visibility_frac`, `lola_mean_earth_visibility_frac` | 0..1 | NASA's long-term average for the spot (LOLA AVGVISIB maps, south of 85°S) | context next to our value for the chosen dates |
 
 Sources and constants:
 - Sun/Earth directions: JPL DE440 ephemeris and lunar orientation via SPICE, frame `MOON_ME`, correction LT+S (kernel list in every file's `source`).
@@ -61,8 +62,11 @@ A site is **feasible** when it meets every limit the user has set:
 | `max_dark_h` | `longest_dark_h` ≤ limit |
 | `min_earth_visible_frac` | `earth_visible_frac` ≥ limit |
 | `max_no_earth_h` | `longest_no_earth_h` ≤ limit |
-| `max_slope_deg` | `slope_deg` ≤ limit (cannot be checked until terrain data exists; reported in `not_checked`) |
+| `max_slope_deg` | `slope_deg` ≤ limit (if the terrain is not used it cannot be judged and is reported in `not_checked`) |
 | `min_energy_margin_kwh` | `energy_margin_kwh` ≥ limit |
+
+The API returns the verdict twice: `feasible` (true/false) and **`requirements_violated`** (0/1: 1 = at least one limit
+is not respected), plus the list of `violations`.
 
 No limit is set by default: the limits depend on the lander (battery, slope tolerance, link needs), so the user chooses them.
 
@@ -76,7 +80,7 @@ Each scored parameter becomes a sub-score from 0 (worst) to 1 (best):
 | `longest_dark_h` | 1 − longest_dark_h / window length (1 = never dark, 0 = dark the whole window) |
 | `earth_visible_frac` | the value itself |
 | `longest_no_earth_h` | 1 − longest_no_earth_h / window length |
-| `slope_deg` | 1 − slope / 20°, floored at 0. Left out of the score until terrain data exists |
+| `slope_deg` | 1 − slope / 20°, floored at 0. Left out of the score when the terrain is not used |
 
 **score = Σ wᵢ · sᵢ / Σ wᵢ** over the available parameters with weight > 0. Default weights: 1 each.
 A weight of 0 removes a parameter (for example `w_earth=0&w_no_earth=0` for a mission with a relay satellite).
@@ -87,11 +91,18 @@ For the globe colouring: use `score` (0..1) from `/api/matrix` (site × date), `
 
 ## 5. Limits of the current numbers
 
-- **Terrain is ignored.** The horizon is a smooth sphere seen from `obs_height_m` (dip = acos(R / (R + h)): 0.087° at 2 m,
-  0.19° at 10 m). At the pole the Sun stays within about 2° of the horizon (our own series), so any terrain on the
-  skyline changes the result: the current polar numbers are optimistic.
+- **Terrain is included** when the LOLA maps are on disk: the skyline is ray-marched over the DEMs out to 200 km
+  (`analysis/terrain.py`), target accuracy 0.1°. Checked against NASA's long-term LOLA visibility maps at 150 random
+  points south of 85.5°S: Sun r = 0.981 (mean difference −0.005), Earth r = 0.987 (mean difference −0.037, not
+  explained yet; possibly a different definition of "visible" for the wide Earth disk). `docs/validation/avgvisib.md`.
+  Without the maps (or with `use_terrain=false`) the horizon is a smooth sphere seen from `obs_height_m`
+  (dip = acos(R / (R + h)): 0.087° at 2 m), and polar results are optimistic.
+- **Slope is a regional indicator.** It is measured over 80, 240 or 237 m; no lunar map resolves boulders or the
+  metre-scale slopes a footpad sees. Slopes from the coarser maps come out smoother than from the 80 m map.
+- The visible disk fraction assumes the skyline is flat across the disk width (0.5° for the Sun, 1.9° for the Earth).
 - Limb darkening is ignored: a half-hidden solar disk counts as half the light.
 - Durations have the resolution of the internal time step (`calc_step_s`, default 60 s).
-- Uncertainties are not estimated yet (`null`). Planned: neighbouring points + LOLA height-error map (T22).
+- Uncertainties of the metrics are not estimated yet (`null`); only `elevation_m` has one. Planned: neighbouring points +
+  LOLA height-error map (T22).
 - Sun/Earth directions agree with JPL Horizons to 0.00003° (tolerance 0.01°): `docs/validation/horizons.md`.
 - Not yet included: ground-station (DSN) availability, thermal environment, permanently shadowed regions.

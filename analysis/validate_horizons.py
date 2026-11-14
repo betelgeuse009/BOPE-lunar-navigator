@@ -91,7 +91,9 @@ def ours_api(client: TestClient, lat: float, lon: float, body: str) -> dict[str,
     key = body.lower()
     for t in TIMES:
         r = client.get("/api/ephemeris", params={"lat_deg": lat, "lon_deg": lon, "start_utc": t, "mission_h": 1,
-                                                 "step_s": 600, "obs_height_m": OBS_HEIGHT_M})
+                                                 "step_s": 600, "obs_height_m": OBS_HEIGHT_M,
+                                                 # Horizons has no terrain: compare at the same altitude (sphere + 2 m)
+                                                 "use_terrain": False})
         r.raise_for_status()
         d = r.json()
         assert d["time_utc"][0] == t
