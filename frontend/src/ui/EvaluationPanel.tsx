@@ -1,11 +1,9 @@
 import type { Area, Evaluation } from '../data/api'
 import { useApp } from '../state/store'
 import { metricColor } from './colors'
-import { FACTORS } from './SettingsPanel'
-
-const fmtH = (v: number | null | undefined) => (v == null ? 'n/a' : `${Math.round(v)} h`)
-const fmtPct = (v: number | null | undefined) => (v == null ? 'n/a' : `${Math.round(v * 100)} %`)
-const fmtDeg = (v: number | null | undefined) => (v == null ? 'n/a' : `${v.toFixed(1)}°`)
+import { FACTORS } from './factors'
+import { PinButton } from './ComparePanel'
+import { fmtCoords, fmtDeg, fmtH, fmtPct, untilLoss } from './format'
 
 // Result for the clicked point: score, what makes it up, the key numbers, and the nearby search.
 export function EvaluationPanel({ ev, loading, error, area, areaLoading, areaError }: {
@@ -22,9 +20,10 @@ export function EvaluationPanel({ ev, loading, error, area, areaLoading, areaErr
   return (
     <aside className={`panel evaluation${loading ? ' stale' : ''}`} aria-busy={loading}>
       <div className="panel-head">
-        <h2>{Math.abs(point.lat).toFixed(2)}° {point.lat < 0 ? 'S' : 'N'}, {Math.abs(point.lon).toFixed(2)}° {point.lon < 0 ? 'W' : 'E'}</h2>
+        <h2>{fmtCoords(point.lat, point.lon)}</h2>
         <button type="button" className="close" onClick={() => setPoint(null)} aria-label="Close">×</button>
       </div>
+      <PinButton label={`Point ${fmtCoords(point.lat, point.lon)}`} lat={point.lat} lon={point.lon} />
       {error && <p className="error-inline">{error}</p>}
       {!ev && loading && <p className="note">Computing…</p>}
       {ev && loading && <p className="note updating">Updating for the new date or place…</p>}
@@ -56,11 +55,11 @@ export function EvaluationPanel({ ev, loading, error, area, areaLoading, areaErr
           <dl className="numbers">
             <div><dt>Sunlight</dt><dd>{fmtPct(v('sunlit_frac'))}</dd></div>
             <div><dt>Longest night</dt><dd>{fmtH(v('longest_dark_h'))}</dd></div>
-            <div><dt>First sunset after landing</dt><dd>{v('hours_to_first_dark_h') == null ? 'none in the stay' : fmtH(v('hours_to_first_dark_h'))}</dd></div>
+            <div><dt>First sunset after landing</dt><dd>{untilLoss(v('hours_to_first_dark_h'), 'dark at landing')}</dd></div>
             <div><dt>Mean Sun elevation when lit</dt><dd>{fmtDeg(v('mean_sun_el_when_lit_deg'))}</dd></div>
             <div><dt>Earth in view</dt><dd>{fmtPct(v('earth_visible_frac'))}</dd></div>
             <div><dt>Longest blackout</dt><dd>{fmtH(v('longest_no_earth_h'))}</dd></div>
-            <div><dt>First Earthset after landing</dt><dd>{v('hours_to_first_earth_loss_h') == null ? 'none in the stay' : fmtH(v('hours_to_first_earth_loss_h'))}</dd></div>
+            <div><dt>First Earthset after landing</dt><dd>{untilLoss(v('hours_to_first_earth_loss_h'), 'no Earth at landing')}</dd></div>
           </dl>
           {!ev.terrain_available && (
             <p className="note">Terrain not included yet (horizon: {ev.horizon_source}). Near the pole real hills block the low Sun, so these numbers are optimistic.</p>

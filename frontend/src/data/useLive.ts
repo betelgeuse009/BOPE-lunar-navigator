@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
-import { useApp } from '../state/store'
+import { useApp, type Pin } from '../state/store'
 import { Area, Evaluation, apiAvailable, apiGet, areaSpacingKm, settingsQuery } from './api'
 import { createLatestRunner } from './latest'
-import { parseFile } from './load'
+import { landingAt, parseFile } from './load'
 import { Matrix } from './schemas'
 
 function useDebounced<T>(value: T, ms: number): T {
@@ -19,25 +19,28 @@ const idle = { data: null, loading: false, error: null }
 
 // Runs the request for `key` (null = nothing to fetch). At most one request per hook is in flight; while it runs,
 // newer keys replace each other and only the newest is sent next (see latest.ts). Old data stays visible, marked loading.
-function useApiRequest<T>(key: string | null, run: (params: Record<string, string>) => Promise<T>): Result<T> {
+export function useApiRequest<T, P = Record<string, string>>(key: string | null, run: (params: P) => Promise<T>): Result<T> {
   const [state, setState] = useState<Result<T>>(idle)
   const keyRef = useRef(key)
   keyRef.current = key
   const runRef = useRef(run)
   runRef.current = run
   const runner = useRef<ReturnType<typeof createLatestRunner<string, { key: string; data: T }>> | null>(null)
-  if (!runner.current) {
-    runner.current = createLatestRunner(
+  // One runner per mount. React StrictMode mounts twice in development; a runner cancelled by the first
+  // (fake) unmount must not be reused, or every later result is dropped and the panel stays "Computing…".
+  useEffect(() => {
+    const r = createLatestRunner(
       async (k: string) => ({ key: k, data: await runRef.current(JSON.parse(k)) }),
-      (r) => { if (r.key === keyRef.current) setState({ data: r.data, loading: false, error: null }) },
-      (e) => setState((s) => ({ ...s, loading: false, error: e.message })),
+      (res) => { if (res.key === keyRef.current) setState({ data: res.data, loading: false, error: null }) },
+      (e) => setState((st) => ({ ...st, loading: false, error: e.message })),
     )
-  }
-  useEffect(() => () => runner.current?.cancel(), [])
+    runner.current = r
+    return () => { r.cancel(); runner.current = null }
+  }, [])
   useEffect(() => {
     if (key === null) return setState(idle)
-    setState((s) => ({ ...s, loading: true, error: null }))
-    runner.current!.request(key)
+    setState((st) => ({ ...st, loading: true, error: null }))
+    runner.current?.request(key)
   }, [key])
   return state
 }
@@ -53,10 +56,10 @@ export function useApiHealth() {
 
 // Live site x date matrix with the user's settings; the static matrix supplies the site list and dates.
 export function useLiveMatrix(base: Matrix | null): Result<Matrix> {
-  const { mode, settings } = useApp()
+  const { mode, settings, hourUtc } = useApp()
   const s = useDebounced(settings, 300)
   const params = base && mode === 'live'
-    ? { ...settingsQuery(s), site_ids: base.site_ids.join(','), start_utc: base.landing_dates_utc[0],
+    ? { ...settingsQuery(s), site_ids: base.site_ids.join(','), start_utc: landingAt(base.landing_dates_utc[0], hourUtc),
         n_dates: String(base.landing_dates_utc.length), date_step_h: '24' }
     : null
   return useApiRequest(params && JSON.stringify(params), async (p) =>
@@ -70,6 +73,19 @@ export function useEvaluation(startUtc: string | undefined): Result<Evaluation> 
     ? { ...settingsQuery(s), lat_deg: point.lat.toFixed(4), lon_deg: point.lon.toFixed(4), start_utc: startUtc }
     : null
   return useApiRequest(params && JSON.stringify(params), (p) => apiGet('evaluate', p, Evaluation))
+}
+
+// /api/evaluate for every pinned place at its own landing date and hour, with the current settings. Keyed by pin id,
+// so a stale result never lands in the wrong column while a new pin is loading. Cheap after the first call:
+// AERO caches Sun/Earth per month and skylines per point.
+export function useCompareEvaluations(pins: Pin[], dates: string[]): Result<Record<string, Evaluation>> {
+  const { mode, settings } = useApp()
+  const s = useDebounced(settings, 300)
+  const reqs = mode === 'live'
+    ? pins.map((p) => ({ id: p.id, params: { ...settingsQuery(s), lat_deg: p.lat.toFixed(4), lon_deg: p.lon.toFixed(4), start_utc: landingAt(dates[p.dateIdx], p.hourUtc) } }))
+    : []
+  return useApiRequest(reqs.length ? JSON.stringify(reqs) : null, async (list: typeof reqs) =>
+    Object.fromEntries(await Promise.all(list.map(async (r) => [r.id, await apiGet('evaluate', r.params, Evaluation)] as const))))
 }
 
 export function useAreaSearch(startUtc: string | undefined): Result<Area> {
