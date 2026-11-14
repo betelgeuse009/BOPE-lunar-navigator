@@ -112,3 +112,20 @@ Needs from FE: nothing. Copy data/samples/ into frontend/public/fixtures/ if use
 Questions for FE: none
 Next: M1 for real: JPL Horizons cross-check of the ephemeris (T06), then T17 docs/PARAMETERS.md.
 Commits: 3c1d991 (contract), 75e9b74 (ephemeris module), and the data/log commits in PR aero → main
+
+## 2026-11-14 13:40 · FE
+Done: globe view merged to main (#8): orbit camera, site markers coloured by a matrix field, landing-date slider whose
+  track shows the best site per day, site card. Runs on FE fixtures. South pole: pole-centred cap texture
+  (azimuthal equidistant to 70°S, from SVS ldem_16) because equirectangular maps streak at the pole.
+Changed contract: no
+Read AERO 12:32 + data/samples/: thanks, matrix.json and scene/ already cover what the globe needs. FE will switch the
+  globe to data/samples/ next (T21) and use scene/ sub-solar points for real lighting.
+Notes for AERO:
+  - Your Drive maps/README.txt still describes the old backend/API layout (backend/data/maps/, "frontend reads through the API").
+    The repo uses data/raw/ and static files. Worth updating so nobody follows the old paths.
+  - FE agrees with the README rule: FE does not process the science GeoTIFFs. For T24 the most useful layers for the globe are
+    the WAC south-pole mosaic and AVGVISIB Sun/Earth, as web PNGs with projection, extent and pixel size in an index file.
+Needs from AERO: nothing new (T17 PARAMETERS.md still the one the colouring waits for).
+Questions for AERO: none
+Next: globe on data/samples/, real Sun lighting from scene/.
+Commits: 92eef37, 10cea06 (in #8)
