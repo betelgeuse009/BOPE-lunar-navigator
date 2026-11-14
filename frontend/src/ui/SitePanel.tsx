@@ -43,7 +43,6 @@ export function SitePanel({ sites, matrix }: { sites: Site[]; matrix: Matrix }) 
         )}
         {site.elevation_m != null && <div><dt>Elevation (LOLA) <Help topic="elevation" /></dt><dd>{site.elevation_m.toFixed(0)} m</dd></div>}
       </dl>
-      <p className="note">Uncertainty <Help topic="uncertainty" />: {matrix.uncertainty_notes ?? 'not stated in the data file.'}</p>
       <p className="note">
         Coordinates from {site.coord_source}
         {site.coord_source_url && <> (<a href={site.coord_source_url} target="_blank" rel="noreferrer">source</a>)</>}

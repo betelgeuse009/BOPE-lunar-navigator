@@ -1,14 +1,14 @@
 import { useDayStrip } from '../data/useLive'
 import { useApp } from '../state/store'
 import { metricColor } from './colors'
-import { formatValue, goodness, metricMeta } from './metrics'
+import { formatValue, goodness } from './metrics'
 import { STRIP_STEP_MIN, fmtClock, relativeToDay } from './timeStrip'
 import { Help } from './Help'
 
 // Landing time of day, 1 min steps. The strip behind it is sampled every 10 min (cheap: one /api/matrix call per day)
 // and coloured relative to that day. Live mode only: the offline files exist for 00:00 UTC landings.
 export function TimeRail({ dateUtc, siteIds }: { dateUtc: string; siteIds: string[] }) {
-  const { minuteUtc, setMinuteUtc, mode, metric, point } = useApp()
+  const { minuteUtc, setMinuteUtc, mode, metric } = useApp()
   const live = mode === 'live'
   const strip = useDayStrip(dateUtc, siteIds)
   const day = strip.data
@@ -30,7 +30,6 @@ export function TimeRail({ dateUtc, siteIds }: { dateUtc: string; siteIds: strin
   const bestV = best.find((b) => b.g === rel.max)?.v ?? null
   const value = live ? minuteUtc : 0
   const on = Math.floor(value / STRIP_STEP_MIN)
-  const what = point ? 'the clicked point' : 'the best site'
 
   return (
     <div className={`rail rail-time${strip.loading ? ' stale' : ''}`}>
@@ -53,7 +52,7 @@ export function TimeRail({ dateUtc, siteIds }: { dateUtc: string; siteIds: strin
         <span>00:00</span>
         <span>
           {rel.min !== null
-            ? `${metricMeta(field).label} for ${what}, every ${STRIP_STEP_MIN} min. Colours stretched over this day: worst ${formatValue(worstV, field)}, best ${formatValue(bestV, field)}`
+            ? `Worst ${formatValue(worstV, field)}, best ${formatValue(bestV, field)}`
             : live && !strip.error ? 'Computing the day…' : ''}
         </span>
         <span>23:59</span>

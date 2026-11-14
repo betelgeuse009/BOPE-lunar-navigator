@@ -50,26 +50,16 @@ export function ScoreSettings() {
   const setWeight = (k: keyof Weights, v: number) => setSettings({ weights: { ...settings.weights, [k]: v } })
   return (
     <>
-      <p>
-        Every place gets a score from 0 (worst) to 1 (best) for a mission that lands on the chosen date and stays
-        {' '}{settings.missionDays} days. Five factors each give a sub-score from 0 to 1, and the score is their weighted
-        average. Set a weight to 0 to ignore a factor, for example Earth when a relay satellite carries the link.
-      </p>
       <fieldset disabled={!live}>
         <legend>Factors and weights <Help topic="score-weights" /></legend>
         {FACTORS.map((f) => (
           <div key={f.key} className={`factor ${domain(f.api) ?? ''}`}>
             <Slider label={f.label} value={settings.weights[f.key]} min={0} max={3} step={0.5} unit="" help={f.help}
               onChange={(v) => setWeight(f.key, v)} />
-            <p className="note">{f.rule}</p>
           </div>
         ))}
         <button type="button" onClick={() => setSettings(DEFAULT_SETTINGS)}>Reset to defaults</button>
       </fieldset>
-      <p className="note">
-        Method: docs/PARAMETERS.md (analysis team). Sunlight and Earth are blocked by the real LOLA terrain horizon
-        (ray-traced to 200 km), checked against NASA's long-term LOLA visibility maps.
-      </p>
     </>
   )
 }

@@ -3,6 +3,7 @@
 // data/MAPS.md, data/SITES.md, docs/validation/) or from the cited source; nothing here is computed or measured by the
 // front end. A value without a published source says so.
 
+// Text may hold inline maths between $...$ (TeX) and citations [n] that point into the topic's reference list; eq is display TeX.
 export type Section = { h: string; p?: string[]; eq?: string; table?: { head: string[]; rows: string[][] } }
 export type Category = 'Mission setup' | 'Results' | 'Methods'
 type TopicDef = { title: string; category: Category; summary: string; sections: Section[]; refs: RefId[]; seeAlso?: string[] }
@@ -52,10 +53,10 @@ const DEFS = {
     summary: 'The instant of touchdown, in UTC. Every result is computed over the window that starts here and lasts for the surface stay.',
     sections: [
       { h: 'Description', p: [
-        'All parameters are computed over the mission window [landing, landing + surface stay]. On the Moon the Sun and the Earth move slowly along the horizon (a lunar day lasts about 29.5 Earth days), so the same place can be a good or a bad choice depending on the day and hour of landing.',
+        'All parameters are computed over the mission window $[t_0,\\ t_0 + T]$, with $t_0$ the landing time and $T$ the surface stay. On the Moon the Sun and the Earth move slowly along the horizon (a lunar day lasts about 29.5 Earth days), so the same place can be a good or a bad choice depending on the day and hour of landing.',
       ] },
       { h: 'The two strips', p: [
-        'Landing date: one cell per day. Each cell shows the value of the best known site for a mission landing on that day, for the quantity chosen under "Colour sites by".',
+        'Landing date: one cell per day. Each cell shows the value of the best known site for a mission landing on that day (at the surface stay of the site table, 14 days by default), for the quantity chosen under "Colour sites by".',
         'Landing time: one value every 10 minutes of the chosen day, for the chosen place (or the best known site if none is chosen). Its colours are stretched between the worst and the best value of that day, which are printed under the strip, so small differences within a day stay visible.',
       ] },
       { h: 'Limitations', p: [
@@ -99,11 +100,11 @@ const DEFS = {
       { h: 'Rules', table: {
         head: ['Limit', 'A place passes when'],
         rows: [
-          ['Max landing slope', 'slope ≤ limit'],
-          ['Max longest night', 'longest night ≤ limit'],
-          ['Min sunlight', 'sunlight share ≥ limit'],
-          ['Min Earth in view', 'Earth-in-view share ≥ limit'],
-          ['Max longest blackout', 'longest blackout ≤ limit'],
+          ['Max landing slope', '$\\theta \\le \\theta_{\\max}$'],
+          ['Max longest night', '$L_{\\text{dark}} \\le L_{\\text{dark,max}}$'],
+          ['Min sunlight', '$f_\\odot \\ge f_{\\odot,\\min}$'],
+          ['Min Earth in view', '$f_\\oplus \\ge f_{\\oplus,\\min}$'],
+          ['Max longest blackout', '$L_{\\text{blackout}} \\le L_{\\text{blackout,max}}$'],
         ],
       } },
       { h: 'Defaults', p: ['No limit is set by default. The limits depend on the lander (battery, slope tolerance, link needs), so they are yours to choose, or come from the mission type.'] },
@@ -118,9 +119,9 @@ const DEFS = {
     title: 'Surface stay', category: 'Mission setup',
     summary: 'How long the mission stays on the surface. It sets the length of the window every number is computed over.',
     sections: [
-      { h: 'Description', p: ['The mission window runs from the landing time to the landing time plus the surface stay. Shares (sunlight, Earth in view) are shares of this window; the longest night and the longest blackout are searched inside it.'] },
+      { h: 'Description', p: ['The mission window is $[t_0,\\ t_0 + T]$, with $t_0$ the landing time and $T$ the surface stay. Shares (sunlight, Earth in view) are shares of this window; the longest night and the longest blackout are searched inside it.'] },
       { h: 'Values', p: ['Default: 14 days (336 h). The crewed preset sets 6.5 days, the planned Artemis III surface stay [1].'] },
-      { h: 'Effect on the score', p: ['The sub-scores of the longest night and the longest blackout are 1 minus the duration divided by the window length, so the same night weighs less in a longer stay.'] },
+      { h: 'Effect on the score', p: ['The sub-scores of the longest night and the longest blackout are $1 - L / T$, so the same night $L$ weighs less in a longer stay $T$.'] },
     ],
     refs: ['nasa2022', 'parameters'], seeAlso: ['landing-time', 'score'],
   },
@@ -130,7 +131,7 @@ const DEFS = {
     sections: [
       { h: 'Description', p: ['The observer is placed this high above the surface at the chosen point, and the skyline is computed from there. One height is used for both the solar array and the antenna.'] },
       { h: 'Values', p: ['Default: 2 m.'] },
-      { h: 'Without terrain', p: ['When the LOLA maps are not available the horizon is a smooth sphere of radius R = 1737.4 km, and the mast only lowers it by the dip angle (0.087° at 2 m):'], eq: 'dip = acos( R / (R + h) )' },
+      { h: 'Without terrain', p: ['When the LOLA maps are not available the horizon is a smooth sphere of radius $R = 1737.4\\ \\text{km}$, and a mast of height $h$ only lowers it by the dip angle $\\delta$ ($0.087^\\circ$ at $h = 2\\ \\text{m}$):'], eq: '\\delta = \\arccos\\!\\left( \\frac{R}{R + h} \\right)' },
     ],
     refs: ['parameters'], seeAlso: ['terrain-horizon', 'sunlight'],
   },
@@ -138,7 +139,7 @@ const DEFS = {
     title: 'Score weights', category: 'Mission setup',
     summary: 'How much each of the five factors counts in the score. A weight of 0 leaves that factor out.',
     sections: [
-      { h: 'Description', p: ['The score is the weighted average of the sub-scores. Raising a weight makes that factor count more; setting it to 0 removes it, for example the two Earth factors when a relay satellite carries the link.'], eq: 'score = Σ wᵢ · sᵢ / Σ wᵢ' },
+      { h: 'Description', p: ['The score is the weighted average of the sub-scores. Raising a weight makes that factor count more; setting it to 0 removes it, for example the two Earth factors when a relay satellite carries the link.', 'Here $s_i \\in [0, 1]$ is the sub-score of factor $i$ and $w_i \\ge 0$ its weight.'], eq: 'S = \\frac{\\sum_i w_i\\, s_i}{\\sum_i w_i}' },
       { h: 'Values', p: ['Default: 1 for every factor. The defaults are a first proposal of the analysis team, not values taken from the literature.'] },
     ],
     refs: ['parameters'], seeAlso: ['score', 'sunlight', 'longest-night', 'earth-in-view', 'longest-blackout', 'slope'],
@@ -191,18 +192,18 @@ const DEFS = {
     title: 'Score', category: 'Results',
     summary: 'A number from 0 (worst) to 1 (best): the weighted average of five sub-scores for power, survival, communication and terrain.',
     sections: [
-      { h: 'Description', p: ['The score ranks places and landing dates for one mission window. It is a comparison tool defined by the analysis team, not a published standard.'], eq: 'score = Σ wᵢ · sᵢ / Σ wᵢ' },
+      { h: 'Description', p: ['The score ranks places and landing dates for one mission window. It is a comparison tool defined by the analysis team, not a published standard.', 'Here $s_i \\in [0, 1]$ is the sub-score of factor $i$ and $w_i \\ge 0$ its weight. The sum runs over the factors that have a value and a weight above 0.'], eq: 'S = \\frac{\\sum_i w_i\\, s_i}{\\sum_i w_i}' },
       { h: 'Sub-scores', table: {
-        head: ['Factor', 'Sub-score sᵢ (0 = worst, 1 = best)'],
+        head: ['Factor', 'Quantity', 'Sub-score (0 = worst, 1 = best)'],
         rows: [
-          ['Sunlight', 'the sunlight share itself'],
-          ['Longest night', '1 − longest night / window length'],
-          ['Earth in view', 'the Earth-in-view share itself'],
-          ['Longest blackout', '1 − longest blackout / window length'],
-          ['Landing slope', '1 − slope / 20°, not below 0'],
+          ['Sunlight', 'share of the window $f_\\odot$', '$s_1 = f_\\odot$'],
+          ['Longest night', 'duration $L_{\\text{dark}}$, window length $T$', '$s_2 = 1 - L_{\\text{dark}} / T$'],
+          ['Earth in view', 'share of the window $f_\\oplus$', '$s_3 = f_\\oplus$'],
+          ['Longest blackout', 'duration $L_{\\text{blackout}}$', '$s_4 = 1 - L_{\\text{blackout}} / T$'],
+          ['Landing slope', 'slope $\\theta$', '$s_5 = \\max\\left( 0,\\ 1 - \\theta / 20^\\circ \\right)$'],
         ],
       } },
-      { h: 'Reading the table', p: ['"Share" is wᵢ · sᵢ / Σ wᵢ: the part of the score that comes from that factor. The shares add up to the score. The ± after the score is its uncertainty.'] },
+      { h: 'Reading the table', p: ['"Share" is $w_i s_i / \\sum_j w_j$: the part of the score that comes from that factor. The shares add up to the score. The ± after the score is its uncertainty.'] },
       { h: 'Limitations', p: [
         'The 20° slope scale is a display choice of the analysis team, not a published lander limit.',
         'Without terrain data the slope has no value and is left out of the average.',
@@ -233,8 +234,8 @@ const DEFS = {
     title: 'Sunlight', category: 'Results',
     summary: 'Share of the mission window with the Sun up: at least half of the solar disc above the local skyline. More sunlight means more power.',
     sections: [
-      { h: 'Definition', p: [VISIBLE + 'A time step counts as sunlit when at least half of the solar disc is visible. Sunlight is the share of the window made of sunlit steps, from 0 to 1.'] },
-      { h: 'Use', p: ['Sub-score: the value itself. Limit: "Min sunlight".'] },
+      { h: 'Definition', p: [VISIBLE + 'A time step counts as sunlit when at least half of the solar disc is visible. Sunlight $f_\\odot$ is the share of the window made of sunlit steps, from 0 to 1.', 'Here $v_k$ is the visible fraction of the solar disc at time step $k$, $N$ the number of steps in the window, and the bracket is 1 when the condition holds and 0 otherwise.'], eq: 'f_\\odot = \\frac{1}{N} \\sum_{k=1}^{N} \\left[\\, v_k \\ge 0.5 \\,\\right]' },
+      { h: 'Use', p: ['Sub-score: $s_1 = f_\\odot$. Limit: "Min sunlight".'] },
       { h: 'Validation', p: ['Against NASA\'s long-term LOLA visibility maps at 150 random points south of 85.5° S, using NASA\'s definition (any part of the disc visible): correlation r = 0.982, mean difference +0.010 [2].'] },
       { h: 'Limitations', p: [
         'The half-disc rule is stricter than NASA\'s "any part of the disc", so this value is lower than NASA\'s long-term maps by construction.',
@@ -249,7 +250,7 @@ const DEFS = {
     summary: 'The longest continuous time without sunlight inside the mission window, in hours. It sizes the battery and the thermal survival problem.',
     sections: [
       { h: 'Definition', p: ['The longest unbroken run of time steps that are not sunlit (less than half of the solar disc visible), inside the mission window.'] },
-      { h: 'Use', p: ['Sub-score: 1 − longest night / window length (1 = never dark, 0 = dark the whole window). Limit: "Max longest night".'] },
+      { h: 'Use', p: ['Sub-score: $s_2 = 1 - L_{\\text{dark}} / T$, with $T$ the window length (1 = never dark, 0 = dark the whole window). Limit: "Max longest night".'] },
       { h: 'Limitations', p: [
         'Near the poles a point 100 m away can be in shadow much longer, so the uncertainty of this number can be as large as the number itself. Read the ± or the range.',
         ...DISC_LIMITS,
@@ -261,8 +262,8 @@ const DEFS = {
     title: 'Earth in view', category: 'Results',
     summary: 'Share of the mission window with the Earth above the local skyline: the time a direct radio link to Earth is geometrically possible.',
     sections: [
-      { h: 'Definition', p: [VISIBLE + 'A time step counts when at least half of the Earth\'s disc is visible and the Earth is above the antenna\'s minimum elevation (default 0°). The value is the share of the window made of such steps, from 0 to 1.'] },
-      { h: 'Use', p: ['Sub-score: the value itself. Limit: "Min Earth in view".'] },
+      { h: 'Definition', p: [VISIBLE + 'A time step counts when at least half of the Earth\'s disc is visible and the Earth is above the antenna\'s minimum elevation (default 0°). The value $f_\\oplus$ is the share of the window made of such steps, from 0 to 1.', 'Here $v_k$ is the visible fraction of the Earth\'s disc and $e_k$ the Earth\'s elevation at time step $k$, $e_{\\min}$ the antenna\'s minimum elevation and $N$ the number of steps in the window.'], eq: 'f_\\oplus = \\frac{1}{N} \\sum_{k=1}^{N} \\left[\\, v_k \\ge 0.5 \\ \\wedge\\ e_k \\ge e_{\\min} \\,\\right]' },
+      { h: 'Use', p: ['Sub-score: $s_3 = f_\\oplus$. Limit: "Min Earth in view".'] },
       { h: 'Validation', p: ['Against NASA\'s long-term LOLA Earth-visibility map at 150 random points south of 85.5° S, using NASA\'s definition (any part of the disc visible): correlation r = 0.996, mean difference +0.005 [2].'] },
       { h: 'Limitations', p: [
         'Earth above the horizon is not yet a usable link: ground-station availability (for example the Deep Space Network) is not included.',
@@ -276,7 +277,7 @@ const DEFS = {
     summary: 'The longest continuous time without the Earth in view inside the mission window, in hours: the longest stretch out of direct contact.',
     sections: [
       { h: 'Definition', p: ['The longest unbroken run of time steps without the Earth in view (as defined under "Earth in view"), inside the mission window.'] },
-      { h: 'Use', p: ['Sub-score: 1 − longest blackout / window length. Limit: "Max longest blackout".'] },
+      { h: 'Use', p: ['Sub-score: $s_4 = 1 - L_{\\text{blackout}} / T$, with $T$ the window length. Limit: "Max longest blackout".'] },
       { h: 'Limitations', p: ['Ground-station availability is not included, so real contact gaps can be longer.', ...DISC_LIMITS] },
     ],
     refs: ['parameters'], seeAlso: ['earth-in-view'],
@@ -327,7 +328,7 @@ const DEFS = {
           ['Rest of the Moon', 'computed from the global LOLA elevation map by central differences [3]', '237 m'],
         ],
       } },
-      { h: 'Use', p: ['Sub-score: 1 − slope / 20°, not below 0. Limit: "Max landing slope". The baseline in use is shown next to the value.'] },
+      { h: 'Use', p: ['Sub-score: $s_5 = \\max\\left( 0,\\ 1 - \\theta / 20^\\circ \\right)$ for a slope $\\theta$. Limit: "Max landing slope". The baseline in use is shown next to the value.'] },
       { h: 'Validation', p: ['Slope computed from the 80 m elevation map reproduces the official 80 m slope map: median absolute difference 0.10° to 0.17°, correlation 0.996 to 0.999 in four 16 km windows [4].'] },
       { h: 'Limitations', p: [
         'Slope depends on the distance it is measured over. No lunar map resolves boulders or the metre-scale slopes a footpad sees, so this is not a landing-safety certificate.',
@@ -388,7 +389,7 @@ const DEFS = {
           ['Moon radius', '1737.4 km', 'pck00011.tpc'],
           ['Sun radius', '695 700 km', 'pck00011.tpc'],
           ['Earth radius', '6378.1366 km', 'pck00011.tpc'],
-          ['Solar constant S₀', '1360.8 ± 0.5 W/m² at 1 AU', 'Kopp and Lean 2011 [3]'],
+          ['Solar constant $S_0$', '$1360.8 \\pm 0.5\\ \\text{W/m}^2$ at 1 AU', 'Kopp and Lean 2011 [3]'],
           ['Astronomical unit', '149 597 870.7 km', 'IAU 2012'],
         ],
       } },
@@ -427,12 +428,13 @@ const DEFS = {
           ['Position uncertainty', '100 m', 'landing accuracy: the lander does not touch down on the exact point', 'parameters re-evaluated at 8 points on a ring of this radius; position term = largest change'],
           ['Horizon uncertainty', '0.1°', 'accuracy of the terrain skyline', 'skyline shifted up and down by this angle; horizon term = largest change'],
         ],
-      }, eq: 'uncertainty = √( position² + horizon² )' },
+      }, eq: '\\sigma = \\sqrt{ \\sigma_{\\text{pos}}^{2} + \\sigma_{\\text{hor}}^{2} }' },
+      { h: 'Symbols', p: ['$\\sigma_{\\text{pos}}$ is the position term, $\\sigma_{\\text{hor}}$ the horizon term and $\\sigma$ the uncertainty shown after the number, all in the unit of the parameter.'] },
       { h: 'Range instead of ±', p: ['When a ± would cross a physical limit (a negative night length, a share above 100 %), the lowest and highest values found are shown as a range instead.'] },
       { h: 'At risk', p: ['A minimum requirement that is met at the exact point but broken somewhere within the uncertainty is reported as "at risk".'] },
       { h: 'Limitations', p: [
         'Both defaults are choices of the analysis team, not requirements.',
-        'Elevation adds the LOLA height error to the sum.',
+        'Elevation adds the LOLA height error in quadrature.',
         'Not included: errors in the Sun and Earth directions (below 0.0001°), map artefacts beyond the height-error map, and the flat-skyline approximation across the disc width.',
       ] },
     ],

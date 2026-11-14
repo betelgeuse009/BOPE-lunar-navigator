@@ -42,7 +42,6 @@ export function DateRail({ matrix }: { matrix: Matrix }) {
       </div>
       <div className="rail-ends">
         <span>{fmt.format(new Date(dates[0]))}</span>
-        <span>Each day shows the best site for a {+(matrix.mission_duration_h / 24).toFixed(1)}-day mission landing then</span>
         <span>{fmt.format(new Date(dates[dates.length - 1]))}</span>
       </div>
     </div>
