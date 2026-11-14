@@ -1,5 +1,5 @@
 import type { z } from 'zod'
-import { CONTRACT_VERSION, Manifest, Matrix, Sites } from './schemas'
+import { CONTRACT_VERSION, Manifest, Matrix, Scene, Sites } from './schemas'
 
 export function parseFile<S extends z.ZodTypeAny>(schema: S, json: unknown, name: string): z.infer<S> {
   const version = (json as { contract_version?: unknown } | null)?.contract_version
@@ -29,6 +29,25 @@ export function cellValue(matrix: Matrix, siteId: string, field: string, dateIdx
   return matrix.cells[field]?.[i]?.[dateIdx] ?? null
 }
 
-export function isFixture(header: { source?: { notes?: string } }): boolean {
-  return header.source?.notes?.includes('FIXTURE') ?? false
+// FE fixtures say FIXTURE, AERO's development data says SAMPLE DATA: both get the "preliminary" tag in the UI.
+export function isPreliminary(header: { source?: { notes?: string } }): boolean {
+  return /FIXTURE|SAMPLE/.test(header.source?.notes ?? '')
+}
+
+export async function loadScene(base: string, periodId: string): Promise<Scene> {
+  const name = `scene/${periodId}.json`
+  return parseFile(Scene, await fetchJson(base, name), name)
+}
+
+export function periodAt(manifest: Manifest, timeUtc: string): Manifest['periods'][number] | null {
+  const t = Date.parse(timeUtc)
+  return manifest.periods.find((p) => Date.parse(p.start_utc) <= t && t < Date.parse(p.end_utc)) ?? null
+}
+
+// Nearest time step (series are strictly increasing with a uniform step, per the contract).
+export function sceneIndexAt(scene: Scene, timeUtc: string): number {
+  const t0 = Date.parse(scene.time_utc[0])
+  const step = Date.parse(scene.time_utc[1]) - t0
+  const i = Math.round((Date.parse(timeUtc) - t0) / step)
+  return Math.min(Math.max(i, 0), scene.time_utc.length - 1)
 }

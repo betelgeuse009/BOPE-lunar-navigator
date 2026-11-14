@@ -42,6 +42,7 @@ select {
 .fixture {
   margin: 0; padding: 2px 8px;
   border: 1px dashed var(--regolith-2); color: var(--regolith-2); font-size: 14px;
+  max-width: 62ch;
 }
 
 /* Site panel */
