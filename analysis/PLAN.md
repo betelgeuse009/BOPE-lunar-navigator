@@ -95,8 +95,9 @@ For FE (3D globe textures): NASA SVS "CGI Moon Kit", https://svs.gsfc.nasa.gov/4
 6. **M6 Uncertainty.** Min–max bands for events and metrics.
 7. **M7 Tools.** Distances and least-cost path (optional).
 
-A live API for arbitrary coordinates (FastAPI) was in the original plan. It is **not** in the agreed architecture
-(static, offline demo). If wanted, it would return the same JSON shapes as the contract; needs FE's agreement first.
+A live API for arbitrary coordinates (FastAPI) is now part of the architecture (agreed 2026-11-14, see
+`docs/DECISIONS.md`): `analysis/api.py`, reference in `contracts/API.md`. It returns the same JSON shapes as the
+contract files; the static files remain as the offline fallback. Code layout and commands: `analysis/README.md`.
 
 ## 6. Validation
 - **JPL Horizons API** `https://ssd.jpl.nasa.gov/api/horizons.api` with `CENTER='coord@301'`, `COORD_TYPE='GEODETIC'`,

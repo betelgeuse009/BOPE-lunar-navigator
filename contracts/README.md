@@ -24,6 +24,9 @@ Optional fields added 2026-11-14 (T20, agreed in LOG; no version bump because th
 Sample files computed from the real SPICE kernels for three example points (not landing sites) are in `data/samples/`.
 They are valid against these schemas, so FE can copy them into `frontend/public/fixtures/`.
 
+**Live API (added 2026-11-14):** the same documents, computed on request for any point and any user settings, plus
+site evaluation (`/api/evaluate`) and area search (`/api/area`). Reference: [`API.md`](API.md).
+
 ## Rules every file follows
 - Header fields: `contract_version` (`"0.1"`), `generated_at` (UTC ISO 8601 with `Z`), `source`
   (`datasets` with name/version/url, `tool` = script@commit, `notes` = assumptions/limitations).
