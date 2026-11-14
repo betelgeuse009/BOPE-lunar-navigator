@@ -24,11 +24,15 @@ class Inputs:
     panel_area_m2: float | None = None         # Sun-tracking solar array area
     panel_efficiency_frac: float | None = None  # sunlight -> electricity, 0..1
     use_terrain: bool = True                   # real LOLA skyline, slope and elevation (if the maps are on disk)
+    position_uncertainty_m: float = config.POSITION_UNCERTAINTY_M    # landing accuracy (uncertainty model)
+    horizon_uncertainty_deg: float = config.HORIZON_UNCERTAINTY_DEG  # skyline accuracy (uncertainty model)
     fast_horizon: bool = False                 # internal: coarser horizon profile, used for area searches
+    horizon_offset_deg: float = 0.0            # internal: skyline shifted up/down to propagate its accuracy
 
     def as_dict(self) -> dict:
         d = asdict(self)
         d.pop("fast_horizon")
+        d.pop("horizon_offset_deg")
         return d
 
 
@@ -50,7 +54,8 @@ def site_series(bv: eph.BodyVectors, lat_deg, lon_deg, inp: Inputs) -> dict[str,
     earth_rad = eph.angular_radius_deg(eph.body_radius_km("EARTH"), earth["dist_km"])
 
     def skyline(az):
-        return horizon.horizon_deg(lat, lon, az, inp.obs_height_m, inp.use_terrain, inp.fast_horizon)
+        return horizon.horizon_deg(lat, lon, az, inp.obs_height_m, inp.use_terrain, inp.fast_horizon,
+                                   inp.horizon_offset_deg)
 
     sun_vis = vis.visible_disk_frac(sun["el_deg"], sun_rad, skyline(sun["az_deg"]))
     earth_vis = vis.visible_disk_frac(earth["el_deg"], earth_rad, skyline(earth["az_deg"]))

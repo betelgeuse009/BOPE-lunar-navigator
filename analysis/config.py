@@ -52,6 +52,9 @@ SUN_THRESHOLD_FRAC = 0.5    # a step is "sunlit" if at least this fraction of th
 EARTH_THRESHOLD_FRAC = 0.5  # same for the Earth disk
 EARTH_MIN_ELEV_DEG = 0.0    # antenna mask: Earth must also be at least this high
 MISSION_H = 14 * 24         # default mission duration for matrix cells and site evaluation
+# Uncertainty model (analysis/uncertainty.py). Both are user inputs; these defaults are AERO's choices, not requirements:
+POSITION_UNCERTAINTY_M = 100.0  # landing accuracy: parameters are re-evaluated on a ring of this radius
+HORIZON_UNCERTAINTY_DEG = 0.1   # skyline accuracy: the target accuracy of the terrain horizon (PLAN.md 3.5)
 
 # Request-size guards for the API.
 MAX_STEPS = 200_000          # time steps in one request (about 4.5 months at 1 min)

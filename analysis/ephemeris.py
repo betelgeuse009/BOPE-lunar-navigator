@@ -161,6 +161,17 @@ def enu_axes(pos_km: np.ndarray) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     return east, north, up
 
 
+def offset_points(lat: float, lon: float, east_km, north_km) -> tuple[np.ndarray, np.ndarray]:
+    """Points reached from (lat, lon) by moving east/north along great circles; exact on the sphere, safe near the poles."""
+    east_km, north_km = np.atleast_1d(np.asarray(east_km, dtype=float)), np.atleast_1d(np.asarray(north_km, dtype=float))
+    east, north, up = (a[0] for a in enu_axes(site_positions_km(lat, lon)))
+    rho = np.hypot(east_km, north_km)
+    safe = np.where(rho > 0, rho, 1.0)
+    d = rho / body_radius_km("MOON")
+    p = np.cos(d)[:, None] * up + np.sin(d)[:, None] * (east_km[:, None] * east + north_km[:, None] * north) / safe[:, None]
+    return np.degrees(np.arcsin(np.clip(p[:, 2], -1, 1))), np.degrees(np.arctan2(p[:, 1], p[:, 0]))
+
+
 def topocentric(body_km: np.ndarray, pos_km: np.ndarray) -> dict[str, np.ndarray]:
     """Distance (km), azimuth and elevation (deg) of a body from N sites over T steps. Arrays are (N, T)."""
     east, north, up = enu_axes(pos_km)

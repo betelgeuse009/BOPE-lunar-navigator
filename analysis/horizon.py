@@ -31,12 +31,15 @@ def dip_deg(obs_height_m: float) -> float:
 
 
 def horizon_deg(lat_deg, lon_deg, az_deg: np.ndarray, obs_height_m: float, use_terrain: bool = True,
-                fast: bool = False) -> np.ndarray:
-    """Horizon elevation (deg) toward the azimuths `az_deg` (N sites x T steps). Same shape as `az_deg`."""
+                fast: bool = False, offset_deg: float = 0.0) -> np.ndarray:
+    """Horizon elevation (deg) toward the azimuths `az_deg` (N sites x T steps). Same shape as `az_deg`.
+
+    `offset_deg` raises (or lowers) the whole skyline: used to propagate the skyline accuracy into the metrics.
+    """
     if source(use_terrain) == SMOOTH:
-        return np.full(np.shape(az_deg), -dip_deg(obs_height_m))
+        return np.full(np.shape(az_deg), -dip_deg(obs_height_m) + offset_deg)
     lat, lon = np.atleast_1d(lat_deg), np.atleast_1d(lon_deg)
     out = np.empty(np.shape(az_deg))
     for i in range(lat.size):
         out[i] = terrain.horizon_at(terrain.horizon(lat[i], lon[i], obs_height_m, fast), az_deg[i])
-    return out
+    return out + offset_deg
