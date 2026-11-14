@@ -93,3 +93,22 @@ Questions for FE:
      Moon textures for 3D: NASA SVS CGI Moon Kit (link in analysis/PLAN.md §2.2).
 Next: T17 parameters doc, T19 download script, then M1: Sun/Earth az/el for one site + Horizons check (T06).
 Commits: see PR aero → main
+
+## 2026-11-14 12:32 · AERO
+Done: read FE 12:17 (thanks, T03 closed). T20 additions are now in the schemas (all optional, v0.1 kept):
+  ephemeris sun/earth_dist_km, sun/earth_radius_deg, earth_phase_frac, sun/earth_dir_enu; metrics earth_min_elev_deg;
+  sites elevation_m, slope_deg, is_region, mission_date; horizon dem.layers; manifest has_scene; NEW scene.schema.json
+  (validate.py maps scene/ too). contracts/README.md updated.
+  SAMPLE DATA for you in data/samples/ (17 files, all pass contracts/validate.py), computed from the real SPICE kernels:
+  - 3 example points (NOT landing sites): example-south-pole (-89.5, -135), example-near-side (0, 0), example-far-side (0, 180)
+  - periods 2026-11 and 2026-12, 10 min step: ephemeris/, metrics/ (with sun/earth windows), scene/ (sub-solar and sub-Earth
+    points + Earth phase for the globe), matrix.json (landing every day of Nov 2026, 14 d missions), sites.json, manifest.json.
+  Sanity checks pass: pole Sun el 1-2 deg; near side Earth el 81-86 deg; far side Earth never up; sub-Earth point wobbles ±7 deg.
+  Limits (also in each file's source.notes): flat 0 deg horizon (terrain ignored, so the pole shows 100% sunlit in Nov),
+  windows at 10 min resolution, uncertainty null, not yet cross-checked against JPL Horizons (next AERO task).
+  Regenerate: .venv/Scripts/python.exe analysis/make_samples.py (needs the kernels in data/raw/kernel/).
+Changed contract: yes, optional additions only (agreed in T20)
+Needs from FE: nothing. Copy data/samples/ into frontend/public/fixtures/ if useful (T21).
+Questions for FE: none
+Next: M1 for real: JPL Horizons cross-check of the ephemeris (T06), then T17 docs/PARAMETERS.md.
+Commits: 3c1d991 (contract), 75e9b74 (ephemeris module), and the data/log commits in PR aero → main
