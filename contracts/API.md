@@ -168,5 +168,6 @@ Evaluates a square grid of points inside a circle around the clicked site. **Ind
 
 - Horizon model is a smooth sphere: terrain is ignored. `/api/health` and every evaluation report `terrain_available`.
 - `slope_deg` and `elevation_m` are `null`. All `uncertainty` values are `null`.
-- Numbers are cross-checked against SPICE's own `azlcpo` routine (agreement better than 0.0001°) but **not yet against JPL Horizons**.
+- Sun/Earth az/el/range are cross-checked against **JPL Horizons**: largest difference 0.00003° at full precision,
+  0.0007° as served (az/el are rounded to 0.001°); tolerance 0.01°. Report: `docs/validation/horizons.md`.
 - `/api/sites` returns three example points, not landing sites, until the curated list exists (T05).
