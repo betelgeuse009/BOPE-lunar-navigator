@@ -16,7 +16,7 @@ Status: todo · doing · review · done. Update the row when status changes; add
 | T10 | Scaffold frontend (Vite + React + TS + Tailwind + Zustand) + fixtures matching v0.1 | FE | todo | T02 |
 | T11 | Global clock + timeline strip with scrubber | FE | todo | T10 |
 | T12 | Horizon panorama (SVG) with Sun/Earth tracks | FE | todo | T10 |
-| T13 | Site × date heatmap (main screen) + compare cards | FE | todo | T10 |
+| T13 | Site × date heatmap (main screen) + compare cards (compare: `fe/compare`, up to 4 places, each at its own landing date and hour) | FE | review | T10 |
 | T14 | 3D Sun–Earth–Moon geometry view (R3F, schematic scale) | FE | todo | T11 |
 | T15 | Check Space Apps rules on pre-event work and AI-use disclosure; note in DECISIONS | FE | todo | |
 | T16 | LATER: DSN windows, battery for longest night, mast-height curve | AERO | todo | T08 |
@@ -37,3 +37,4 @@ Status: todo · doing · review · done. Update the row when status changes; add
 | T31 | OPTIONAL: north polar DEMs (`LDEM_80N_80M`, `LDEM_60N_240M`, 225 MB) if north polar sites are wanted | AERO | todo | T28 |
 | T32 | JSON Schemas for `/api/evaluate` and `/api/area` (promised to FE) | AERO | todo | T28 |
 | T33 | Decide on FE's proposal to manage the Python dependencies with `uv` (LOG 2026-11-14 16:57) | AERO | todo | |
+| T34 | Landing hour (UTC) next to the landing date, live mode (`fe/compare`) | FE | review | T27 |
