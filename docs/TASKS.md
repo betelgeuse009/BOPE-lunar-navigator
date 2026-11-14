@@ -6,7 +6,7 @@ Status: todo · doing · review · done. Update the row when status changes; add
 |---|---|---|---|---|
 | T01 | Repo structure, shared docs, `.gitignore` | FE | review | |
 | T02 | Contract v0.1 draft (`contracts/`) | FE | review | |
-| T03 | Review and agree contract v0.1 (conventions, file list), reply in LOG | AERO | review | T02 |
+| T03 | Review and agree contract v0.1 (conventions, file list), reply in LOG | AERO | done | T02 |
 | T04 | Create `team/Gabri275.md` (personal file) | AERO | done | |
 | T05 | Curated site list `sites.json` with coordinate citations | AERO | todo | T03 |
 | T06 | Ephemeris pipeline (SPICE via spiceypy, 10 min step), validated vs JPL Horizons (tol 0.01°) | AERO | todo | T03, T19 |
@@ -23,7 +23,7 @@ Status: todo · doing · review · done. Update the row when status changes; add
 | T17 | Site/date evaluation parameters in `docs/PARAMETERS.md` (name, unit, method, thresholds, source) | AERO | todo | T03 |
 | T18 | Moon globe view: orbit camera, site markers, date slider recolouring sites | FE | todo | T10, T17 |
 | T19 | Download script: SPICE kernels + LOLA maps into `data/raw/` (list and URLs in `analysis/PLAN.md` §2) | AERO | todo | |
-| T20 | Agree optional contract additions proposed in LOG 2026-11-14 11:44 (distances, angular radius, Earth phase, ENU vectors, `scene/<period>.json`, site extras, multi-res DEM) | Both | todo | T03 |
+| T20 | Agree optional contract additions proposed in LOG 2026-11-14 11:44 (distances, angular radius, Earth phase, ENU vectors, `scene/<period>.json`, site extras, multi-res DEM) | Both | done | T03 |
 | T21 | Mirror T20 additions in schemas (AERO) and in `frontend/public/fixtures/` (FE) | Both | todo | T20 |
 | T22 | Uncertainty bands: neighbour ring (100–500 m) + LOLA height-error map → metric `uncertainty` | AERO | todo | T08 |
 | T23 | Validate long-term sunlit / Earth-visible means vs LOLA `AVGVISIB` maps; record in DECISIONS | AERO | todo | T08 |
