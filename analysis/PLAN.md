@@ -33,24 +33,11 @@ to Earth? What changes if I move the date or the site?"* South pole first, but t
 | `naif0012.tls` | Leap seconds |
 | `pck00011.tpc` | Body constants (radii) |
 
-Watch for an extra `.txt` appended to `.tls` / `.tpc` by the browser (it happened before).
+Download: `python -m analysis.download_kernels` (URLs verified 2026-11-14).
 
 ### 2.2 Maps → `data/raw/maps/`
-All in the DE421 ME frame, heights relative to the 1737.4 km sphere. Polar products are polar stereographic:
-use the file's CRS (rasterio/pyproj) to convert lat/lon ↔ x/y.
-
-| File | Content | Resolution | Coverage | URL |
-|---|---|---|---|---|
-| `LDEM_80S_80MPP_ADJ.TIF` | Height | 80 m | 80°S–pole | https://pgda.gsfc.nasa.gov/data/LOLA_20mpp/LDEM_80S_80MPP_ADJ.TIF |
-| `LDSM_80S_80MPP_ADJ.TIF` | Slope (deg) | 80 m | 80°S–pole | https://pgda.gsfc.nasa.gov/data/LOLA_20mpp/LDSM_80S_80MPP_ADJ.TIF |
-| `LDEM_80S_80MPP_ADJ_ERR.TIF` | Height error | 80 m | 80°S–pole | https://pgda.gsfc.nasa.gov/data/LOLA_20mpp/LDEM_80S_80MPP_ADJ_ERR.TIF |
-| `LDEM_60S_240MPP_ADJ.TIF` | Height | 240 m | 60°S–pole | https://pgda.gsfc.nasa.gov/data/LOLA_20mpp/LDEM_60S_240MPP_ADJ.TIF |
-| `LPSR_80S_20MPP_ADJ_1km2.CSV` | Permanently shadowed regions > 1 km² | — | 80°S–pole | https://pgda.gsfc.nasa.gov/data/LOLA_20mpp/LPSR_80S_20MPP_ADJ_1km2.CSV |
-| `ldem_87s_5mpp.tif` | Height (3.3 GB: read windows only) | 5 m | 87°S–pole | https://pgda.gsfc.nasa.gov/data/LOLA_5mpp/87S/ldem_87s_5mpp.tif |
-| `LDEM_128.IMG` + `.LBL` (keep together) | Global height | ~237 m | Whole Moon | https://imbrium.mit.edu/DATA/LOLA_GDR/CYLINDRICAL/IMG/LDEM_128.IMG |
-| `AVGVISIB_85S_060M_201608.TIF` | Mean Sun visibility (18.6 yr) | 60 m | 85°S–pole | https://pgda.gsfc.nasa.gov/data/MoonIllumination/AVGVISIB_85S_060M_201608.TIF |
-| `AVGVISIB_85S_060M_201608_EARTH.TIF` | Mean Earth visibility | 60 m | 85°S–pole | https://pgda.gsfc.nasa.gov/data/MoonIllumination/AVGVISIB_85S_060M_201608_EARTH.TIF |
-| WAC south-pole mosaic | Background image | 64–256 px/deg | South pole | https://data.lroc.im-ldi.com/lroc/view_rdr/WAC_ROI_SOUTH_SUMMER |
+All 11 maps are downloaded and checked (2026-11-14). File list, paths, units, coverage, sources, consistency checks
+and which map is used where: **`data/MAPS.md`**. Check or download: `python -m analysis.download_maps [--check]`.
 
 For FE (3D globe textures): NASA SVS "CGI Moon Kit", https://svs.gsfc.nasa.gov/4720
 

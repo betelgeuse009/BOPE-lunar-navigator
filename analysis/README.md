@@ -12,6 +12,7 @@ parameters the navigator shows. Two ways out, same JSON (see `contracts/`):
 python -m venv .venv
 .venv/Scripts/python.exe -m pip install -r analysis/requirements.txt
 .venv/Scripts/python.exe -m analysis.download_kernels
+.venv/Scripts/python.exe -m analysis.download_maps        # LOLA maps, ~3 GB (+3.3 GB with --all); only for terrain
 ```
 
 ## Commands (from the repo root)
@@ -39,6 +40,7 @@ python -m venv .venv
 | `api.py` | FastAPI server |
 | `build.py` | Writes the static files |
 | `download_kernels.py` | Fetches the SPICE kernels into `data/raw/kernel/` |
+| `download_maps.py` | Checks / fetches the LOLA maps into `data/raw/maps/` (list: `data/MAPS.md`) |
 | `validate_horizons.py` | Compares our API with JPL Horizons; caches the replies, writes the report |
 | `tests/` | Physics checks, cross-check against SPICE `azlcpo`, API responses vs the contract schemas |
 | `PLAN.md` | Physics plan, data sources, milestones |

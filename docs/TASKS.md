@@ -22,7 +22,7 @@ Status: todo · doing · review · done. Update the row when status changes; add
 | T16 | LATER: DSN windows, battery for longest night, mast-height curve | AERO | todo | T08 |
 | T17 | Site/date evaluation parameters in `docs/PARAMETERS.md` (name, unit, method, thresholds, source) | AERO | review | T03 |
 | T18 | Moon globe view: orbit camera, site markers, date slider recolouring sites | FE | done | T10, T17 |
-| T19 | Download script: SPICE kernels done (`python -m analysis.download_kernels`). Still open: LOLA maps (list and URLs in `analysis/PLAN.md` §2) | AERO | doing | |
+| T19 | Download scripts: SPICE kernels (`python -m analysis.download_kernels`) and LOLA maps (`python -m analysis.download_maps`, list in `data/MAPS.md`) | AERO | done | |
 | T20 | Agree optional contract additions proposed in LOG 2026-11-14 11:44 (distances, angular radius, Earth phase, ENU vectors, `scene/<period>.json`, site extras, multi-res DEM) | Both | done | T03 |
 | T21 | Mirror T20 additions in schemas (AERO) and in `frontend/public/fixtures/` (FE) | Both | review | T20 |
 | T22 | Uncertainty bands: neighbour ring (100–500 m) + LOLA height-error map → metric `uncertainty` | AERO | todo | T08 |
@@ -34,3 +34,4 @@ Status: todo · doing · review · done. Update the row when status changes; add
 | T28 | Wire LOLA terrain into the API: horizon profile (`/api/horizon`), `slope_deg`, `elevation_m` (makes the area search meaningful) | AERO | todo | T07 |
 | T29 | Decide how the public demo gets its data: hosted Python server or static fallback only | Both | todo | T25 |
 | T30 | Mission profiles (robotic lander / crewed): FE preset UI; AERO cited preset values in PARAMETERS.md | Both | todo | T27 |
+| T31 | OPTIONAL: north polar DEMs (`LDEM_80N_80M`, `LDEM_60N_240M`, 225 MB) if north polar sites are wanted | AERO | todo | T28 |
