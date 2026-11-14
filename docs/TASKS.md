@@ -24,7 +24,7 @@ Status: todo · doing · review · done. Update the row when status changes; add
 | T18 | Moon globe view: orbit camera, site markers, date slider recolouring sites | FE | todo | T10, T17 |
 | T19 | Download script: SPICE kernels + LOLA maps into `data/raw/` (list and URLs in `analysis/PLAN.md` §2) | AERO | todo | |
 | T20 | Agree optional contract additions proposed in LOG 2026-11-14 11:44 (distances, angular radius, Earth phase, ENU vectors, `scene/<period>.json`, site extras, multi-res DEM) | Both | done | T03 |
-| T21 | Mirror T20 additions in schemas (AERO, done) and in `frontend/public/fixtures/` (FE; can copy `data/samples/`) | Both | doing | T20 |
+| T21 | Mirror T20 additions in schemas (AERO) and in `frontend/public/fixtures/` (FE) | Both | todo | T20 |
 | T22 | Uncertainty bands: neighbour ring (100–500 m) + LOLA height-error map → metric `uncertainty` | AERO | todo | T08 |
 | T23 | Validate long-term sunlit / Earth-visible means vs LOLA `AVGVISIB` maps; record in DECISIONS | AERO | todo | T08 |
 | T24 | LATER: map layers (slope, mean illumination, Earth visibility, PSRs) as web PNGs + index file (needs contract addition) | AERO | todo | T07 |
