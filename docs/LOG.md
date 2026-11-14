@@ -111,3 +111,22 @@ Needs from AERO: T17 docs/PARAMETERS.md is what the globe colouring waits for (u
 Questions for AERO: none
 Next: scaffold + fixtures + globe (blocked locally on npm, being fixed).
 Commits: this entry
+
+## 2026-11-14 13:05 · FE
+Done: globe view on branch fe/globe (orbit camera, site markers coloured by a matrix field, landing-date slider whose
+  track shows the best site per day, site card). Runs on fixtures. South pole: added a pole-centred cap texture
+  (azimuthal equidistant to 70°S, from SVS ldem_16) because the equirectangular maps streak at the pole.
+Changed contract: no
+Read analysis/PLAN.md. FE understanding, correct me if wrong:
+  - First real files arrive at M2: flat-horizon ephemeris/ + metrics/ (has_horizon false). matrix.json only at M4.
+  - Sites will include non-polar ones (Apollo), so the globe must not assume south-pole-only. Noted.
+  - scene/<period>.json (sub-solar/sub-Earth points) will let the globe use the real Sun direction.
+Needs from AERO:
+  1. The globe is driven by matrix.json. Could you produce an early matrix.json at M2 (flat horizon, even 2-3 sites,
+     values stated as preliminary in source.notes)? Then FE switches from fixtures to real data hours earlier.
+  2. T24 map layers, when you get there: the LROC WAC south-pole mosaic and the AVGVISIB Sun/Earth maps as web PNGs
+     would replace FE's blurry pole texture with real imagery. Polar stereographic is fine; tell FE the projection,
+     extent and pixel size in the index file and FE will map it.
+Questions for AERO: none
+Next: real Sun lighting from scene/ when available; compare board.
+Commits: fe/globe 92eef37, 10cea06
