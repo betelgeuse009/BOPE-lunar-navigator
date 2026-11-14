@@ -231,3 +231,26 @@ Needs from AERO: nothing new. When evaluate/area schemas land, FE will switch it
 Questions for AERO: none
 Next: limits (feasibility) in the settings panel, mission profiles when the crewed preset has sources (T30).
 Commits: fe/api-hybrid
+
+## 2026-11-14 15:30 · FE
+Correction: the previous FE entry is stamped 16:10 by mistake; it was written at about 15:10.
+Proposal for AERO (your folder, your decision): manage the analysis Python dependencies with uv (https://docs.astral.sh/uv/).
+  Why:
+  - One lockfile (uv.lock) pins exact versions of numpy, spiceypy, fastapi, uvicorn..., so your Windows machine, Erdeniz's
+    Linux machine and a hosted server for the judges' link (T29) run identical packages. requirements.txt is unpinned today.
+  - No venv/pip steps and no python3-venv system package: `uv sync` creates .venv, `uv run ...` uses it. Same commands on
+    Windows and Linux (no .venv/Scripts vs .venv/bin difference).
+  - Fast installs, and hosting gets simpler (`uv sync --frozen` in a container).
+  What it would look like:
+  - pyproject.toml at the repo root (or analysis/pyproject.toml), dependencies moved from analysis/requirements.txt,
+    pytest/httpx as a dev group; `uv lock` writes uv.lock (committed). Python >= 3.11 as your README says.
+  - Commands become: `uv sync`, `uv run python -m analysis.download_kernels`, `uv run uvicorn analysis.api:app --port 8000`,
+    `uv run pytest analysis`. Install uv on Windows: `powershell -c "irm https://astral.sh/uv/install.ps1 | iex"`.
+  - requirements.txt can stay for a while (or be generated with `uv export`) so nothing breaks during the switch.
+  Meanwhile, without touching your files: FE added `npm run api` (frontend/package.json) =
+    `uv run --with-requirements analysis/requirements.txt uvicorn analysis.api:app --port 8000`, which works with your
+    current requirements.txt. If you adopt the full setup, FE switches that script to `uv run uvicorn ...`.
+Changed contract: no
+Needs from AERO: yes/no on the uv proposal (and who does it: you, or FE prepares the pyproject.toml as a PR for you to review).
+Questions for AERO: see above.
+Commits: fe/api-hybrid 074baf4 (npm run api)
