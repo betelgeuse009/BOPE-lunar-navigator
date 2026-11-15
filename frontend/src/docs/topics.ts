@@ -91,6 +91,24 @@ const DEFS = {
     ],
     refs: ['parameters', 'api', 'de440', 'apollo1968', 'nasaReq'], seeAlso: ['surface-stay', 'ephemeris', 'time-series'],
   },
+  coordinates: {
+    title: 'Place: coordinates', category: 'Mission setup',
+    summary: 'Type the latitude and longitude of the place to evaluate, instead of clicking on the Moon. The boxes show the coordinates of the place chosen last.',
+    sections: [
+      { h: 'Convention', p: [
+        'Selenographic coordinates in the Mean Earth / Polar Axis frame (MOON_ME), the frame of the LOLA maps and of every result of the analysis server [1][2]. Latitude: planetocentric, −90° (south pole) to +90° (north pole). Longitude: east-positive, −180° to +180°; a value from 180° to 360° is also accepted and turned into the same place west of 0° (for example 270° E = −90°).',
+        'Decimal degrees only. South latitudes and west longitudes are negative. A comma is read as a decimal point.',
+      ] },
+      { h: 'What happens', p: [
+        '"Go" chooses the place exactly as a click on the globe would: the analysis server evaluates it and the Results pane, the strips, the surface view and the nearby search follow. Choosing a place in any other way (click, known landing site) writes its coordinates back into the boxes, rounded to 0.0001° (about 3 m on the Moon).',
+      ] },
+      { h: 'Limitations', p: [
+        'Needs the analysis server: offline only the precomputed known sites exist.',
+        'A position typed here is a point; the landing accuracy of a real lander is handled by the uncertainty ring (see Uncertainty).',
+      ] },
+    ],
+    refs: ['contract', 'api'], seeAlso: ['uncertainty', 'known-sites'],
+  },
   'mission-type': {
     title: 'Mission type', category: 'Mission setup',
     summary: 'A preset that switches on the minimum requirements of a robotic or a crewed landing. Every value can be changed afterwards.',
@@ -538,17 +556,19 @@ const DEFS = {
         'Length of a period: end minus start, shown in hours below two days and in days above.',
       ] },
       { h: 'Repeats every', p: [
-        'How often the periods come back: the mean time between the starts of successive periods (sunrise to sunrise, Earthrise to Earthrise), over the 90 days that follow the landing, whatever the stay. For this the analysis server is asked for the same periods over 90 days, with a 10 min step. A period that is already running at the landing time is cut by the window, so its start is not a rise and is left out. With $n+1$ rises at times $t_0 < \\dots < t_n$:',
-      ], eq: 'P = \\frac{t_n - t_0}{n}' },
+        'How often the pattern of periods comes back, over the 90 days that follow the landing, whatever the stay. For this the analysis server is asked for the same periods over 90 days, with a 10 min step. The navigator turns them into a series $x(t)$, 1 when the body is in view and 0 when not, every hour, and finds the shift $L$ at which the series best matches itself: the highest autocorrelation $r(L)$ for $L$ between 10 and 45 days ($\\bar x$ is the mean of the series, $N$ its number of hours).',
+        'Counting sunrises would not work near the poles: a ridge can hide the Sun for a few hours in the middle of a lunar day, which would count as an extra sunrise. The autocorrelation looks at the whole pattern, so such short interruptions barely move it.',
+        'The 10 to 45 day search range (monthly cycles only) and the threshold $r \\ge 0.5$ below which no cycle is shown are our choices, not published values. The result has a resolution of 1 h.',
+      ], eq: 'r(L) = \\frac{\\frac{1}{N-L}\\sum_{i=0}^{N-L-1} (x_i - \\bar x)(x_{i+L} - \\bar x)}{\\frac{1}{N}\\sum_{i=0}^{N-1} (x_i - \\bar x)^2}, \\qquad P = \\arg\\max_{L} r(L)' },
       { h: 'Expected values', p: [
-        'For comparison only (not used in the computation): the Sun comes back once per synodic month, 29.53 days on average [3]. The Earth hardly moves in the sky of a given place; it rises and sets only near the edge of the near side and near the poles, where the librations carry it across the horizon, with periods close to the anomalistic month (27.55 days, longitude libration) and the draconic month (27.21 days, latitude libration) [3].',
+        'For comparison only (not used in the computation): the Sun comes back once per synodic month, 29.53 days on average [3]; the navigator finds 29.5 to 29.6 days away from the poles. The Earth hardly moves in the sky of a given place; it rises and sets only near the edge of the near side and near the poles, where the librations carry it across the horizon, with periods close to the anomalistic month (27.55 days, longitude libration) and the draconic month (27.21 days, latitude libration) [3]. Near the south pole the latitude libration dominates: the navigator finds 27.2 days there.',
       ] },
       { h: 'Reading', p: [
         'The end of a sunlit period is a sunset and the start of the next one a sunrise; likewise Earthset and Earthrise.',
         'A period that starts exactly at the landing time, or ends exactly at the end of the stay, is cut by the mission window: the Sun (or Earth) was already up before, or stays up after. Its length is then the part inside the stay.',
-        'Nothing is shown when fewer than two rises happen in 90 days: the body stays in view, never comes into view, or rises once only.',
+        'No value is shown when the body stays in view, or out of view, for all 90 days, or when no shift reaches $r = 0.5$ (no regular cycle).',
       ] },
-      { h: 'Limitations', p: ['Times have the resolution of the time step: 60 s for the periods of the stay, 10 min for the repeat period.', 'Ground-station availability is not included in the Earth periods.', 'The repeat period is a mean: single cycles differ from it by up to several hours, because the Moon\'s orbit is elliptical and perturbed [3].'] },
+      { h: 'Limitations', p: ['Times have the resolution of the time step: 60 s for the periods of the stay; the repeat period is resolved to 1 h.', 'Ground-station availability is not included in the Earth periods.', 'The repeat period is an average over the 90 days: single cycles differ from it by up to several hours, because the Moon\'s orbit is elliptical and perturbed [3]. Near the poles the terrain can shift it further (for example 30.2 days for the Sun at 89.45° S, 137.31° W from 15 Nov 2026, against 29.5 days at 85.4° S, 30° E).'] },
     ],
     refs: ['contract', 'parameters', 'meeus1998'], seeAlso: ['sunlight', 'earth-in-view', 'countdowns'],
   },

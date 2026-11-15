@@ -5,7 +5,7 @@ import { FACTORS } from '../factors'
 import { fmtDeg, fmtH, fmtM, fmtPct, fmtUnc, untilLoss } from '../format'
 import { Help } from '../Help'
 import { describeViolation, limitLabel } from '../profiles'
-import { fmtDuration, durationH, repeatPeriod } from './periods'
+import { durationH, fmtDuration, repeatPeriod } from './periods'
 import { Row, Rows } from './Rows'
 import { REPEAT_DAYS } from '../../data/useLive'
 
@@ -80,10 +80,10 @@ export function ScoreBlock({ ev }: { ev: Evaluation }) {
 
 // The periods a body is in view during the stay, as the server lists them, each with its length; then how often the
 // periods come back, measured over REPEAT_DAYS from the landing (`repeat`, the same list over a longer window).
-function Periods({ title, list, repeat, startUtc, body }: {
-  title: string; list: Windows['sun_windows'] | undefined; repeat: Windows['sun_windows'] | undefined; startUtc: string; body: string
+function Periods({ title, list, repeat, startUtc }: {
+  title: string; list: Windows['sun_windows'] | undefined; repeat: Windows['sun_windows'] | undefined; startUtc: string
 }) {
-  const r = repeat && repeatPeriod(repeat, startUtc)
+  const r = repeat && repeatPeriod(repeat, startUtc, REPEAT_DAYS)
   return (
     <>
       <h3 className="rows-title">{title} <Help topic="visibility-windows" /></h3>
@@ -100,10 +100,10 @@ function Periods({ title, list, repeat, startUtc, body }: {
       )}
       <Rows>
         <Row label="Repeats every" help="visibility-windows">
-          {!repeat ? '…' : r ? `${r.days.toFixed(1)} days (mean of ${r.n} cycle${r.n > 1 ? 's' : ''} over ${REPEAT_DAYS} days)`
+          {!repeat ? '…' : r ? `${r.days.toFixed(1)} days`
             : repeat.length === 0 ? `never in view within ${REPEAT_DAYS} days`
-            : repeat.length === 1 && Date.parse(repeat[0].start_utc) <= Date.parse(startUtc) ? `${body} stays in view for ${REPEAT_DAYS} days`
-            : `fewer than two ${body === 'Sun' ? 'sunrises' : 'Earthrises'} within ${REPEAT_DAYS} days`}
+            : repeat.length === 1 && Date.parse(repeat[0].start_utc) <= Date.parse(startUtc) && Date.parse(repeat[0].end_utc) >= Date.parse(startUtc) + (REPEAT_DAYS * 24 - 1) * 3_600_000
+              ? `in view for all ${REPEAT_DAYS} days` : `no regular cycle within ${REPEAT_DAYS} days`}
         </Row>
       </Rows>
     </>
@@ -135,7 +135,7 @@ export function SunBlock({ ev, eph, windows, repeat }: P) {
         <Row label="Energy on a Sun-tracking surface" help="solar-energy">{u('sun_energy_tracking_kwh_m2', (x) => `${x.toFixed(1)} kWh/m²`)}</Row>
         {v('lola_mean_sun_visibility_frac') != null && <Row label="NASA long-term visibility" help="nasa-visibility">{fmtPct(v('lola_mean_sun_visibility_frac'))}</Row>}
       </Rows>
-      <Periods title="Sunlit periods" list={windows?.sun_windows} repeat={repeat?.sun_windows} startUtc={ev.window.start_utc} body="Sun" />
+      <Periods title="Sunlit periods" list={windows?.sun_windows} repeat={repeat?.sun_windows} startUtc={ev.window.start_utc} />
     </>
   )
 }
@@ -165,7 +165,7 @@ export function EarthBlock({ ev, eph, windows, repeat }: P) {
         <Row label="Sunlight and Earth together" help="both-in-view">{u('both_frac', fmtPct, [0, 1])}</Row>
         {v('lola_mean_earth_visibility_frac') != null && <Row label="NASA long-term visibility" help="nasa-visibility">{fmtPct(v('lola_mean_earth_visibility_frac'))}</Row>}
       </Rows>
-      <Periods title="Periods with Earth in view" list={windows?.earth_windows} repeat={repeat?.earth_windows} startUtc={ev.window.start_utc} body="Earth" />
+      <Periods title="Periods with Earth in view" list={windows?.earth_windows} repeat={repeat?.earth_windows} startUtc={ev.window.start_utc} />
     </>
   )
 }
