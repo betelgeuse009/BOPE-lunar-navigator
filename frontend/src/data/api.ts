@@ -11,13 +11,14 @@ export type LimitKey = 'max_slope_deg' | 'max_dark_h' | 'min_sunlit_frac' | 'min
   | 'max_rock_abundance_frac' | 'max_surface_temp_k' | 'max_h_parameter_m'
 export type Limits = Partial<Record<LimitKey, number | null>>
 export type ProfileId = 'none' | 'robotic' | 'crewed'
-export type Settings = { missionDays: number; obsHeightM: number; weights: Weights; profile: ProfileId; limits: Limits }
+export type Settings = { missionDays: number; obsHeightM: number; horizonUncDeg: number; weights: Weights; profile: ProfileId; limits: Limits }
 
 // API defaults (docs/PARAMETERS.md §1): 14 d mission, 2 m mast, weight 1 each (slope included since the terrain, T28);
 // the regolith factors (rock abundance, maximum temperature, H-parameter) are off by default (weight 0).
 export const DEFAULT_SETTINGS: Settings = {
   missionDays: 14,
   obsHeightM: 2,
+  horizonUncDeg: 0.1, // API default (contracts/API.md): accuracy of the LOLA skyline
   weights: { sunlit: 1, dark: 1, earth: 1, noEarth: 1, slope: 1, rock: 0, temp: 0, hpar: 0 },
   profile: 'none',
   limits: {},
@@ -42,6 +43,9 @@ export function settingsQuery(s: Settings): Record<string, string> {
 export function limitsQuery(s: Settings): Record<string, string> {
   return Object.fromEntries(Object.entries(s.limits).flatMap(([k, v]) => (v == null ? [] : [[k, String(v)]])))
 }
+
+// Skyline uncertainty goes only to /evaluate: it sets the ± of the numbers, not the score maps or the matrix.
+export const uncertaintyQuery = (s: Settings): Record<string, string> => ({ horizon_uncertainty_deg: String(s.horizonUncDeg) })
 
 // /api/area refuses more than 2000 points; a disc of radius r with spacing r/20 has about pi*400 = 1257.
 export const areaSpacingKm = (radiusKm: number) => radiusKm / 20

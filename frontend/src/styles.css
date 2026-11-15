@@ -685,6 +685,7 @@ fieldset.requirements { margin-top: 0; }
 .panorama { margin: 16px 0 0; }
 .panorama svg { display: block; width: 100%; height: 150px; background: #050608; border: 1px solid var(--rule); }
 .panorama .terrain { fill: #3a3c43; }
+.panorama .unc-band { fill: #e5484d; fill-opacity: 0.35; }
 .panorama .flat { stroke: #6b6e78; stroke-width: 1; stroke-dasharray: 3 3; vector-effect: non-scaling-stroke; }
 .panorama circle.sun { fill: var(--sun); }
 .panorama circle.earth { fill: var(--earth); }

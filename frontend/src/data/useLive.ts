@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { STRIP_DAYS, useApp, type Pin } from '../state/store'
-import { Area, Ephemeris, Evaluation, Horizon, ScoreGrid, Windows, apiAvailable, apiGet, areaSpacingKm, limitsQuery, settingsQuery } from './api'
+import { Area, Ephemeris, Evaluation, Horizon, ScoreGrid, Windows, apiAvailable, apiGet, areaSpacingKm, limitsQuery, settingsQuery, uncertaintyQuery } from './api'
 import { createLatestRunner } from './latest'
 import { landingAt, parseFile } from './load'
 import { Matrix, Scene } from './schemas'
@@ -73,7 +73,7 @@ export function useEvaluation(startUtc: string | undefined): Result<Evaluation> 
   const { mode, settings, point } = useApp()
   const s = useDebounced(settings, 300)
   const params = mode === 'live' && point && startUtc
-    ? { ...settingsQuery(s), ...limitsQuery(s), lat_deg: point.lat.toFixed(4), lon_deg: point.lon.toFixed(4), start_utc: startUtc }
+    ? { ...settingsQuery(s), ...limitsQuery(s), ...uncertaintyQuery(s), lat_deg: point.lat.toFixed(4), lon_deg: point.lon.toFixed(4), start_utc: startUtc }
     : null
   return useApiRequest(params && JSON.stringify(params), (p) => apiGet('evaluate', p, Evaluation))
 }
@@ -111,7 +111,7 @@ export function useCompareEvaluations(pins: Pin[]): Result<Record<string, Evalua
   const { mode, settings } = useApp()
   const s = useDebounced(settings, 300)
   const reqs = mode === 'live'
-    ? pins.map((p) => ({ id: p.id, params: { ...settingsQuery(s), ...limitsQuery(s), lat_deg: p.lat.toFixed(4), lon_deg: p.lon.toFixed(4), start_utc: landingAt(p.dateUtc, p.minuteUtc) } }))
+    ? pins.map((p) => ({ id: p.id, params: { ...settingsQuery(s), ...limitsQuery(s), ...uncertaintyQuery(s), lat_deg: p.lat.toFixed(4), lon_deg: p.lon.toFixed(4), start_utc: landingAt(p.dateUtc, p.minuteUtc) } }))
     : []
   return useApiRequest(reqs.length ? JSON.stringify(reqs) : null, async (list: typeof reqs) =>
     Object.fromEntries(await Promise.all(list.map(async (r) => [r.id, await apiGet('evaluate', r.params, Evaluation)] as const))))
