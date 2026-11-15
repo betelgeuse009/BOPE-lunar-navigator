@@ -578,3 +578,16 @@ fieldset.requirements { margin-top: 0; }
   .surface-time-panel { flex: 1; width: auto; }
 }
 .periods .dur { white-space: nowrap; }
+
+/* ---------- Place: typed coordinates ---------- */
+.place-input fieldset { margin-top: 0; display: grid; grid-template-columns: 1fr 1fr auto; align-items: end; gap: 8px 10px; max-width: 520px; }
+.place-input legend { grid-column: 1 / -1; }
+.place-input label { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 2px 4px; }
+.place-input label > span:first-child { grid-column: 1 / -1; color: var(--text-2); font-size: 14px; }
+.place-input input {
+  min-width: 0; width: 100%; font: 500 15px var(--font); font-variant-numeric: tabular-nums; color: var(--text);
+  background: var(--surface-raised); border: 1px solid var(--rule); border-radius: 3px; padding: 5px 8px;
+}
+.place-input .unit { color: var(--text-2); font-size: 14px; }
+.pane .place-input fieldset button { margin-top: 0; }
+.place-input .note { margin: 6px 0 0; }
