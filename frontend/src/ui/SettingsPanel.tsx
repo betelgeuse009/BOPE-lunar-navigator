@@ -21,6 +21,8 @@ export function MissionSettings() {
           onChange={(v) => setSettings({ missionDays: v })} />
         <Slider label="Mast height (solar array and antenna)" value={settings.obsHeightM} min={0} max={20} step={0.5} unit="m" help="mast-height"
           onChange={(v) => setSettings({ obsHeightM: v })} />
+        <Slider label="Skyline uncertainty (obstacles the map cannot see)" value={settings.horizonUncDeg} min={0} max={5} step={0.1} unit="" help="skyline-uncertainty"
+          onChange={(v) => setSettings({ horizonUncDeg: v })} format={(v) => `± ${v.toFixed(1)}°`} />
       </fieldset>
     </>
   )

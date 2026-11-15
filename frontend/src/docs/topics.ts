@@ -748,6 +748,23 @@ const DEFS = {
     ],
     refs: ['pgda90', 'pgda81', 'lolaGdr', 'valAvgvisib', 'maps', 'parameters'], seeAlso: ['mast-height', 'uncertainty'],
   },
+  'skyline-uncertainty': {
+    title: 'Skyline uncertainty', category: 'Mission setup',
+    summary: 'How far the real skyline may differ from the map. Raise it to ask: what if a small crater rim or a boulder next to the lander, too small for the map, blocks the low Sun?',
+    sections: [
+      { h: 'Description', p: ['The skyline is computed from the LOLA altitude maps, whose pixels are 80 m (5 m south of 86.7° S) [1, 2]. Anything smaller than a pixel near the lander is not in the skyline: a small crater rim, a boulder, the lander\'s own tilt. This setting shifts the skyline up and down by the chosen angle and reports how much every number can change, as the ± (or a range) after it. The red band in the "Why it changes" panorama shows the skyline raised by this angle.'] },
+      { h: 'Values', p: ['Default: 0.1°, the accuracy of the map skyline (a choice of the analysis team [3]). Range 0 to 5°.'] },
+      { h: 'Height of a hidden obstacle', p: ['An obstacle of height $d$ at a distance $r$ raises the skyline by $\\theta$; a rim 1 m high and 20 m away gives $2.9^\\circ$:'], eq: '\\theta = \\arctan\\!\\left( \\frac{d}{r} \\right)' },
+      { h: 'Why it matters near the poles', p: ['When the Sun is at elevation $e$, an obstacle of height $h$ casts a shadow of length $L$. At $e = 2.5^\\circ$, $L \\approx 23\\,h$: a 1 m bump shades 23 m of ground.'], eq: 'L = \\frac{h}{\\tan e}' },
+      { h: 'Example: IM-2 Athena', p: [
+        'Intuitive Machines\' IM-2 lander came to rest on its side in a small crater near Mons Mouton, 84.79° S 29.20° E [4].',
+        'With the navigator\'s defaults (landing 2025-03-06 17:30 UTC, 14 days, 2 m mast, LOLA 80 m terrain) the place looks good: 94 % sunlit, longest night 21 h, but the Sun never climbs above 5.4°. With a skyline uncertainty of 2° the longest night can reach 88 h; with 4°, 107 h (/api/evaluate, run 2026-11-15).',
+        'This illustrates the sensitivity of a grazing-Sun site; it is not a reconstruction of the IM-2 mission, whose lander attitude is not modelled.',
+      ] },
+      { h: 'Limitations', p: ['The shift is the same at every azimuth, while a real obstacle covers only part of the sky. The ± in the numbers comes from the server; the band in the panorama is only a drawing of the shifted skyline.'] },
+    ],
+    refs: ['maps', 'api', 'parameters', 'lroc'], seeAlso: ['uncertainty', 'mast-height', 'terrain-horizon'],
+  },
   uncertainty: {
     title: 'Uncertainty', category: 'Methods',
     summary: 'The ± after a number: how much it changes if the lander touches down up to 100 m away, or if the skyline is off by 0.1°.',

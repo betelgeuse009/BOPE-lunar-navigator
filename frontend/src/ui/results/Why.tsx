@@ -19,6 +19,7 @@ export function WhyBlock({ ev, eph }: { ev: Evaluation; eph: Ephemeris | null })
   const strip = useDayStrip(day).data
   const spread = useNearbySpread(ev.window.start_utc)
   const hor = useHorizon().data
+  const uncDeg = useApp((s) => s.settings.horizonUncDeg)
 
   const dayScores = days?.cells.score?.[0] ?? null
   const k = Math.round(minuteUtc / 10), hours = strip?.cells.score?.[0] ?? null
@@ -59,7 +60,7 @@ export function WhyBlock({ ev, eph }: { ev: Evaluation; eph: Ephemeris | null })
           {spread.data ? spreadText(spread.data) : spread.error ? 'n/a' : '…'}
         </Row>
       </Rows>
-      {eph && hor && <Panorama eph={eph} hor={hor} />}
+      {eph && hor && <Panorama eph={eph} hor={hor} uncDeg={uncDeg} />}
     </>
   )
 }
@@ -90,12 +91,16 @@ function Reasons({ sun, earth }: { sun: Blocking | null; earth: Blocking | null 
 
 // 360° panorama: the terrain skyline (grey) with the paths of the Sun and the Earth over the stay; bright where the
 // body is in view, faint where the terrain or the horizon hides it.
-function Panorama({ eph, hor }: { eph: Ephemeris; hor: Horizon }) {
-  const els = [...eph.sun_el_deg, ...eph.earth_el_deg, ...hor.horizon_elev_deg]
+function Panorama({ eph, hor, uncDeg }: { eph: Ephemeris; hor: Horizon; uncDeg: number }) {
+  const els = [...eph.sun_el_deg, ...eph.earth_el_deg, ...hor.horizon_elev_deg.map((e) => e + uncDeg)]
   const top = Math.min(Math.max(3, ...els.filter((e) => e < 90)) + 1, 90), bottom = Math.max(-4, Math.min(...hor.horizon_elev_deg) - 1)
   const W = 360, Hh = 100, y = (e: number) => ((top - e) / (top - bottom)) * Hh
   const h0 = y(hor.horizon_elev_deg[0])
   const sky = `M0 ${h0} ` + hor.azimuth_deg.map((a, i) => `L${a} ${y(hor.horizon_elev_deg[i])}`).join(' ') + ` L360 ${h0} L360 ${Hh} L0 ${Hh} Z`
+  // Band from the skyline up to skyline + the skyline uncertainty: where a hidden obstacle (a crater rim, a boulder
+  // next to the lander) could put the real horizon. Drawn only; the ± in the numbers comes from the server.
+  const band = uncDeg > 0 && 'M' + hor.azimuth_deg.map((a, i) => `${a} ${y(hor.horizon_elev_deg[i] + uncDeg)}`).join(' L')
+    + ' ' + [...hor.azimuth_deg].reverse().map((a, j) => `L${a} ${y(hor.horizon_elev_deg[hor.azimuth_deg.length - 1 - j])}`).join(' ') + ' Z'
   const every = Math.max(1, Math.floor(eph.time_utc.length / 500))
   const dots = (az: number[], el: number[], vis: number[], cls: string) => az.flatMap((a, i) => (i % every || el[i] < bottom || el[i] > top ? []
     : [<circle key={`${cls}${i}`} cx={a} cy={y(el[i])} r="0.9" className={`${cls}${vis[i] >= 0.5 ? '' : ' hidden'}`} />]))
@@ -103,6 +108,7 @@ function Panorama({ eph, hor }: { eph: Ephemeris; hor: Horizon }) {
     <figure className="panorama">
       <svg viewBox={`0 0 ${W} ${Hh}`} preserveAspectRatio="none" role="img" aria-label="Skyline of the place with the paths of the Sun and the Earth over the stay">
         <path d={sky} className="terrain" />
+        {band && <path d={band} className="unc-band" />}
         <line x1="0" x2="360" y1={y(0)} y2={y(0)} className="flat" />
         {dots(eph.sun_az_deg, eph.sun_el_deg, eph.sun_visible_frac, 'sun')}
         {dots(eph.earth_az_deg, eph.earth_el_deg, eph.earth_visible_frac, 'earth')}
@@ -111,7 +117,8 @@ function Panorama({ eph, hor }: { eph: Ephemeris; hor: Horizon }) {
         <span>N</span><span>E</span><span>S</span><span>W</span><span>N</span>
       </figcaption>
       <p className="note">Skyline (grey) seen from the mast, {deg(bottom)} to {deg(top)} of elevation (stretched); dashed line: flat horizon.
-        Dots every {every * 10} min: <span className="k-sun">Sun</span>, <span className="k-earth">Earth</span>; faint where hidden.</p>
+        Dots every {every * 10} min: <span className="k-sun">Sun</span>, <span className="k-earth">Earth</span>; faint where hidden.
+        {uncDeg > 0 && <> Red band: skyline up to {uncDeg.toFixed(1)}° higher (skyline uncertainty); a Sun inside it can be lost to an obstacle the map cannot see.</>}</p>
     </figure>
   )
 }
