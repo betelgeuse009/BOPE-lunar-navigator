@@ -35,6 +35,11 @@ export const REFS = {
   // Journal details of the next two added by the front end from memory; AERO to confirm (LOG).
   de440: { text: 'Park, R. S. et al. (2021), "The JPL Planetary and Lunar Ephemerides DE440 and DE441", Astron. J. 161, 105. Kernel used: de440s.bsp.' },
   spice: { text: 'Acton, C. H. (1996), "Ancillary data services of NASA\'s Navigation and Ancillary Information Facility", Planet. Space Sci. 44, 65-70 (SPICE toolkit).' },
+  bandfield2011: { text: 'Bandfield, J. L. et al. (2011), "Lunar surface rock abundance and regolith fines temperatures derived from LRO Diviner Radiometer data", J. Geophys. Res. 116, E00H02.' },
+  divinerGdr: { text: 'Diviner Lunar Radiometer, gridded data record level 3, rock abundance dgdr_ra_avg_cyl_128, PDS LRO Diviner derived bundle.', url: 'https://pds-geosciences.wustl.edu/lro/urn-nasa-pds-lro_diviner_derived1/data_derived_gdr_l3/' },
+  hayne2017: { text: 'Hayne, P. O. et al. (2017), "Global regolith thermophysical properties of the Moon from the Diviner Lunar Radiometer Experiment", J. Geophys. Res. Planets 122, 2371-2400; map hpar_global_128ppd (PDS Geosciences).', url: 'https://pds-geosciences.wustl.edu/lunar/urn-nasa-pds-chang_e_microwave_processed/miscellaneous/' },
+  williams2017: { text: 'Williams, J.-P. et al. (2017), "The global surface temperatures of the Moon as measured by the Diviner Lunar Radiometer Experiment", Icarus 283, 300-325; Global Cumulative Product LRO-L-DLRE-5-GCP-V1.0.', url: 'https://pds-geosciences.wustl.edu/lro/urn-nasa-pds-lro_diviner_derived1/data_derived_gcp/' },
+  divinerPrp: { text: 'Paige, D. A. et al., Diviner Polar Resource Product, PDS LRO-L-DLRE-5-PRP-V2.0.', url: 'https://pds-geosciences.wustl.edu/lro/urn-nasa-pds-lro_diviner_derived1/data_derived_prp/' },
   contract: { text: 'BOPE team, "Data contract", contracts/README.md and contracts/schemas/ in the project repository.' },
   wikipedia: { text: 'Wikipedia, the free encyclopedia: opening paragraphs of each mission article, licence CC BY-SA 4.0; images from Wikimedia Commons under the licence shown on each card.', url: 'https://en.wikipedia.org' },
   nssdca: { text: 'NASA NSSDCA, lunar landing and impact site coordinates.', url: 'https://nssdc.gsfc.nasa.gov/planetary/lunar/lunar_sites.html' },
@@ -325,6 +330,47 @@ const DEFS = {
     ],
     refs: ['parameters'], seeAlso: ['sunlight', 'ephemeris'],
   },
+  'rock-abundance': {
+    title: 'Rock abundance', category: 'Results',
+    summary: 'Share of the ground covered by rocks larger than about 1 m, from Diviner night-time temperatures. A regolith indicator for landing hazards and surface operations.',
+    sections: [
+      { h: 'Definition', p: [
+        'The fraction of the surface area covered by rock fragments larger than about 1 m, estimated by Bandfield et al. from Diviner night-time temperatures: rocks stay warm long after sunset while fine regolith cools quickly, so the mix of the two sets the measured multi-channel temperatures [1].',
+        'Read at the clicked point from the Diviner level 3 map (128 pixels per degree, averaged by the analysis server to 32 pixels per degree, about 950 m), covering 80° S to 80° N. Poleward of 80° the map has no values and none is shown.',
+      ] },
+      { h: 'Reading the value', p: ['Most of the Moon is below 1 %. Young craters, their ejecta and steep slopes reach several percent, up to a few tens of percent on fresh crater walls. The value says nothing about boulders smaller than about 1 m or about the exact spot of the footpads.'] },
+      { h: 'Use', p: ['Shown for context. It is not part of the score or of the requirements.'] },
+    ],
+    refs: ['bandfield2011', 'divinerGdr', 'api'], seeAlso: ['h-parameter', 'surface-temperature', 'slope'],
+  },
+  'h-parameter': {
+    title: 'H-parameter (thermal inertia)', category: 'Results',
+    summary: 'How quickly the regolith gets denser with depth, from Diviner night-time cooling. Small H: dense, conductive near-surface regolith, higher thermal inertia. Large H: fluffy regolith, lower thermal inertia.',
+    sections: [
+      { h: 'Definition', p: [
+        'Hayne et al. describe the regolith density $\\rho$ as rising from a surface value $\\rho_s$ to a deep value $\\rho_d$ with depth $z$ [1]:',
+      ], eq: '\\rho(z) = \\rho_d - (\\rho_d - \\rho_s)\\, e^{-z/H}' },
+      { h: 'Thermal inertia', p: [
+        'Thermal inertia $I = \\sqrt{k \\rho c}$ (conductivity $k$, density $\\rho$, heat capacity $c$) measures how strongly the ground resists temperature changes. A small $H$ means the dense, more conductive regolith is close to the surface, so the near-surface thermal inertia is higher and the night-time surface stays warmer; a large $H$ means a thick fluffy layer, lower thermal inertia and colder nights. $H$ is the quantity the Diviner team mapped; it is shown instead of a single thermal inertia, which would also depend on temperature.',
+      ] },
+      { h: 'Source and coverage', p: ['Fitted by Hayne et al. to Diviner channel 7 (25 to 41 µm) night-time temperatures, map of 128 pixels per degree (PDS file hpar_global_128ppd), averaged by the analysis server to 32 pixels per degree. Covered from 70° S to 70° N; poleward of that no value is shown. Global mean about 7 cm [1].'] },
+      { h: 'Use', p: ['Shown for context (regolith properties, thermal design). It is not part of the score.'] },
+    ],
+    refs: ['hayne2017', 'api'], seeAlso: ['rock-abundance', 'surface-temperature'],
+  },
+  'surface-temperature': {
+    title: 'Surface temperature', category: 'Results',
+    summary: 'The highest and the average temperature of the ground at the place, from Diviner: measured on most of the Moon, from the Diviner thermal model south of 80° S. Not the temperature on the landing date.',
+    sections: [
+      { h: 'Whole Moon', p: [
+        'Diviner Global Cumulative Product: bolometric brightness temperature measured by Diviner in bins of 0.5° and a quarter of an hour of local time, all nadir observations from July 2009 to April 2015 [1].',
+        'Maximum: the highest value over the local times of the bin. Average: the mean over the lunar day, after filling hours of local time that were not observed by linear interpolation when the gap is at most 4 hours; with a longer gap no average is shown.',
+      ] },
+      { h: 'South of 80° S', p: ['Diviner Polar Resource Product: yearly maximum surface temperature and yearly average temperature 2 cm below the surface, calculated by the Diviner team\'s thermal model on terrain triangles about 0.7 km across; the value of the nearest triangle within 2 km is shown [2].'] },
+      { h: 'Use', p: ['Shown for context (thermal design, volatiles). It is not part of the score. The two products differ (measured by local time vs modelled yearly values), so values can step at 80° S.'] },
+    ],
+    refs: ['williams2017', 'divinerPrp', 'api'], seeAlso: ['h-parameter', 'rock-abundance'],
+  },
   slope: {
     title: 'Landing slope', category: 'Results',
     summary: 'Surface slope at the place from LOLA altitude data, in degrees. A regional indicator of landing safety, measured over 80 m or more.',
@@ -595,4 +641,8 @@ export const FIELD_TOPIC: Record<string, TopicId> = {
   longest_no_earth_h: 'longest-blackout',
   slope_deg: 'slope',
   elevation_m: 'elevation',
+  rock_abundance_frac: 'rock-abundance',
+  h_parameter_m: 'h-parameter',
+  surface_temp_max_k: 'surface-temperature',
+  surface_temp_avg_k: 'surface-temperature',
 }

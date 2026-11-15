@@ -6,7 +6,7 @@ import data from '../data/layers.json'
 // for the 2D map). Two layers are drawn live: the day/night line and the score map (asked from the analysis server).
 // `how` is what the (i) next to the layer name shows: where the values come from or how they are calculated.
 export type LayerId = 'altitude' | 'slope' | 'sun_visibility' | 'earth_visibility' | 'psr'
-  | 'temperature_max' | 'temperature_avg' | 'daynight' | 'score'
+  | 'temperature_max' | 'temperature_avg' | 'rock_abundance' | 'h_parameter' | 'daynight' | 'score'
 export type Layer = {
   id: LayerId; label: string; kind: 'image' | 'daynight' | 'score'
   global?: string; cap?: string; strip?: string
@@ -90,6 +90,22 @@ export const LAYERS: Layer[] = [
       + `(${(data.temperature_avg.covered_frac * 100).toFixed(0)} % of the Moon is covered). `
       + `South of 80° S, finer: the yearly average 2 cm below the surface from the Diviner team's thermal model (Polar Resource Product, `
       + `LRO-L-DLRE-5-PRP-V2.0, Paige et al.). Different products, so a step can show at 80° S. Not the temperature on your landing date.` + DISTRIBUTION,
+  },
+  {
+    id: 'rock_abundance', label: 'Rock abundance', kind: 'image', global: data.rock_abundance.global,
+    legend: three(data.rock_abundance.breaks, (v) => `${(v * 100).toFixed(1)} %`),
+    how: `Share of the ground covered by rocks larger than about 1 m, estimated from Diviner night-time temperatures (rocks stay warm after `
+      + `sunset, fine regolith cools fast): Diviner level 3 map dgdr_ra_avg_cyl_128 (Bandfield et al. 2011, PDS Diviner derived bundle), `
+      + `128 px/deg averaged to ${data.rock_abundance.pixel_km.toFixed(2)} km pixels. Mapped from 80° S to 80° N only: nothing is drawn poleward of that `
+      + `(no Diviner rock abundance exists there). Read from the map, not computed.` + DISTRIBUTION,
+  },
+  {
+    id: 'h_parameter', label: 'Thermal inertia (H-parameter)', kind: 'image', global: data.h_parameter.global,
+    legend: three(data.h_parameter.breaks, (v) => `${(v * 100).toFixed(1)} cm`),
+    how: `How quickly the regolith gets denser with depth: ρ(z) = ρd − (ρd − ρs)·exp(−z/H). Small H (dark colours) = dense, conductive regolith near `
+      + `the surface = higher thermal inertia; large H (bright) = fluffy regolith = lower thermal inertia. Fitted to Diviner channel 7 night-time `
+      + `temperatures by Hayne et al. 2017 (JGR Planets 122), map hpar_global_128ppd (PDS Geosciences), averaged to ${data.h_parameter.pixel_km.toFixed(2)} km `
+      + `pixels. Mapped from 70° S to 70° N only: nothing is drawn poleward of that. Global median ${(data.h_parameter.median * 100).toFixed(1)} cm.` + DISTRIBUTION,
   },
   {
     id: 'daynight', label: 'Day and night at landing time', kind: 'daynight', legend: null,
