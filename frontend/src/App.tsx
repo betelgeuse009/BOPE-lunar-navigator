@@ -93,13 +93,3 @@ export default function App() {
     </div>
   )
 }
-
-function Chapter({ n, id, title, lead, children }: { n: number; id: string; title: string; lead?: string; children: React.ReactNode }) {
-  return (
-    <section className="chapter" id={id} aria-labelledby={`${id}-h`}>
-      <h2 id={`${id}-h`}><span className="num">{n}</span>{title}</h2>
-      {lead && <p className="lead">{lead}</p>}
-      {children}
-    </section>
-  )
-}

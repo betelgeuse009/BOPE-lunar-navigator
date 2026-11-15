@@ -16,13 +16,14 @@ import { Map2D } from './Map2D'
 import { Lights, Moon } from './Moon'
 import { SiteMarkers } from './SiteMarkers'
 import { Sky } from './Sky'
-import { HOME, SKY } from './view'
+import { FAR, HOME, TYPICAL_EARTH_KM, TYPICAL_SUN_KM } from './view'
 import { SouthCap } from './SouthCap'
 
 // Centre of the workbench: the Moon, what is drawn on it, and the controls that belong to the view.
-export function Viewport({ sites, matrix, area, subsolar, subearth, updating }: {
+export function Viewport({ sites, matrix, area, subsolar, subearth, skyKm, updating }: {
   sites: Site[] | null; matrix: Matrix | null; area: Area | null
-  subsolar: { lat: number; lon: number } | null; subearth: { lat: number; lon: number } | null; updating: boolean
+  subsolar: { lat: number; lon: number } | null; subearth: { lat: number; lon: number } | null
+  skyKm: { earthKm: number; sunKm: number } | null; updating: boolean
 }) {
   const { metric, mode, point, scaleMode, pins, compareOpen, setMetric, setSelected, setPoint, setCompareOpen } = useApp()
   const [view, setView] = useState<'3d' | '2d'>('3d')
@@ -31,7 +32,7 @@ export function Viewport({ sites, matrix, area, subsolar, subearth, updating }: 
   return (
     <div className="stage">
       {view === '2d' && <Map2D sites={sites} matrix={matrix} area={area} subsolar={subsolar} subearth={subearth} resetSignal={reset} />}
-      {view === '3d' && <Canvas camera={{ position: HOME, fov: 35, near: 0.01 }} onPointerMissed={() => setSelected(null)}>
+      {view === '3d' && <Canvas camera={{ position: HOME, fov: 35, near: 0.01, far: FAR }} onPointerMissed={() => setSelected(null)}>
         <color attach="background" args={['#000000']} />
         <Lights subsolar={subsolar} />
         <Suspense fallback={null}>
@@ -51,7 +52,10 @@ export function Viewport({ sites, matrix, area, subsolar, subearth, updating }: 
         {sites && matrix && <SiteMarkers sites={sites} matrix={matrix} />}
         {area && <AreaDots area={area} mode={scaleMode} />}
         {point && <PointMarkers point={point} best={area && !area.center_is_best ? area.best : null} />}
-        <Suspense fallback={null}><Sky subsolar={subsolar} subearth={subearth} moon={moon} /></Suspense>
+        <Suspense fallback={null}>
+          <Sky subsolar={subsolar} subearth={subearth} moon={moon}
+            earthKm={skyKm?.earthKm ?? TYPICAL_EARTH_KM} sunKm={skyKm?.sunKm ?? TYPICAL_SUN_KM} />
+        </Suspense>
         <OrbitControls makeDefault enablePan={false} minDistance={1.15} maxDistance={16} rotateSpeed={0.5} zoomSpeed={0.7} />
         <CameraFocus point={point} />
         <CameraReset signal={reset} />
@@ -106,9 +110,11 @@ export function Viewport({ sites, matrix, area, subsolar, subearth, updating }: 
             : 'Lighting is illustrative: no Sun position data for this date.'}
           {view === '3d' && (subsolar || subearth) && (
             <>
-              {' '}Sun and Earth: real directions, not to scale. Drawn {SKY.earthRadius} and {SKY.sunRadius} Moon radii in size at {SKY.earthDist} and{' '}
-              {SKY.sunDist} Moon radii away; really the Earth is 3.67 Moon radii in radius about 221 away, the Sun 400 in radius
-              about 86 100 away. Stars are decorative. Earth and Sun textures: Solar System Scope, CC BY 4.0.
+              {' '}Sun and Earth: real directions, sizes and distances at landing time (to scale), so they look small from the Moon.
+              {skyKm
+                ? ` Distances from the analysis server: Earth ${Math.round(skyKm.earthKm).toLocaleString('en-GB')} km, Sun ${(skyKm.sunKm / 1e6).toFixed(1)} million km.`
+                : ' Without the analysis server the average distances are used (Earth 384 400 km, Sun 1 AU).'}
+              {' '}Stars are decorative. Earth and Sun textures: Solar System Scope, CC BY 4.0.
             </>
           )}
         </p>
