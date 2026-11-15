@@ -50,12 +50,16 @@ export const REFS = {
     text: 'LOLA team, polar illumination products (LPSR permanently shadowed region maps and AVGVISIB average visibility maps, 2016), README_ILLUMINATION_2016 and PDS labels; method in Mazarico et al. (2011).',
     url: 'https://imbrium.mit.edu/EXTRAS/ILLUMINATION/',
   },
-  layersCode: { text: 'BOPE team, map layer processing: frontend/scripts/layers.py (images and colour scales), analysis/global_visibility.py and analysis/regolith.py, in the project repository.' },
+  layersCode: { text: 'BOPE team, map layer processing: frontend/scripts/layers.py (images and colour scales), frontend/scripts/nomenclature.py (feature names), analysis/global_visibility.py and analysis/regolith.py, in the project repository.' },
   svsMoon: { text: 'NASA Scientific Visualization Studio, "CGI Moon Kit" (LROC WAC colour mosaic and LOLA altitude for 3D rendering).', url: 'https://svs.gsfc.nasa.gov/4720' },
   contract: { text: 'BOPE team, "Data contract", contracts/README.md and contracts/schemas/ in the project repository.' },
   wikipedia: { text: 'Wikipedia, the free encyclopedia: opening paragraphs of each mission article, licence CC BY-SA 4.0; images from Wikimedia Commons under the licence shown on each card.', url: 'https://en.wikipedia.org' },
   nssdca: { text: 'NASA NSSDCA, lunar landing and impact site coordinates.', url: 'https://nssdc.gsfc.nasa.gov/planetary/lunar/lunar_sites.html' },
   lroc: { text: 'LROC (Lunar Reconnaissance Orbiter Camera) image measurements of landing sites.', url: 'https://lroc.im-ldi.com' },
+  gazetteer: {
+    text: 'IAU Working Group for Planetary System Nomenclature and USGS Astrogeology Science Center, Gazetteer of Planetary Nomenclature: Moon, centre points (MOON_nomenclature_center_pts), downloaded 2026-11-15.',
+    url: 'https://planetarynames.wr.usgs.gov/',
+  },
   meeus1998: { text: 'Meeus, J. (1998), Astronomical Algorithms, 2nd ed., Willmann-Bell, Richmond (mean lengths of the synodic, anomalistic and draconic months).' },
 } satisfies Record<string, { text: string; url?: string }>
 export type RefId = keyof typeof REFS
@@ -831,6 +835,26 @@ const DEFS = {
       { h: 'Stars', p: ['Decorative, not a star catalogue.'] },
     ],
     refs: ['svsMoon', 'pgda90', 'de440'], seeAlso: ['site-colours', 'layer-daynight'],
+  },
+  labels: {
+    title: 'Labels: names of features', category: 'Map layers',
+    summary: 'The "Labels" switch under the view writes the official names of craters, maria, mountains, valleys and other features on the globe and on the 2D map.',
+    sections: [
+      { h: 'Source', p: [
+        'Names and centre coordinates from the Gazetteer of Planetary Nomenclature, kept by the International Astronomical Union (IAU) and the USGS Astrogeology Science Center [1]. Only names adopted by the IAU are shown, 2 023 of them. The lettered satellite craters (for example "Aristarchus A", 7 064 names) are left out so the map stays readable. The gazetteer gives coordinates on the IAU Moon 2000 sphere (radius 1737.4 km), planetocentric latitude and east longitude, the same convention as the rest of the navigator.',
+        'Converted by frontend/scripts/nomenclature.py [2]. Display only: no computation uses the names.',
+      ] },
+      { h: 'Which names are shown', p: [
+        'A name appears once its feature measures at least 28 pixels across on the screen, using the diameter in the gazetteer. Zooming in brings in smaller features. Names are placed largest feature first, and a name that would overlap one already placed is left out; at most 70 names are shown at a time. On the globe, names on the far side or within about 8° of the visible edge are hidden. The text keeps the same size on screen at any zoom.',
+        'Maria, oceanus, lacus, sinus and palus names are written in italics, as on lunar maps.',
+        'Features with no diameter in the gazetteer (for example Statio Shiv Shakti, the Chandrayaan-3 landing site) are treated as 5 km across, so they appear when zoomed in close. 28 px, 70 names and 5 km are display choices, not published values.',
+      ] },
+      { h: 'Limitations', p: [
+        'A name is placed at the feature\'s centre point only; long features (valleys, rilles, mountain ranges) are not drawn along their length.',
+        'On the globe the relief is exaggerated four times while the names sit on the 1737.4 km sphere, so near the visible edge a name can look slightly off its feature.',
+      ] },
+    ],
+    refs: ['gazetteer', 'layersCode'], seeAlso: ['views', 'coordinates'],
   },
   'site-colours': {
     title: 'Site colours', category: 'Methods',
