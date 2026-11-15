@@ -52,10 +52,12 @@ which maps are present. `python -m analysis.download_maps --all` adds the 3.3 GB
 | `position_uncertainty_m` | 100 | Landing accuracy for the uncertainty: parameters are re-evaluated on a ring of this radius (0 = off) |
 | `horizon_uncertainty_deg` | 0.1 | Skyline accuracy for the uncertainty: the skyline is shifted by ± this (0 = off) |
 
-**Score weights** (`/evaluate`, `/area`, `/matrix`): `w_sunlit`, `w_dark`, `w_earth`, `w_no_earth`, `w_slope` (default 1 each, 0 = ignore).
+**Score weights** (`/evaluate`, `/area`, `/matrix`, `/grid`): `w_sunlit`, `w_dark`, `w_earth`, `w_no_earth`, `w_slope` (default 1 each, 0 = ignore);
+`w_rock`, `w_temp`, `w_h` (rock abundance, maximum surface temperature, H-parameter; default 0, rules in PARAMETERS.md §4).
 
 **Requirements = feasibility limits** (`/evaluate`, `/area`; all optional, no limit unless given):
-`min_sunlit_frac`, `max_dark_h`, `min_earth_visible_frac`, `max_no_earth_h`, `max_slope_deg`, `min_energy_margin_kwh`.
+`min_sunlit_frac`, `max_dark_h`, `min_earth_visible_frac`, `max_no_earth_h`, `max_slope_deg`, `min_energy_margin_kwh`,
+`max_rock_abundance_frac`, `max_surface_temp_k`.
 
 Parameter definitions, formulas and sources: `docs/PARAMETERS.md`.
 
@@ -228,7 +230,8 @@ visible when its elevation is above the skyline at its azimuth (the API already 
 
 ## Regolith context values (`/api/evaluate`)
 
-`parameters` also carries, for context only (not scored, `regolith.scored = false`, sources in `regolith.sources`):
+`parameters` also carries (with their uncertainty; sources in `regolith.sources`; `regolith.scored` = true when `w_rock`,
+`w_temp` or `w_h` is above 0, otherwise they are context only):
 `surface_temp_max_k`, `surface_temp_avg_k` (Diviner: measured on the whole Moon, thermal model south of 80°S),
 `rock_abundance_frac` (Bandfield et al. 2011, 80°S–80°N) and `h_parameter_m` (Hayne et al. 2017, 70°S–70°N; smaller H =
 higher thermal inertia). `null` outside the mapped band or when the files are missing. Method: `analysis/regolith.py`.

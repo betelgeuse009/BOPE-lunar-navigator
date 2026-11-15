@@ -1,6 +1,6 @@
 import type { Area, Evaluation } from '../data/api'
 import type { Matrix, Site } from '../data/schemas'
-import { useEphemeris, useWindows } from '../data/useLive'
+import { useEphemeris, useRepeatWindows, useWindows } from '../data/useLive'
 import { useApp } from '../state/store'
 import { PinButton } from './ComparePanel'
 import { fmtCoords, fmtDeg, fmtH_cm, fmtK, fmtM, fmtRock } from './format'
@@ -30,6 +30,7 @@ export function OutputPanel({ sites, matrix, ev, area, landingUtc }: {
   const { point, mode, radiusKm, setPoint } = useApp()
   const eph = useEphemeris(landingUtc)
   const windows = useWindows(landingUtc)
+  const repeat = useRepeatWindows(landingUtc)
   const e = ev.data
   return (
     <>
@@ -61,8 +62,8 @@ export function OutputPanel({ sites, matrix, ev, area, landingUtc }: {
       {point && e && (
         <div className={ev.loading ? 'stale' : undefined}>
           <Block title="Score and requirements" help="score"><ScoreBlock ev={e} /></Block>
-          <Block title="Sun" help="sunlight" open={false}><SunBlock ev={e} eph={eph.data} windows={windows.data} /></Block>
-          <Block title="Earth" help="earth-in-view" open={false}><EarthBlock ev={e} eph={eph.data} windows={windows.data} /></Block>
+          <Block title="Sun" help="sunlight" open={false}><SunBlock ev={e} eph={eph.data} windows={windows.data} repeat={repeat.data} /></Block>
+          <Block title="Earth" help="earth-in-view" open={false}><EarthBlock ev={e} eph={eph.data} windows={windows.data} repeat={repeat.data} /></Block>
           <Block title="Terrain" help="slope" open={false}><TerrainBlock ev={e} /></Block>
           {radiusKm > 0 && <Block title={`Within ${radiusKm} km`} help="nearby-search"><NearbyBlock area={area.data} loading={area.loading} error={area.error} /></Block>}
           <Block title="Plot over time" help="time-series" open={false}><TimePlot data={eph.data} loading={eph.loading} error={eph.error} /></Block>

@@ -2,7 +2,7 @@
 import numpy as np
 import pytest
 
-from analysis import ephemeris as eph, horizon, metrics, products, scoring, visibility as vis
+from analysis import config, ephemeris as eph, horizon, metrics, products, scoring, visibility as vis
 from analysis.metrics import Inputs
 
 START, END = "2026-11-01T00:00:00Z", "2026-12-01T00:00:00Z"
@@ -113,6 +113,24 @@ def test_score_and_feasibility():
     assert not f["feasible"] and f["violations"][0]["limit"] == "max_dark_h" and f["not_checked"] == ["max_slope_deg"]
     assert f["requirements_violated"] == 1
     assert scoring.feasibility(p, {"max_dark_h": 30.0, "min_sunlit_frac": None})["requirements_violated"] == 0
+
+
+def test_regolith_factors_in_score_and_requirements():
+    base = {"window_h": 100.0, "sunlit_frac": 1.0, "longest_dark_h": 0.0, "earth_visible_frac": 1.0, "longest_no_earth_h": 0.0,
+            "slope_deg": None}
+    lo, hi = config.REGOLITH_SCORE_RANGES["rock_abundance_frac"]
+    p = {**base, "rock_abundance_frac": (lo + hi) / 2, "surface_temp_max_k": 500.0, "h_parameter_m": None}
+    subs = scoring.sub_scores(p)
+    assert subs["rock_abundance_frac"] == pytest.approx(0.5)      # halfway between the two ends
+    assert subs["surface_temp_max_k"] == 0.0                       # beyond the worst end: clipped
+    assert subs["h_parameter_m"] is None                           # not mapped: left out
+    default = scoring.score(p, dict(config.SCORE_WEIGHTS))["value"]
+    assert default == pytest.approx(1.0)                           # weights 0 by default: score unchanged
+    w = {"sunlit_frac": 1.0, "rock_abundance_frac": 1.0, "h_parameter_m": 3.0}
+    assert scoring.score(p, w)["value"] == pytest.approx((1.0 + 0.5) / 2)   # h left out although weighted
+    f = scoring.feasibility(p, {"max_rock_abundance_frac": 0.001, "max_surface_temp_k": 600.0})
+    assert [v["limit"] for v in f["violations"]] == ["max_rock_abundance_frac"]
+    assert scoring.feasibility({**p, "rock_abundance_frac": None}, {"max_rock_abundance_frac": 0.001})["not_checked"] == ["max_rock_abundance_frac"]
 
 
 def test_disc_grid_and_offsets():

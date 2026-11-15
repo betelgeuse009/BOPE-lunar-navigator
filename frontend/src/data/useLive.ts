@@ -190,6 +190,14 @@ export function useWindows(startUtc: string | undefined): Result<Windows> {
   return useApiRequest(site && JSON.stringify(site), (p) => apiGet('metrics', p, Windows))
 }
 
+// The same periods over REPEAT_DAYS from the landing, whatever the stay, to measure how often they come back
+// (10 min resolution is enough for a period of weeks).
+export const REPEAT_DAYS = 90
+export function useRepeatWindows(startUtc: string | undefined): Result<Windows> {
+  const site = useSiteWindow(startUtc)
+  return useApiRequest(site && JSON.stringify({ ...site, mission_h: String(REPEAT_DAYS * 24), calc_step_s: '600' }), (p) => apiGet('metrics', p, Windows))
+}
+
 // Distance to the Earth and to the Sun at the landing time, to draw them to scale. The server measures distances
 // from a place on the surface; the centre of the near side (0 N, 0 E) is used, at most one Moon radius from the centre.
 export function useSkyDistances(startUtc: string | undefined): { earthKm: number; sunKm: number } | null {

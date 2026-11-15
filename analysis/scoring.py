@@ -15,7 +15,16 @@ LIMITS = {
     "max_no_earth_h": ("longest_no_earth_h", False),
     "max_slope_deg": ("slope_deg", False),
     "min_energy_margin_kwh": ("energy_margin_kwh", True),
+    "max_rock_abundance_frac": ("rock_abundance_frac", False),
+    "max_surface_temp_k": ("surface_temp_max_k", False),
 }
+
+
+def _lower_is_better(value: float | None, best: float, worst: float) -> float | None:
+    """1 at `best`, 0 at `worst`, linear in between and clipped to 0..1. None when the value is not available."""
+    if value is None:
+        return None
+    return float(min(max((worst - value) / (worst - best), 0.0), 1.0))
 
 
 def sub_scores(p: dict) -> dict[str, float | None]:
@@ -28,6 +37,7 @@ def sub_scores(p: dict) -> dict[str, float | None]:
         "earth_visible_frac": p["earth_visible_frac"],
         "longest_no_earth_h": 1.0 - min(p["longest_no_earth_h"] / window_h, 1.0),
         "slope_deg": None if slope is None else 1.0 - min(slope / config.SLOPE_SCORE_ZERO_DEG, 1.0),
+        **{k: _lower_is_better(p.get(k), *ends) for k, ends in config.REGOLITH_SCORE_RANGES.items()},
     }
 
 

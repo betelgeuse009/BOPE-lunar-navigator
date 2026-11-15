@@ -50,12 +50,29 @@ export const REFS = {
     text: 'LOLA team, polar illumination products (LPSR permanently shadowed region maps and AVGVISIB average visibility maps, 2016), README_ILLUMINATION_2016 and PDS labels; method in Mazarico et al. (2011).',
     url: 'https://imbrium.mit.edu/EXTRAS/ILLUMINATION/',
   },
-  layersCode: { text: 'BOPE team, map layer processing: frontend/scripts/layers.py (images and colour scales), analysis/global_visibility.py and analysis/regolith.py, in the project repository.' },
+  layersCode: { text: 'BOPE team, map layer processing: frontend/scripts/layers.py (images and colour scales), frontend/scripts/nomenclature.py (feature names), analysis/global_visibility.py and analysis/regolith.py, in the project repository.' },
   svsMoon: { text: 'NASA Scientific Visualization Studio, "CGI Moon Kit" (LROC WAC colour mosaic and LOLA altitude for 3D rendering).', url: 'https://svs.gsfc.nasa.gov/4720' },
   contract: { text: 'BOPE team, "Data contract", contracts/README.md and contracts/schemas/ in the project repository.' },
   wikipedia: { text: 'Wikipedia, the free encyclopedia: opening paragraphs of each mission article, licence CC BY-SA 4.0; images from Wikimedia Commons under the licence shown on each card.', url: 'https://en.wikipedia.org' },
   nssdca: { text: 'NASA NSSDCA, lunar landing and impact site coordinates.', url: 'https://nssdc.gsfc.nasa.gov/planetary/lunar/lunar_sites.html' },
   lroc: { text: 'LROC (Lunar Reconnaissance Orbiter Camera) image measurements of landing sites.', url: 'https://lroc.im-ldi.com' },
+  lroCoord: {
+    text: 'LRO Project and LGCWG (2008), "A Standardized Lunar Coordinate System for the Lunar Reconnaissance Orbiter and Lunar Datasets", white paper, version 5, 1 Oct 2008 (Mean Earth / Polar Axis frame for lunar data products).',
+    url: 'https://science.nasa.gov/wp-content/uploads/2024/01/luncoordwhitepaper-10-08.pdf',
+  },
+  glaser2014: {
+    text: 'Gläser, P. et al. (2014), "Illumination conditions at the lunar south pole using high resolution Digital Terrain Models from LOLA", Icarus 243, 78-90, doi:10.1016/j.icarus.2014.08.013.',
+    url: 'https://ui.adsabs.harvard.edu/abs/2014Icar..243...78G',
+  },
+  smith2017: {
+    text: 'Smith, D. E. et al. (2017), "Summary of the results from the lunar orbiter laser altimeter after seven years in lunar orbit", Icarus 283, 70-91 (vertical accuracy of the gridded LOLA altitude maps about 1 m, as listed in the USGS planetary data product table).',
+    url: 'https://fdp.astrogeology.usgs.gov/fdp/moon/',
+  },
+  gazetteer: {
+    text: 'IAU Working Group for Planetary System Nomenclature and USGS Astrogeology Science Center, Gazetteer of Planetary Nomenclature: Moon, centre points (MOON_nomenclature_center_pts), downloaded 2026-11-15.',
+    url: 'https://planetarynames.wr.usgs.gov/',
+  },
+  meeus1998: { text: 'Meeus, J. (1998), Astronomical Algorithms, 2nd ed., Willmann-Bell, Richmond (mean lengths of the synodic, anomalistic and draconic months).' },
 } satisfies Record<string, { text: string; url?: string }>
 export type RefId = keyof typeof REFS
 
@@ -89,6 +106,24 @@ const DEFS = {
       { h: 'Landing criteria', p: ['Apollo chose the landing time so that the Sun was 7° to 20° behind the lander during the approach, which left about one launch day per month for each site [4]. Artemis III: approach lighting is beneficial, and at the south pole the peak lighting conditions are periodic and shift 2 to 3 weeks earlier each year [5].'] },
     ],
     refs: ['parameters', 'api', 'de440', 'apollo1968', 'nasaReq'], seeAlso: ['surface-stay', 'ephemeris', 'time-series'],
+  },
+  coordinates: {
+    title: 'Place: coordinates', category: 'Mission setup',
+    summary: 'Type the latitude and longitude of the place to evaluate, instead of clicking on the Moon. The boxes show the coordinates of the place chosen last.',
+    sections: [
+      { h: 'Convention', p: [
+        'Selenographic coordinates in the Mean Earth / Polar Axis frame (MOON_ME), the frame of the LOLA maps and of every result of the analysis server [1][2], recommended for lunar data products by the LRO Project and the Lunar Geodesy and Cartography Working Group [3]. Latitude: planetocentric, −90° (south pole) to +90° (north pole). Longitude: east-positive, −180° to +180°; a value from 180° to 360° is also accepted and turned into the same place west of 0° (for example 270° E = −90°).',
+        'Decimal degrees only. South latitudes and west longitudes are negative. A comma is read as a decimal point.',
+      ] },
+      { h: 'What happens', p: [
+        '"Go" chooses the place exactly as a click on the globe would: the analysis server evaluates it and the Results pane, the strips, the surface view and the nearby search follow. Choosing a place in any other way (click, known landing site) writes its coordinates back into the boxes, rounded to 0.0001° (about 3 m on the Moon).',
+      ] },
+      { h: 'Limitations', p: [
+        'Needs the analysis server: offline only the precomputed known sites exist.',
+        'A position typed here is a point; the landing accuracy of a real lander is handled by the uncertainty ring (see Uncertainty).',
+      ] },
+    ],
+    refs: ['contract', 'api', 'lroCoord'], seeAlso: ['uncertainty', 'known-sites'],
   },
   'mission-type': {
     title: 'Mission type', category: 'Mission setup',
@@ -129,6 +164,8 @@ const DEFS = {
           ['Min sunlight', '$f_\\odot \\ge f_{\\odot,\\min}$'],
           ['Min Earth in view', '$f_\\oplus \\ge f_{\\oplus,\\min}$'],
           ['Max longest blackout', '$L_{\\text{blackout}} \\le L_{\\text{blackout,max}}$'],
+          ['Max rock abundance', 'rock fraction $\\le$ the value typed (in %); not checked beyond 80°'],
+          ['Max surface temperature', 'highest surface temperature $T_{\\max} \\le$ the value typed (in K)'],
         ],
       } },
       { h: 'Defaults', p: ['No limit is set by default. The limits depend on the lander (battery, slope tolerance, link needs), so they are yours to choose, or come from the mission type.'] },
@@ -156,18 +193,19 @@ const DEFS = {
     sections: [
       { h: 'Description', p: ['The observer is placed this high above the surface at the chosen point, and the skyline is computed from there. One height is used for both the solar array and the antenna.'] },
       { h: 'Values', p: ['Default: 2 m.'] },
+      { h: 'Published comparison', p: ['Gläser et al. computed the sunlight over a full 19-year precession cycle at the best-lit spots near the south pole with a 20 m LOLA terrain model: on the ridge between Shackleton and de Gerlache craters, 92.27 % of the time at 2 m above the ground and 95.65 % at 10 m, with the longest dark periods typically only 3 to 5 days [2]. The navigator\'s mast-height effect can be compared with these numbers; this comparison has not been run yet (docs/validation/navigator-audit.md).'] },
       { h: 'Without terrain', p: ['When the LOLA maps are not available the horizon is a smooth sphere of radius $R = 1737.4\\ \\text{km}$, and a mast of height $h$ only lowers it by the dip angle $\\delta$ ($0.087^\\circ$ at $h = 2\\ \\text{m}$):'], eq: '\\delta = \\arccos\\!\\left( \\frac{R}{R + h} \\right)' },
     ],
-    refs: ['parameters'], seeAlso: ['terrain-horizon', 'sunlight'],
+    refs: ['parameters', 'glaser2014'], seeAlso: ['terrain-horizon', 'sunlight'],
   },
   'score-weights': {
     title: 'Score weights', category: 'Mission setup',
-    summary: 'How much each of the five factors counts in the score. A weight of 0 leaves that factor out.',
+    summary: 'How much each of the eight factors counts in the score. A weight of 0 leaves that factor out.',
     sections: [
       { h: 'Description', p: ['The score is the weighted average of the sub-scores. Raising a weight makes that factor count more; setting it to 0 removes it, for example the two Earth factors when a relay satellite carries the link.', 'Here $s_i \\in [0, 1]$ is the sub-score of factor $i$ and $w_i \\ge 0$ its weight.'], eq: 'S = \\frac{\\sum_i w_i\\, s_i}{\\sum_i w_i}' },
-      { h: 'Values', p: ['Default: 1 for every factor. The defaults are a first proposal of the analysis team, not values taken from the literature.'] },
+      { h: 'Values', p: ['Default: 1 for sunlight, longest night, Earth in view, longest blackout and landing slope; 0 for the three regolith factors (rock abundance, maximum surface temperature, H-parameter), so the default score is the same as before they were added. The defaults are a first proposal of the analysis team, not values taken from the literature.', 'A regolith factor counts only where its map has a value: rock abundance between 80° S and 80° N, the H-parameter between 70° S and 70° N. Near the poles they are left out of the average even with a weight above 0.'] },
     ],
-    refs: ['parameters'], seeAlso: ['score', 'sunlight', 'longest-night', 'earth-in-view', 'longest-blackout', 'slope'],
+    refs: ['parameters'], seeAlso: ['score', 'sunlight', 'longest-night', 'earth-in-view', 'longest-blackout', 'slope', 'rock-abundance', 'surface-temperature', 'h-parameter'],
   },
   'nearby-search': {
     title: 'Search nearby', category: 'Mission setup',
@@ -218,7 +256,7 @@ const DEFS = {
   // ---------------- Results ----------------
   score: {
     title: 'Score', category: 'Results',
-    summary: 'A number from 0 (worst) to 1 (best): the weighted average of five sub-scores for power, survival, communication and terrain.',
+    summary: 'A number from 0 (worst) to 1 (best): the weighted average of up to eight sub-scores for power, survival, communication, terrain and regolith.',
     sections: [
       { h: 'Description', p: ['The score ranks places and landing dates for one mission window. It is a comparison tool defined by the analysis team, not a published standard.', 'Here $s_i \\in [0, 1]$ is the sub-score of factor $i$ and $w_i \\ge 0$ its weight. The sum runs over the factors that have a value and a weight above 0.'], eq: 'S = \\frac{\\sum_i w_i\\, s_i}{\\sum_i w_i}' },
       { h: 'Sub-scores', table: {
@@ -229,12 +267,16 @@ const DEFS = {
           ['Earth in view', 'share of the window $f_\\oplus$', '$s_3 = f_\\oplus$'],
           ['Longest blackout', 'duration $L_{\\text{blackout}}$', '$s_4 = 1 - L_{\\text{blackout}} / T$'],
           ['Landing slope', 'slope $\\theta$', '$s_5 = \\max\\left( 0,\\ 1 - \\theta / 20^\\circ \\right)$'],
+          ['Rock abundance (weight 0 by default)', 'rock fraction $x$; $x_1 = 0.13\\ \\%$, $x_0 = 1.01\\ \\%$', '$s_6 = \\min\\big(1,\\ \\max\\big(0,\\ (x_0 - x)/(x_0 - x_1)\\big)\\big)$'],
+          ['Max surface temperature (weight 0 by default)', '$T_{\\max}$; $x_1 = 260$ K, $x_0 = 395$ K', '$s_7 = \\min\\big(1,\\ \\max\\big(0,\\ (x_0 - x)/(x_0 - x_1)\\big)\\big)$'],
+          ['H-parameter (weight 0 by default)', '$H$; $x_1 = 5.0$ cm, $x_0 = 8.9$ cm', '$s_8 = \\min\\big(1,\\ \\max\\big(0,\\ (x_0 - x)/(x_0 - x_1)\\big)\\big)$'],
         ],
       } },
       { h: 'Reading the table', p: ['"Share" is $w_i s_i / \\sum_j w_j$: the part of the score that comes from that factor. The shares add up to the score. The ± after the score is its uncertainty.'] },
       { h: 'Limitations', p: [
         'The 20° slope scale is a display choice of the analysis team, not a published lander limit.',
         'Without terrain data the slope has no value and is left out of the average.',
+        'Regolith factors: lower is better for all three, linear between $x_1$ (sub-score 1) and $x_0$ (sub-score 0). The ends are the 2nd and 98th percentile of each whole-Moon map, area-weighted, so the best 2 % of the Moon scores 1 and the worst 2 % scores 0. This is our choice: no published landing threshold exists for these quantities (page "Landing criteria"). They are left out where the map has no value (rock abundance beyond 80°, H-parameter beyond 70°).',
         'A high score does not mean the place meets your minimum requirements: those are checked separately.',
       ] },
       { h: 'Landing criteria', p: ['The score ranks places by the weighted factors; it does not say whether a published criterion is met. Criteria are checked by the requirements (limits); their published values and sources are on the page "Landing criteria" [3].'] },
@@ -364,7 +406,7 @@ const DEFS = {
         'Read at the clicked point from the Diviner level 3 map (128 pixels per degree, averaged by the analysis server to 32 pixels per degree, about 950 m), covering 80° S to 80° N. Poleward of 80° the map has no values and none is shown.',
       ] },
       { h: 'Reading the value', p: ['Most of the Moon is below 1 %. Young craters, their ejecta and steep slopes reach several percent, up to a few tens of percent on fresh crater walls. The value says nothing about boulders smaller than about 1 m or about the exact spot of the footpads.'] },
-      { h: 'Use', p: ['Shown for context. It is not part of the score or of the requirements.'] },
+      { h: 'Use', p: ['Shown next to the altitude. It can also enter the score (Score weights, "Rock abundance", weight 0 by default): fewer rocks score higher, linearly from 1 at 0.13 % to 0 at 1.01 %, the whole-Moon 2nd and 98th percentiles (our choice, not a published limit). And it can be a requirement: "Max rock abundance" under Minimum requirements. Beyond 80° it is not mapped: left out of the score, and a limit on it is reported as not checked.'] },
       { h: 'Formula', p: ['The analysis server averages the valid pixels of each 4 by 4 block of the 128 pixels-per-degree map, with DN the stored value:'], eq: 'RA = \\frac{1}{n} \\sum_{\\text{valid}} 0.001 \\cdot DN, \\qquad \\text{missing}: DN = -32768' },
       { h: 'Landing criteria', p: [
         'No published numeric limit for rock abundance was found. Apollo asked for sites with relatively few craters, a smoothness criterion without a number [4]. The Nova-C lander must land free of hazards larger than 30 cm [5]: smaller than the rocks this map counts (larger than about 1 m), so a low value is necessary but not sufficient.',
@@ -384,7 +426,7 @@ const DEFS = {
         'Thermal inertia $I = \\sqrt{k \\rho c}$ (conductivity $k$, density $\\rho$, heat capacity $c$) measures how strongly the ground resists temperature changes. A small $H$ means the dense, more conductive regolith is close to the surface, so the near-surface thermal inertia is higher and the night-time surface stays warmer; a large $H$ means a thick fluffy layer, lower thermal inertia and colder nights. $H$ is the quantity the Diviner team mapped; it is shown instead of a single thermal inertia, which would also depend on temperature.',
       ] },
       { h: 'Source and coverage', p: ['Fitted by Hayne et al. to Diviner channel 7 (25 to 41 µm) night-time temperatures, map of 128 pixels per degree (PDS file hpar_global_128ppd), averaged by the analysis server to 32 pixels per degree. Covered from 70° S to 70° N; poleward of that no value is shown. Global mean about 7 cm [1].'] },
-      { h: 'Use', p: ['Shown for context (regolith properties, thermal design). It is not part of the score.'] },
+      { h: 'Use', p: ['Shown next to the altitude. It can also enter the score (Score weights, "H-parameter", weight 0 by default): a smaller H scores higher, linearly from 1 at 5.0 cm to 0 at 8.9 cm, the whole-Moon 2nd and 98th percentiles. The direction is our choice: a smaller H means denser regolith close to the surface [1], taken here as firmer ground under the footpads; no published landing criterion says so, so leave the weight at 0 if your mission sees it otherwise. Beyond 70° it is not mapped and is left out.'] },
       { h: 'Landing criteria', p: ['No published landing threshold. Large values mark thick, loose regolith; small values (young crater ejecta and rays) mark denser, rockier ground. Half of the mapped Moon is between 6.6 and 7.4 cm (this map).'] },
     ],
     refs: ['hayne2017', 'api'], seeAlso: ['rock-abundance', 'surface-temperature'],
@@ -398,7 +440,7 @@ const DEFS = {
         'Maximum: the highest value over the local times of the bin. Average: the mean over the lunar day, after filling hours of local time that were not observed by linear interpolation when the gap is at most 4 hours; with a longer gap no average is shown.',
       ] },
       { h: 'South of 80° S', p: ['Diviner Polar Resource Product: yearly maximum surface temperature and yearly average temperature 2 cm below the surface, calculated by the Diviner team\'s thermal model on terrain triangles about 0.7 km across; the value of the nearest triangle within 2 km is shown [2].'] },
-      { h: 'Use', p: ['Shown for context (thermal design, volatiles). It is not part of the score. The two products differ (measured by local time vs modelled yearly values), so values can step at 80° S.'] },
+      { h: 'Use', p: ['Shown next to the altitude. The maximum can also enter the score (Score weights, "Max surface temperature", weight 0 by default): a cooler peak scores higher, linearly from 1 at 260 K to 0 at 395 K, the whole-Moon 2nd and 98th percentiles (our choice: a lower peak is a smaller thermal load; not a published limit). And it can be a requirement: "Max surface temperature" under Minimum requirements, checked against the maximum. The two products differ (measured by local time vs modelled yearly values), so values can step at 80° S.'] },
       { h: 'Formula', p: ['With $T_\\ell$ the measured bolometric temperature in local-time bin $\\ell$ (96 bins of 15 minutes) and $\\tilde T_\\ell$ the same after filling gaps of at most 4 h by linear interpolation:'], eq: 'T_{\\max} = \\max_\\ell T_\\ell, \\qquad \\bar T = \\frac{1}{96} \\sum_{\\ell=1}^{96} \\tilde T_\\ell' },
       { h: 'Landing criteria', p: ['No published landing threshold: the limits come from the thermal design of each lander and crew system. Apollo chose the landing time so that Sun angle and surface temperature together left a launch window of about a day per month [4].'] },
     ],
@@ -530,18 +572,28 @@ const DEFS = {
   },
   'visibility-windows': {
     title: 'Periods in view', category: 'Results',
-    summary: 'The start and end of every period with sunlight, and of every period with the Earth in view, during the stay.',
+    summary: 'The start, end and length of every period with sunlight, and of every period with the Earth in view, during the stay; and how often these periods come back.',
     sections: [
       { h: 'Definition', p: [
         'A sunlit period is an unbroken run of time steps with at least half of the solar disc above the skyline. A period with the Earth in view is an unbroken run of steps with at least half of the Earth\'s disc visible and the Earth above the antenna\'s minimum elevation. The analysis server lists the exact start and end of each [1].',
+        'Length of a period: end minus start, shown in hours below two days and in days above.',
+      ] },
+      { h: 'Repeats every', p: [
+        'How often the pattern of periods comes back, over the 90 days that follow the landing, whatever the stay. For this the analysis server is asked for the same periods over 90 days, with a 10 min step. The navigator turns them into a series $x(t)$, 1 when the body is in view and 0 when not, every hour, and finds the shift $L$ at which the series best matches itself: the highest autocorrelation $r(L)$ for $L$ between 10 and 45 days ($\\bar x$ is the mean of the series, $N$ its number of hours).',
+        'Counting sunrises would not work near the poles: a ridge can hide the Sun for a few hours in the middle of a lunar day, which would count as an extra sunrise. The autocorrelation looks at the whole pattern, so such short interruptions barely move it.',
+        'The 10 to 45 day search range (monthly cycles only) and the threshold $r \\ge 0.5$ below which no cycle is shown are our choices, not published values. The result has a resolution of 1 h.',
+      ], eq: 'r(L) = \\frac{\\frac{1}{N-L}\\sum_{i=0}^{N-L-1} (x_i - \\bar x)(x_{i+L} - \\bar x)}{\\frac{1}{N}\\sum_{i=0}^{N-1} (x_i - \\bar x)^2}, \\qquad P = \\arg\\max_{L} r(L)' },
+      { h: 'Expected values', p: [
+        'For comparison only (not used in the computation): the Sun comes back once per synodic month, 29.53 days on average [3]; the navigator finds 29.5 to 29.6 days away from the poles. The Earth hardly moves in the sky of a given place; it rises and sets only near the edge of the near side and near the poles, where the librations carry it across the horizon, with periods close to the anomalistic month (27.55 days, longitude libration) and the draconic month (27.21 days, latitude libration) [3]. Near the south pole the latitude libration dominates: the navigator finds 27.2 days there.',
       ] },
       { h: 'Reading', p: [
         'The end of a sunlit period is a sunset and the start of the next one a sunrise; likewise Earthset and Earthrise.',
-        'A period that starts exactly at the landing time, or ends exactly at the end of the stay, is cut by the mission window: the Sun (or Earth) was already up before, or stays up after.',
+        'A period that starts exactly at the landing time, or ends exactly at the end of the stay, is cut by the mission window: the Sun (or Earth) was already up before, or stays up after. Its length is then the part inside the stay.',
+        'No value is shown when the body stays in view, or out of view, for all 90 days, or when no shift reaches $r = 0.5$ (no regular cycle).',
       ] },
-      { h: 'Limitations', p: ['Times have the resolution of the time step, 60 s.', 'Ground-station availability is not included in the Earth periods.'] },
+      { h: 'Limitations', p: ['Times have the resolution of the time step: 60 s for the periods of the stay; the repeat period is resolved to 1 h.', 'Ground-station availability is not included in the Earth periods.', 'The repeat period is an average over the 90 days: single cycles differ from it by up to several hours, because the Moon\'s orbit is elliptical and perturbed [3]. Near the poles the terrain can shift it further (for example 30.2 days for the Sun at 89.45° S, 137.31° W from 15 Nov 2026, against 29.5 days at 85.4° S, 30° E).'] },
     ],
-    refs: ['contract', 'parameters'], seeAlso: ['sunlight', 'earth-in-view', 'countdowns'],
+    refs: ['contract', 'parameters', 'meeus1998'], seeAlso: ['sunlight', 'earth-in-view', 'countdowns'],
   },
   'solar-energy': {
     title: 'Irradiance and solar energy', category: 'Results',
@@ -599,11 +651,11 @@ const DEFS = {
     sections: [
       { h: 'Description', p: [
         'The record shows the site you point at or chose in the list. Its numbers come from the precomputed site-by-date table for the chosen landing date; with the analysis server running the table is recomputed with your settings.',
-        'Slope and altitude are the LOLA values at the cited coordinate. The link at the bottom opens the source of the coordinate.',
+        'Slope and altitude are the LOLA values at the cited coordinate. The link at the bottom opens the source of the coordinate: the NASA NSSDCA landing-site tables [3] or LROC image measurements [4], as listed per site in the catalogue [1].',
       ] },
       { h: 'How it differs from "Can we land there?"', p: ['"Can we land there?" is the full evaluation of the chosen place, with uncertainties and the requirements check. The site record is the short catalogue entry.'] },
     ],
-    refs: ['sites', 'api'], seeAlso: ['known-sites', 'score'],
+    refs: ['sites', 'api', 'nssdca', 'lroc'], seeAlso: ['known-sites', 'score'],
   },
 
   // ---------------- Methods ----------------
@@ -681,12 +733,12 @@ const DEFS = {
         ['Whole Moon', 'computed from LOLA LDEM_128 [1]', '237 m, then averaged to the 3.8 km image pixel'],
         ['South of 80° S', 'official LOLA slope map LDSM_80S_80MPP_ADJ [2]', '80 m'],
       ] } },
-      { h: 'Formula', p: ['Central differences over one pixel of the altitude map $z$ (pixel size $\\Delta = R\\,\\pi/(180 \\cdot 128) = 237$ m, $R = 1737.4$ km); the east-west spacing shrinks with the cosine of the latitude $\\varphi$:'], eq: '\\theta = \\arctan\\sqrt{\\left(\\frac{z_{i,j+1} - z_{i,j-1}}{2\\,\\Delta \\cos\\varphi}\\right)^{2} + \\left(\\frac{z_{i+1,j} - z_{i-1,j}}{2\\,\\Delta}\\right)^{2}}' },
-      { h: 'Colour scale', p: ['The palette is spread over the 2nd, 25th, 50th, 75th and 98th percentile $b_0 \\dots b_4$ of the whole-Moon values, each pixel weighted by $\\cos\\varphi$ so that every colour covers about a quarter of the surface; a value $x$ gets the palette position $c(x)$ by linear interpolation between them. The three numbers under the bar are $b_0$, $b_2$ and $b_4$ [3].'], eq: 'c(x) = \\operatorname{interp}\\big(x;\\ (b_0, b_1, b_2, b_3, b_4) \\mapsto (0, \\tfrac14, \\tfrac12, \\tfrac34, 1)\\big)' },
+      { h: 'Formula', p: ['Central differences over one pixel of the altitude map $z$ (pixel size $\\Delta = R\\,\\pi/(180 \\cdot 128) = 237$ m, $R = 1737.4$ km). East-west the columns get closer with the cosine of the latitude $\\varphi$, so the difference is taken over $k = \\lceil 1/\\cos\\varphi \\rceil$ columns on each side, which keeps the baseline at 237 m or more on the ground. With $k = 1$ the spacing near the poles fell below 1 m and the height noise produced false slopes of up to 84° on the pole rows (fixed 2026-11-15):'], eq: '\\theta = \\arctan\\sqrt{\\left(\\frac{z_{i,j+k} - z_{i,j-k}}{2\\,k\\,\\Delta \\cos\\varphi}\\right)^{2} + \\left(\\frac{z_{i+1,j} - z_{i-1,j}}{2\\,\\Delta}\\right)^{2}}' },
+      { h: 'Colour scale', p: ['The ends of the scale are the lowest and the highest value drawn, $b_0 = \\min x$ and $b_4 = \\max x$ over the whole-Moon map and the polar cap together. In between, $b_1, b_2, b_3$ are the 25th, 50th and 75th percentile of the whole-Moon values, each pixel weighted by $\\cos\\varphi$, so each quarter of the palette covers about a quarter of the surface; a value $x$ gets the palette position $c(x)$ by linear interpolation. The three numbers under the bar are $b_0$, $b_2$ (median) and $b_4$ [3].', '± 0.2° at the ends of the bar: the vertical accuracy of the gridded LOLA maps, about ± 1 m [7], propagated through the central difference over 237 m ($\\sqrt2 \\cdot 1\\ \\text{m} / (2 \\cdot 237\\ \\text{m}) \\approx 0.003$, about 0.2°). Our derivation, not a published value.'], eq: 'c(x) = \\operatorname{interp}\\big(x;\\ (b_0, b_1, b_2, b_3, b_4) \\mapsto (0, \\tfrac14, \\tfrac12, \\tfrac34, 1)\\big)' },
       { h: 'Landing criteria', p: ['Apollo: general slope of the landing area below 2° [4]. Artemis III: below 10° over 100 m for landing, below 20° over 2 km for EVA [5]. Nova-C: below 10° at touchdown [6]. Details and baselines: "Landing slope" and "Landing criteria".'] },
       { h: 'Limitations', p: ['A slope over 237 m and then averaged to 3.8 km is much smoother than the ground under a lander: use the clicked value (finer map) and the 80 m map near the south pole to judge a site.'] },
     ],
-    refs: ['lolaGdr', 'pgda90', 'layersCode', 'apollo1968', 'nasaReq', 'novaC'], seeAlso: ['slope', 'landing-criteria'],
+    refs: ['lolaGdr', 'pgda90', 'layersCode', 'apollo1968', 'nasaReq', 'novaC', 'smith2017'], seeAlso: ['slope', 'landing-criteria'],
   },
   'layer-altitude': {
     title: 'Altitude', category: 'Map layers',
@@ -697,10 +749,10 @@ const DEFS = {
         ['South of 80° S', 'LOLA LDEM_80S_80MPP_ADJ [2]', '80 m (shown at about 300 m)'],
       ] } },
       { h: 'Formula', p: ['Read, not computed. The global map stores $DN$ with $r = 1737.4\\ \\text{km} + 0.5\\,DN$ metres, so the altitude is:'], eq: 'z = 0.5 \\cdot DN\\ \\text{m}' },
-      { h: 'Colour scale', p: ['The palette is spread over the 2nd, 25th, 50th, 75th and 98th percentile $b_0 \\dots b_4$ of the whole-Moon values, each pixel weighted by $\\cos\\varphi$ so that every colour covers about a quarter of the surface; a value $x$ gets the palette position $c(x)$ by linear interpolation between them. The three numbers under the bar are $b_0$, $b_2$ and $b_4$ [3].'], eq: 'c(x) = \\operatorname{interp}\\big(x;\\ (b_0, b_1, b_2, b_3, b_4) \\mapsto (0, \\tfrac14, \\tfrac12, \\tfrac34, 1)\\big)' },
+      { h: 'Colour scale', p: ['The ends of the scale are the lowest and the highest value drawn, $b_0 = \\min x$ and $b_4 = \\max x$ over the whole-Moon map and the polar cap together. In between, $b_1, b_2, b_3$ are the 25th, 50th and 75th percentile of the whole-Moon values, each pixel weighted by $\\cos\\varphi$, so each quarter of the palette covers about a quarter of the surface; a value $x$ gets the palette position $c(x)$ by linear interpolation. The three numbers under the bar are $b_0$, $b_2$ (median) and $b_4$ [3].', '± 1 m at the ends of the bar: vertical accuracy of the gridded LOLA altitude maps [5].'], eq: 'c(x) = \\operatorname{interp}\\big(x;\\ (b_0, b_1, b_2, b_3, b_4) \\mapsto (0, \\tfrac14, \\tfrac12, \\tfrac34, 1)\\big)' },
       { h: 'Landing criteria', p: ['No limit on altitude itself. Apollo asked for approach paths without large hills, tall cliffs or deep craters [4]: read this layer along the approach direction.'] },
     ],
-    refs: ['lolaGdr', 'pgda90', 'layersCode', 'apollo1968'], seeAlso: ['elevation', 'layer-slope'],
+    refs: ['lolaGdr', 'pgda90', 'layersCode', 'apollo1968', 'smith2017'], seeAlso: ['elevation', 'layer-slope'],
   },
   'layer-visibility': {
     title: 'Sun and Earth visibility, long term', category: 'Map layers',
@@ -709,7 +761,7 @@ const DEFS = {
       { h: 'Definition', p: ['With $v_k$ the visible fraction of the disc at time step $k$ (the same definition as the NASA maps):'], eq: 'F = \\frac{1}{N} \\sum_{k=1}^{N} \\left[\\, v_k > 0 \\,\\right]' },
       { h: 'Whole Moon (computed)', p: ['Grid of 2° cells, positions every 6 hours from 2020 to 2038 from the JPL DE440 ephemeris, horizon of a smooth sphere seen from 2 m: $h_{\\text{hor}} = -\\arccos\\big(R/(R + 2\\ \\text{m})\\big)$. Hills are ignored, which matters little away from the poles where the Sun and the Earth rise high [3].'] },
       { h: 'South of 85° S (read)', p: ['NASA average visibility maps AVGVISIB_85S_060M_201608 (Sun) and _EARTH, 60 m pixels, hourly steps over 18.6 years with the real LOLA terrain [2].'] },
-      { h: 'Colour scale', p: ['Linear from 0 % to 100 %: the value is a share of time.'] },
+      { h: 'Colour scale', p: ['Linear between the lowest and the highest value drawn (whole Moon and south polar cap together), printed at the ends of the bar, with the midpoint in the middle. For the Sun that is 0 % (permanently shadowed floors) to 60.8 % (the best-lit rims near the south pole); for the Earth 0 % (far side) to 100 % (near side). No ± is given with the maps.'] },
       { h: 'Landing criteria', p: ['Artemis III excludes areas with Earth visibility below 25 % and solar visibility below 5 % on these long-term maps [4].'] },
       { h: 'Limitations', p: ['A long-term average, not the sunlight or the Earth link on your landing date (those are in the Sun and Earth results). On the whole-Moon part every place sees the Sun about half of the time, so the Sun layer is nearly uniform away from the poles; the Earth layer shows the near side (always) and the far side (never).'] },
     ],
@@ -734,7 +786,7 @@ const DEFS = {
     sections: [
       { h: 'Whole Moon (measured)', p: ['Diviner Global Cumulative Product: bolometric brightness temperature in bins of 0.5° and 15 minutes of local time, all nadir data from July 2009 to April 2015 [1]. With $T_\\ell$ the value in local-time bin $\\ell$ and $\\tilde T_\\ell$ the same after filling gaps of at most 4 h by linear interpolation (longer gaps: blank):'], eq: 'T_{\\max} = \\max_\\ell T_\\ell, \\qquad \\bar T = \\frac{1}{96} \\sum_{\\ell=1}^{96} \\tilde T_\\ell' },
       { h: 'South of 80° S (modelled)', p: ['Diviner Polar Resource Product: yearly maximum surface temperature and yearly average 2 cm below the surface, from the Diviner team thermal model on terrain triangles about 0.7 km across; each pixel takes the nearest triangle within 2 km [2].'] },
-      { h: 'Colour scale', p: ['The palette is spread over the 2nd, 25th, 50th, 75th and 98th percentile $b_0 \\dots b_4$ of the whole-Moon values, each pixel weighted by $\\cos\\varphi$ so that every colour covers about a quarter of the surface; a value $x$ gets the palette position $c(x)$ by linear interpolation between them. The three numbers under the bar are $b_0$, $b_2$ and $b_4$ [3].'], eq: 'c(x) = \\operatorname{interp}\\big(x;\\ (b_0, b_1, b_2, b_3, b_4) \\mapsto (0, \\tfrac14, \\tfrac12, \\tfrac34, 1)\\big)' },
+      { h: 'Colour scale', p: ['The ends of the scale are the lowest and the highest value drawn, $b_0 = \\min x$ and $b_4 = \\max x$ over the whole-Moon map and the polar cap together. In between, $b_1, b_2, b_3$ are the 25th, 50th and 75th percentile of the whole-Moon values, each pixel weighted by $\\cos\\varphi$, so each quarter of the palette covers about a quarter of the surface; a value $x$ gets the palette position $c(x)$ by linear interpolation. The three numbers under the bar are $b_0$, $b_2$ (median) and $b_4$ [3].', 'No ± is shown: no published absolute accuracy of these temperature products was found (question to the analysis team).', 'This image was made with the earlier scale, still clipped at the 2nd and 98th percentile: values beyond are drawn in the end colours and the bar marks its ends ≤ and ≥. It turns into the scale above the next time frontend/scripts/layers.py runs with the Diviner maps (not on every computer: data/MAPS.md).'], eq: 'c(x) = \\operatorname{interp}\\big(x;\\ (b_0, b_1, b_2, b_3, b_4) \\mapsto (0, \\tfrac14, \\tfrac12, \\tfrac34, 1)\\big)' },
       { h: 'Landing criteria', p: ['No published landing threshold: limits come from the thermal design of each lander. Apollo chose the landing time so that Sun angle and surface temperature together left about one launch day per month [4].'] },
       { h: 'Limitations', p: ['Two different products meet at 80° S (measured by local time vs modelled yearly values), so the colours can step there. Not the temperature on your landing date.'] },
     ],
@@ -746,7 +798,7 @@ const DEFS = {
     sections: [
       { h: 'Data', p: ['Diviner level 3 map dgdr_ra_avg_cyl_128 (Bandfield et al.), 128 pixels per degree, 80° S to 80° N [2]. Rocks stay warm after sunset while fine regolith cools quickly; the mix sets the measured multi-channel night-time temperatures, from which the rock fraction is fitted [1].'] },
       { h: 'Formula', p: ['Read, then averaged over the valid pixels of 4 by 4 blocks (about 0.95 km):'], eq: 'RA = \\frac{1}{n} \\sum_{\\text{valid}} 0.001 \\cdot DN' },
-      { h: 'Colour scale', p: ['The palette is spread over the 2nd, 25th, 50th, 75th and 98th percentile $b_0 \\dots b_4$ of the whole-Moon values, each pixel weighted by $\\cos\\varphi$ so that every colour covers about a quarter of the surface; a value $x$ gets the palette position $c(x)$ by linear interpolation between them. The three numbers under the bar are $b_0$, $b_2$ and $b_4$ [3].'], eq: 'c(x) = \\operatorname{interp}\\big(x;\\ (b_0, b_1, b_2, b_3, b_4) \\mapsto (0, \\tfrac14, \\tfrac12, \\tfrac34, 1)\\big)' },
+      { h: 'Colour scale', p: ['The ends of the scale are the lowest and the highest value drawn, $b_0 = \\min x$ and $b_4 = \\max x$ over the whole-Moon map and the polar cap together. In between, $b_1, b_2, b_3$ are the 25th, 50th and 75th percentile of the whole-Moon values, each pixel weighted by $\\cos\\varphi$, so each quarter of the palette covers about a quarter of the surface; a value $x$ gets the palette position $c(x)$ by linear interpolation. The three numbers under the bar are $b_0$, $b_2$ (median) and $b_4$ [3].', 'No ± is shown: the uncertainty of the rock fraction is roughly proportional to the rock fraction itself and is not given as one number [1].', 'This image was made with the earlier scale, still clipped at the 2nd and 98th percentile: values beyond are drawn in the end colours and the bar marks its ends ≤ and ≥. It turns into the scale above the next time frontend/scripts/layers.py runs with the Diviner maps (not on every computer: data/MAPS.md).'], eq: 'c(x) = \\operatorname{interp}\\big(x;\\ (b_0, b_1, b_2, b_3, b_4) \\mapsto (0, \\tfrac14, \\tfrac12, \\tfrac34, 1)\\big)' },
       { h: 'Landing criteria', p: ['No published numeric limit was found. Apollo asked for sites with relatively few craters [4]; Nova-C must avoid hazards larger than 30 cm [5], smaller than the rocks this map counts, so low values are necessary but not sufficient.'] },
       { h: 'Limitations', p: ['Nothing is drawn poleward of 80°: the product does not cover the poles.'] },
     ],
@@ -758,7 +810,7 @@ const DEFS = {
     sections: [
       { h: 'Model', p: ['Density $\\rho$ rises from a surface value $\\rho_s$ to a deep value $\\rho_d$ over the scale $H$, fitted to Diviner channel 7 (25 to 41 µm) night-time temperatures [1]:'], eq: '\\rho(z) = \\rho_d - (\\rho_d - \\rho_s)\\, e^{-z/H}, \\qquad I = \\sqrt{k \\rho c}' },
       { h: 'Data', p: ['Map hpar_global_128ppd (Hayne et al. 2017), 128 pixels per degree, stored as $H = 1.526 \\cdot 10^{-5} DN + 0.5$ m, averaged over 4 by 4 blocks [1]. Thermal inertia $I$ depends on the density through conductivity $k$ and heat capacity $c$, so a smaller $H$ means higher near-surface thermal inertia.'] },
-      { h: 'Colour scale', p: ['The palette is spread over the 2nd, 25th, 50th, 75th and 98th percentile $b_0 \\dots b_4$ of the whole-Moon values, each pixel weighted by $\\cos\\varphi$ so that every colour covers about a quarter of the surface; a value $x$ gets the palette position $c(x)$ by linear interpolation between them. The three numbers under the bar are $b_0$, $b_2$ and $b_4$ [2].'], eq: 'c(x) = \\operatorname{interp}\\big(x;\\ (b_0, b_1, b_2, b_3, b_4) \\mapsto (0, \\tfrac14, \\tfrac12, \\tfrac34, 1)\\big)' },
+      { h: 'Colour scale', p: ['The ends of the scale are the lowest and the highest value drawn, $b_0 = \\min x$ and $b_4 = \\max x$ over the whole-Moon map and the polar cap together. In between, $b_1, b_2, b_3$ are the 25th, 50th and 75th percentile of the whole-Moon values, each pixel weighted by $\\cos\\varphi$, so each quarter of the palette covers about a quarter of the surface; a value $x$ gets the palette position $c(x)$ by linear interpolation. The three numbers under the bar are $b_0$, $b_2$ (median) and $b_4$ [2].', 'Once made with the current script, the ends of the bar carry ± 1 cm: Hayne et al. find $\\partial H/\\partial T \\approx 0.5$ to 1 cm/K with a Diviner noise below 1 K [1].', 'This image was made with the earlier scale, still clipped at the 2nd and 98th percentile: values beyond are drawn in the end colours and the bar marks its ends ≤ and ≥. It turns into the scale above the next time frontend/scripts/layers.py runs with the Diviner maps (not on every computer: data/MAPS.md).'], eq: 'c(x) = \\operatorname{interp}\\big(x;\\ (b_0, b_1, b_2, b_3, b_4) \\mapsto (0, \\tfrac14, \\tfrac12, \\tfrac34, 1)\\big)' },
       { h: 'Landing criteria', p: ['No published landing threshold. Use it as context for regolith properties and thermal design.'] },
       { h: 'Limitations', p: ['Nothing is drawn poleward of 70°: the product does not cover the poles.'] },
     ],
@@ -802,6 +854,26 @@ const DEFS = {
       { h: 'Stars', p: ['Decorative, not a star catalogue.'] },
     ],
     refs: ['svsMoon', 'pgda90', 'de440'], seeAlso: ['site-colours', 'layer-daynight'],
+  },
+  labels: {
+    title: 'Labels: names of features', category: 'Map layers',
+    summary: 'The "Labels" switch under the view writes the official names of craters, maria, mountains, valleys and other features on the globe and on the 2D map.',
+    sections: [
+      { h: 'Source', p: [
+        'Names and centre coordinates from the Gazetteer of Planetary Nomenclature, kept by the International Astronomical Union (IAU) and the USGS Astrogeology Science Center [1]. Only names adopted by the IAU are shown, 2 023 of them. The lettered satellite craters (for example "Aristarchus A", 7 064 names) are left out so the map stays readable. The gazetteer gives coordinates on the IAU Moon 2000 sphere (radius 1737.4 km), planetocentric latitude and east longitude, the same convention as the rest of the navigator.',
+        'Converted by frontend/scripts/nomenclature.py [2]. Display only: no computation uses the names.',
+      ] },
+      { h: 'Which names are shown', p: [
+        'A name appears once its feature measures at least 28 pixels across on the screen, using the diameter in the gazetteer. Zooming in brings in smaller features. Names are placed largest feature first, and a name that would overlap one already placed is left out; at most 70 names are shown at a time. On the globe, names on the far side or within about 8° of the visible edge are hidden. The text keeps the same size on screen at any zoom.',
+        'Maria, oceanus, lacus, sinus and palus names are written in italics, as on lunar maps.',
+        'Features with no diameter in the gazetteer (for example Statio Shiv Shakti, the Chandrayaan-3 landing site) are treated as 5 km across, so they appear when zoomed in close. 28 px, 70 names and 5 km are display choices, not published values.',
+      ] },
+      { h: 'Limitations', p: [
+        'A name is placed at the feature\'s centre point only; long features (valleys, rilles, mountain ranges) are not drawn along their length.',
+        'On the globe the relief is exaggerated four times while the names sit on the 1737.4 km sphere, so near the visible edge a name can look slightly off its feature.',
+      ] },
+    ],
+    refs: ['gazetteer', 'layersCode'], seeAlso: ['views', 'coordinates'],
   },
   'site-colours': {
     title: 'Site colours', category: 'Methods',
@@ -847,8 +919,8 @@ const DEFS = {
         'Speed: ticks per second, 1 to 30. Time step: how much mission time each tick adds, in minutes (presets from 1 min to 1 day). Mission time per second of animation:',
       ], eq: '\\dot t = n_{\\text{ticks/s}} \\times \\Delta t' },
       { h: 'Mission setup', p: [
-        'Moves the landing time of the whole navigator: the time of day, rolling into the next days of the date strip, and stops at the last day of the strip. The lighting of the globe, the results and the strips follow. Every new landing time is a new request to the analysis server, so a short step at high speed can run ahead of the answers; the results then show the newest time the server has finished.',
-        'Without the analysis server only whole days exist (the precomputed files are at 00:00 UTC), so the step is at least one day.',
+        'Moves the landing time of the whole navigator: the time of day, rolling into the next days of the date strip. Past the last day of the strip the strip moves on to the next 30 days (the calendar and the date slider follow), so the animation keeps going until the last day the ephemeris covers (30 Sep 2149). The lighting of the globe, the results and the strips follow. Every new landing time is a new request to the analysis server, so a short step at high speed can run ahead of the answers; the results then show the newest time the server has finished.',
+        'Without the analysis server only whole days exist (the precomputed files are at 00:00 UTC), so the step is at least one day, and the animation stops at the last precomputed day.',
       ] },
       { h: 'Surface view', p: ['Moves the clock of the surface view only, within its 30-day window; the landing time of the navigator does not change. Positions between two computed samples (every 10 min) are interpolated linearly for display.'] },
       { h: 'Limitations', p: ['The tick rate is the browser timer: a busy computer can tick slower than asked. Nothing computed depends on it.'] },

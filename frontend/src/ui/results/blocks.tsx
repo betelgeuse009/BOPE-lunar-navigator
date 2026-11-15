@@ -5,10 +5,12 @@ import { FACTORS } from '../factors'
 import { fmtDeg, fmtH, fmtM, fmtPct, fmtUnc, untilLoss } from '../format'
 import { Help } from '../Help'
 import { describeViolation, limitLabel } from '../profiles'
+import { durationH, fmtDuration, repeatPeriod } from './periods'
 import { Row, Rows } from './Rows'
+import { REPEAT_DAYS } from '../../data/useLive'
 
 // The blocks of the Results pane, one per subject. Each only formats what the analysis server sent.
-type P = { ev: Evaluation; eph: Ephemeris | null; windows: Windows | null }
+type P = { ev: Evaluation; eph: Ephemeris | null; windows: Windows | null; repeat: Windows | null }
 const NA = 'n/a'
 const first = (s: number[] | undefined) => s?.[0]
 const num = (v: number | null | undefined, f: (x: number) => string) => (v == null ? NA : f(v))
@@ -76,22 +78,39 @@ export function ScoreBlock({ ev }: { ev: Evaluation }) {
   )
 }
 
-// The periods a body is in view during the stay, as the server lists them.
-function Periods({ title, list }: { title: string; list: Windows['sun_windows'] | undefined }) {
+// The periods a body is in view during the stay, as the server lists them, each with its length; then how often the
+// periods come back, measured over REPEAT_DAYS from the landing (`repeat`, the same list over a longer window).
+function Periods({ title, list, repeat, startUtc }: {
+  title: string; list: Windows['sun_windows'] | undefined; repeat: Windows['sun_windows'] | undefined; startUtc: string
+}) {
+  const r = repeat && repeatPeriod(repeat, startUtc, REPEAT_DAYS)
   return (
     <>
       <h3 className="rows-title">{title} <Help topic="visibility-windows" /></h3>
       {!list ? <p className="note">{NA}</p> : list.length === 0 ? <p className="note">Never during the stay.</p> : (
         <ol className="periods">
-          {list.slice(0, 8).map((w) => <li key={w.start_utc}>{whenFmt.format(new Date(w.start_utc))} <span>to</span> {whenFmt.format(new Date(w.end_utc))}</li>)}
+          {list.slice(0, 8).map((w) => (
+            <li key={w.start_utc}>
+              {whenFmt.format(new Date(w.start_utc))} <span>to</span> {whenFmt.format(new Date(w.end_utc))}
+              <span className="dur"> · {fmtDuration(durationH(w))}</span>
+            </li>
+          ))}
           {list.length > 8 && <li className="more">and {list.length - 8} more (all in the CSV as visible part of the disc)</li>}
         </ol>
       )}
+      <Rows>
+        <Row label="Repeats every" help="visibility-windows">
+          {!repeat ? '…' : r ? `${r.days.toFixed(1)} days`
+            : repeat.length === 0 ? `never in view within ${REPEAT_DAYS} days`
+            : repeat.length === 1 && Date.parse(repeat[0].start_utc) <= Date.parse(startUtc) && Date.parse(repeat[0].end_utc) >= Date.parse(startUtc) + (REPEAT_DAYS * 24 - 1) * 3_600_000
+              ? `in view for all ${REPEAT_DAYS} days` : `no regular cycle within ${REPEAT_DAYS} days`}
+        </Row>
+      </Rows>
     </>
   )
 }
 
-export function SunBlock({ ev, eph, windows }: P) {
+export function SunBlock({ ev, eph, windows, repeat }: P) {
   const { v, u, has } = useValues(ev)
   return (
     <>
@@ -116,12 +135,12 @@ export function SunBlock({ ev, eph, windows }: P) {
         <Row label="Energy on a Sun-tracking surface" help="solar-energy">{u('sun_energy_tracking_kwh_m2', (x) => `${x.toFixed(1)} kWh/m²`)}</Row>
         {v('lola_mean_sun_visibility_frac') != null && <Row label="NASA long-term visibility" help="nasa-visibility">{fmtPct(v('lola_mean_sun_visibility_frac'))}</Row>}
       </Rows>
-      <Periods title="Sunlit periods" list={windows?.sun_windows} />
+      <Periods title="Sunlit periods" list={windows?.sun_windows} repeat={repeat?.sun_windows} startUtc={ev.window.start_utc} />
     </>
   )
 }
 
-export function EarthBlock({ ev, eph, windows }: P) {
+export function EarthBlock({ ev, eph, windows, repeat }: P) {
   const { v, u, has } = useValues(ev)
   return (
     <>
@@ -146,7 +165,7 @@ export function EarthBlock({ ev, eph, windows }: P) {
         <Row label="Sunlight and Earth together" help="both-in-view">{u('both_frac', fmtPct, [0, 1])}</Row>
         {v('lola_mean_earth_visibility_frac') != null && <Row label="NASA long-term visibility" help="nasa-visibility">{fmtPct(v('lola_mean_earth_visibility_frac'))}</Row>}
       </Rows>
-      <Periods title="Periods with Earth in view" list={windows?.earth_windows} />
+      <Periods title="Periods with Earth in view" list={windows?.earth_windows} repeat={repeat?.earth_windows} startUtc={ev.window.start_utc} />
     </>
   )
 }

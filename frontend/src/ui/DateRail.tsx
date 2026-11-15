@@ -1,13 +1,10 @@
 import { cellValue } from '../data/load'
 import type { Matrix } from '../data/schemas'
 import { usePointDays } from '../data/useLive'
-import { landingDay, useApp } from '../state/store'
+import { LIVE_RANGE, landingDay, useApp } from '../state/store'
 import { spread } from './colors'
 import { Help } from './Help'
 import { goodness } from './metrics'
-
-// Live: any day the ephemeris file covers (de440s.bsp, 1849 to 2150; contracts/API.md), leaving room for the strip and the stay.
-const LIVE_RANGE = ['1850-01-01', '2149-09-30']
 
 const fmt = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' })
 

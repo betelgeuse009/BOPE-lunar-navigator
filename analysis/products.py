@@ -243,10 +243,9 @@ def evaluate_doc(lat: float, lon: float, start: str, end: str, calc_step_s: int,
         mean_sun, mean_earth = terrain.lola_mean_visibility(lat, lon)
         params["lola_mean_sun_visibility_frac"] = _metric(mean_sun[0])       # long-term LOLA average, for context
         params["lola_mean_earth_visibility_frac"] = _metric(mean_earth[0])
-    # Regolith context from Diviner (not scored): surface temperature, rock abundance, H-parameter.
+    # Regolith from Diviner (surface temperature, rock abundance, H-parameter): already in `params` from the series,
+    # with their uncertainty; scored only when the user gives them a weight (scoring.py).
     reg = regolith.point_values(lat, lon)
-    for k, v in reg["values"].items():
-        params[k] = _metric(v, 4)
     return {
         **header("metrics.py", s["terrain"]),
         "site": {"lat_deg": lat, "lon_deg": lon, "obs_height_m": inp.obs_height_m},
@@ -255,7 +254,8 @@ def evaluate_doc(lat: float, lon: float, start: str, end: str, calc_step_s: int,
         "inputs": {**inp.as_dict(), "weights": weights, "limits": limits},
         "horizon_source": horizon.source(inp.use_terrain), "terrain_available": horizon.terrain_available(),
         "terrain": _terrain_block(s, lat, lon, inp),
-        "regolith": {"sources": reg["sources"], "scored": False},
+        "regolith": {"sources": reg["sources"],
+                     "scored": any(weights.get(k, 0) > 0 for k in config.REGOLITH_SCORE_RANGES)},
         "parameters": params,
         "uncertainty_model": {
             "position_uncertainty_m": inp.position_uncertainty_m, "horizon_uncertainty_deg": inp.horizon_uncertainty_deg,

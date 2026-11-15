@@ -1,10 +1,11 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Area } from '../data/api'
 import { scoreStrip } from './scoreImage'
 import type { Matrix, Site } from '../data/schemas'
 import { useApp } from '../state/store'
 import { areaColor } from '../ui/colors'
 import { siteScale } from '../ui/metrics'
+import { freeArea, isSea, MIN_FEATURE_PX, placeLabels, type FeatureName, type ScreenArea } from './labels'
 import { LAYER_STRIP_DEG, type Layer } from './layers'
 
 const BASE = import.meta.env.BASE_URL
@@ -15,9 +16,9 @@ const WORLD: Box = { x: -180, y: -90, w: 360, h: 180 }
 // The whole Moon as a flat map: longitude across (-180 to 180, 0 in the middle), latitude up (simple cylindrical,
 // so areas stretch toward the poles). Same imagery, markers and clicks as the globe. Drag to move, wheel to zoom.
 // Map coordinates: x = longitude, y = -latitude, in degrees.
-export function Map2D({ sites, matrix, area, subsolar, subearth, resetSignal, layer, scoreMap, scoreGlobal, scoreRange }: {
+export function Map2D({ sites, matrix, area, subsolar, subearth, resetSignal, layer, scoreMap, scoreGlobal, scoreRange, names }: {
   sites: Site[] | null; matrix: Matrix | null; area: Area | null; subsolar: LatLon | null; subearth: LatLon | null; resetSignal: number
-  layer: Layer | null; scoreMap: Area | null; scoreGlobal: string | null; scoreRange: [number, number] | null
+  layer: Layer | null; scoreMap: Area | null; scoreGlobal: string | null; scoreRange: [number, number] | null; names: FeatureName[] | null
 }) {
   const { dateIdx, metric, mode, point, scaleMode, hoveredSite, selectedSite, setHovered, setSelected, setPoint } = useApp()
   const svg = useRef<SVGSVGElement>(null)
@@ -25,6 +26,14 @@ export function Map2D({ sites, matrix, area, subsolar, subearth, resetSignal, la
   const [seen, setSeen] = useState(resetSignal)
   if (seen !== resetSignal) { setSeen(resetSignal); setBox(WORLD) } // the reset button puts the whole Moon back in view
   const drag = useRef<{ x: number; y: number; moved: number } | null>(null)
+  const [px, setPx] = useState<{ w: number; h: number; free: ScreenArea | null }>({ w: 0, h: 0, free: null }) // map size on screen, for the labels
+  useEffect(() => {
+    const el = svg.current
+    if (!el) return
+    const ro = new ResizeObserver(() => setPx({ w: el.clientWidth, h: el.clientHeight, free: freeArea(el) }))
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
 
   const clamp = (b: Box): Box => {
     const w = Math.min(Math.max(b.w, 4), 360), h = w / 2
@@ -98,7 +107,27 @@ export function Map2D({ sites, matrix, area, subsolar, subearth, resetSignal, la
       })}
       {area?.best && !area.center_is_best && <Reticle lat={area.best.lat_deg} lon={area.best.lon_deg} k={k} color="#f2e08a" />}
       {point && <Reticle lat={point.lat} lon={point.lon} k={k} color="#ffffff" />}
+      {names && px.free && <MapLabels names={names} box={box} px={px} free={px.free} />}
     </svg>
+  )
+}
+
+// Feature names on the flat map, same rule as on the globe (scene/labels.ts); the text keeps its size on screen.
+const KM_PER_DEG = (1737.4 * Math.PI) / 180
+function MapLabels({ names, box, px, free }: { names: FeatureName[]; box: Box; px: { w: number; h: number }; free: ScreenArea }) {
+  const s = Math.min(px.w / box.w, px.h / box.h)                 // screen px per map degree (viewBox 'meet')
+  const ox = (px.w - box.w * s) / 2, oy = (px.h - box.h * s) / 2
+  const cand = names.flatMap((n, i) => {
+    const size = (n.dKm / KM_PER_DEG) * s
+    return size < MIN_FEATURE_PX ? [] : [{ i, name: n.name, x: (n.lon - box.x) * s + ox, y: (-n.lat - box.y) * s + oy, px: size }]
+  })
+  return (
+    <g className="map-labels" style={{ fontSize: 12 / s }} pointerEvents="none">
+      {placeLabels(cand, free).map((i) => {
+        const n = names[i]
+        return <text key={i} x={n.lon} y={-n.lat} strokeWidth={3 / s} className={isSea(n.code) ? 'sea' : undefined}>{n.name}</text>
+      })}
+    </g>
   )
 }
 

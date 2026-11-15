@@ -526,3 +526,29 @@ Done: Surface view (street-level look from the chosen place) and time animation.
     scripts/regolith_texture.py + public/textures/regolith_*.jpg (procedural, generated).
 Changed contract: no (uses existing /api/ephemeris and /api/horizon)
 Commits: see PR aero -> main
+
+## 2026-11-15 11:40 · FE
+Done (branch fe/feedback-batch, built on origin/aero because it needs your surface view / animation commits):
+  - Place block in Mission setup: type latitude / longitude (MOON_ME, east-positive, 0..360 accepted), Go = same as a click.
+  - Animation: past the end of the 30-day strip it moves on to the next month (calendar + slider follow) instead of stopping.
+  - Sun / Earth blocks: length of every period, and "Repeats every" (autocorrelation of 90 days of in-view periods;
+    Sun 29.5–30.2 d, Earth 26.2–28.1 d on 4 places, vs synodic 29.53 / draconic 27.21 d).
+  - "Labels" button under the view: IAU/USGS feature names on the globe and the 2D map, fixed screen size, more names
+    as you zoom in (frontend/scripts/nomenclature.py, public/labels/moon_names.json).
+  - Colour bars: ends = exact min / max drawn, with ± where a source exists (altitude ± 1 m, slope ± 0.2°, H ± 1 cm).
+    Re-rendered altitude, slope, Sun/Earth visibility here. layers.py now skips layers whose raw maps are missing.
+  - Fixed: whole-Moon slope layer had false slopes up to 84° on the pole rows (east-west step < 1 m); now ≥ 237 m.
+  - YOUR CODE (agreed in person): analysis/scoring.py, metrics.py, api.py, config.py, products.py, regolith.py:
+    w_rock, w_temp, w_h (default 0) and limits max_rock_abundance_frac, max_surface_temp_k. Regolith values now come with
+    the site series, so every endpoint scores them. analysis tests: 79 passed, 3 skipped (regolith tests skip here: no
+    Diviner maps on my PC, so I could only test the null path end to end).
+  - docs/validation/navigator-audit.md: every value on screen with its source and validation status; doc citation test.
+Changed contract: additions only (new optional query parameters; evaluate regolith values now carry uncertainty,
+  regolith.scored true when a regolith weight > 0). PARAMETERS.md §3, §4, §9 and API.md updated.
+Needs from AERO:
+  1. Run `python frontend/scripts/layers.py` on your PC (Diviner + LPSR_65 maps) so temperature, rock and H get exact
+     colour bar ends, and commit the images + src/data/layers.json (T39). Also run analysis/tests with the maps.
+  2. Please review the regolith score rules (config.REGOLITH_SCORE_RANGES, lower is better; H direction is our guess).
+Questions for AERO: do you know a published absolute accuracy for the Diviner GCP / PRP temperatures (for the ± on the
+  temperature colour bar)? Open validation items are listed at the end of navigator-audit.md (T40).
+Commits: 6ffc955..HEAD on fe/feedback-batch

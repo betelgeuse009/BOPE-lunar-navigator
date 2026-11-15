@@ -9,7 +9,7 @@ from dataclasses import asdict, dataclass
 
 import numpy as np
 
-from . import config, ephemeris as eph, horizon, terrain, visibility as vis
+from . import config, ephemeris as eph, horizon, regolith, terrain, visibility as vis
 
 AU_KM = 149_597_870.7  # astronomical unit, exact by definition (IAU 2012 Resolution B2)
 
@@ -57,11 +57,16 @@ def site_series(bv: eph.BodyVectors, lat_deg, lon_deg, inp: Inputs) -> dict[str,
         return horizon.horizon_deg(lat, lon, az, inp.obs_height_m, inp.use_terrain, inp.fast_horizon,
                                    inp.horizon_offset_deg)
 
+    # Regolith at each site (Diviner maps; NaN where not mapped or the files are missing). Scored only with a weight > 0.
+    temp_max, temp_avg, _ = regolith.temperature_k(lat, lon)
+    rock, h_par = regolith.rock_abundance_frac(lat, lon), regolith.h_parameter_m(lat, lon)
+
     sun_vis = vis.visible_disk_frac(sun["el_deg"], sun_rad, skyline(sun["az_deg"]))
     earth_vis = vis.visible_disk_frac(earth["el_deg"], earth_rad, skyline(earth["az_deg"]))
     return {
         "terrain": use_terrain, "elevation_m": elevation, "slope_deg": slope, "slope_baseline_m": slope_baseline,
         "slope_source": slope_source, "height_error_m": height_error,
+        "surface_temp_max_k": temp_max, "surface_temp_avg_k": temp_avg, "rock_abundance_frac": rock, "h_parameter_m": h_par,
         "sun_az_deg": sun["az_deg"], "sun_el_deg": sun["el_deg"], "sun_dist_km": sun["dist_km"],
         "sun_radius_deg": sun_rad, "sun_visible_frac": sun_vis,
         "earth_az_deg": earth["az_deg"], "earth_el_deg": earth["el_deg"], "earth_dist_km": earth["dist_km"],
@@ -119,5 +124,7 @@ def summarize(series: dict[str, np.ndarray], i: int, sl: slice, step_s: int, inp
         "battery_needed_wh": battery,
         # Terrain parameters from the LOLA maps; null when the terrain is not used or the maps are missing.
         "slope_deg": _num(series["slope_deg"][i]), "elevation_m": _num(series["elevation_m"][i]),
+        # Regolith from the Diviner maps (analysis/regolith.py); null where not mapped.
+        **{k: _num(series[k][i]) for k in ("surface_temp_max_k", "surface_temp_avg_k", "rock_abundance_frac", "h_parameter_m")},
         "window_h": window_h,
     }

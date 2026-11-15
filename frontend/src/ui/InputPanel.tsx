@@ -3,6 +3,7 @@ import { Catalogue } from './Catalogue'
 import { DateRail } from './DateRail'
 import { MissionAnimation } from './MissionAnimation'
 import { Block } from './Pane'
+import { PlaceInput } from './PlaceInput'
 import { MissionSettings, NearbySearch, ScoreSettings } from './SettingsPanel'
 import { TimeRail } from './TimeRail'
 
@@ -12,6 +13,9 @@ export function InputPanel({ sites, matrix, landingDate }: {
 }) {
   return (
     <>
+      <Block title="Place" help="coordinates">
+        <PlaceInput />
+      </Block>
       <Block title="Landing time" help="landing-time">
         <DateRail matrix={matrix} />
         {landingDate && <TimeRail dateUtc={landingDate} />}

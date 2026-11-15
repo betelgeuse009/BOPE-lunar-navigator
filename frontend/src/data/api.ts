@@ -5,18 +5,20 @@ import { CONTRACT_VERSION } from './schemas'
 
 export const API_BASE: string = import.meta.env.VITE_API_BASE ?? 'http://localhost:8000/api'
 
-export type Weights = { sunlit: number; dark: number; earth: number; noEarth: number; slope: number }
+export type Weights = { sunlit: number; dark: number; earth: number; noEarth: number; slope: number; rock: number; temp: number; hpar: number }
 // User limits (docs/PARAMETERS.md §3). Key present = switched on; null = on but no value entered yet (not sent).
 export type LimitKey = 'max_slope_deg' | 'max_dark_h' | 'min_sunlit_frac' | 'min_earth_visible_frac' | 'max_no_earth_h'
+  | 'max_rock_abundance_frac' | 'max_surface_temp_k'
 export type Limits = Partial<Record<LimitKey, number | null>>
 export type ProfileId = 'none' | 'robotic' | 'crewed'
 export type Settings = { missionDays: number; obsHeightM: number; weights: Weights; profile: ProfileId; limits: Limits }
 
-// API defaults (docs/PARAMETERS.md §1): 14 d mission, 2 m mast, weight 1 each (slope included since the terrain, T28).
+// API defaults (docs/PARAMETERS.md §1): 14 d mission, 2 m mast, weight 1 each (slope included since the terrain, T28);
+// the regolith factors (rock abundance, maximum temperature, H-parameter) are off by default (weight 0).
 export const DEFAULT_SETTINGS: Settings = {
   missionDays: 14,
   obsHeightM: 2,
-  weights: { sunlit: 1, dark: 1, earth: 1, noEarth: 1, slope: 1 },
+  weights: { sunlit: 1, dark: 1, earth: 1, noEarth: 1, slope: 1, rock: 0, temp: 0, hpar: 0 },
   profile: 'none',
   limits: {},
 }
@@ -30,6 +32,9 @@ export function settingsQuery(s: Settings): Record<string, string> {
     w_earth: String(s.weights.earth),
     w_no_earth: String(s.weights.noEarth),
     w_slope: String(s.weights.slope),
+    w_rock: String(s.weights.rock),
+    w_temp: String(s.weights.temp),
+    w_h: String(s.weights.hpar),
   }
 }
 

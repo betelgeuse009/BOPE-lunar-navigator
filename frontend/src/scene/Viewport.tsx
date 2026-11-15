@@ -13,6 +13,7 @@ import { CameraFocus } from './CameraFocus'
 import { CameraReset } from './CameraReset'
 import { Hint } from '../ui/Hint'
 import { vec3ToLatLon } from './geo'
+import { GlobeLabels } from './GlobeLabels'
 import { LayerOverlay } from './LayerOverlay'
 import { LAYERS, UNAVAILABLE, layerById, type LayerId } from './layers'
 import { Map2D } from './Map2D'
@@ -22,6 +23,7 @@ import { SiteMarkers } from './SiteMarkers'
 import { Sky } from './Sky'
 import { FAR, HOME, TYPICAL_EARTH_KM, TYPICAL_SUN_KM } from './view'
 import { SouthCap } from './SouthCap'
+import { useNames } from './useNames'
 
 // Centre of the workbench: the Moon, what is drawn on it, and the controls that belong to the view.
 const BASE = import.meta.env.BASE_URL
@@ -37,6 +39,9 @@ export function Viewport({ sites, matrix, area, subsolar, subearth, skyKm, score
   const [view, setView] = useState<'3d' | '2d'>('3d')
   const [reset, setReset] = useState(0) // each press of the reset button
   const moon = useRef<Group>(null)
+  const [labelsOn, setLabelsOn] = useState(false)
+  const names = useNames(labelsOn)
+  const labelLayer = useRef<HTMLDivElement>(null)
   const layer = layerById(layerId)
   // What the chosen layer cannot show right now, said next to the picker instead of failing silently.
   const layerNote = !layer ? null
@@ -54,7 +59,7 @@ export function Viewport({ sites, matrix, area, subsolar, subearth, skyKm, score
   return (
     <div className="stage">
       {view === '2d' && <Map2D sites={sites} matrix={matrix} area={area} subsolar={subsolar} subearth={subearth} resetSignal={reset}
-        layer={layer} scoreMap={scoreMap.data} scoreGlobal={scoreGlobal} scoreRange={scoreRange} />}
+        layer={layer} scoreMap={scoreMap.data} scoreGlobal={scoreGlobal} scoreRange={scoreRange} names={names} />}
       {view === '3d' && <Canvas camera={{ position: HOME, fov: 35, near: 0.01, far: FAR }} onPointerMissed={() => setSelected(null)}>
         <color attach="background" args={['#000000']} />
         <Lights subsolar={subsolar} />
@@ -88,7 +93,9 @@ export function Viewport({ sites, matrix, area, subsolar, subearth, skyKm, score
         <OrbitControls makeDefault enablePan={false} minDistance={1.15} maxDistance={16} rotateSpeed={0.5} zoomSpeed={0.7} />
         <CameraFocus point={point} />
         <CameraReset signal={reset} />
+        {names && <GlobeLabels names={names} overlay={labelLayer} />}
       </Canvas>}
+      {view === '3d' && names && <div className="label-layer" ref={labelLayer} aria-hidden />}
 
       <header className="stage-top">
         <h1>Lunar Landing Site Navigator</h1>
@@ -163,6 +170,13 @@ export function Viewport({ sites, matrix, area, subsolar, subearth, skyKm, score
             </div>
           )}
           {layerNote && <span className="layer-note">{layerNote}</span>}
+          <span className="labels-toggle">
+            <button type="button" aria-pressed={labelsOn} onClick={() => setLabelsOn(!labelsOn)}>Labels</button>
+            <Hint mark label="i" title="Labels" topic="labels">
+              Names of craters, maria, mountains, valleys and other features, from the IAU / USGS Gazetteer of Planetary Nomenclature.
+              Larger features are named first; smaller ones appear as you zoom in, and names that would overlap are left out.
+            </Hint>
+          </span>
         </div>
         <p className="credit">
           <Hint label="Info on views" title={view === '3d' ? 'About the 3D view' : 'About the 2D map'} topic="views">

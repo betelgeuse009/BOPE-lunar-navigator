@@ -2,60 +2,63 @@
  "cap_deg": 10,
  "strip_deg": 10,
  "quantiles": [
-  2,
   25,
   50,
-  75,
-  98
+  75
  ],
  "altitude": {
   "breaks": [
-   -4600.0,
+   -9045.0,
    -1800.0,
    -600.0,
    1100.0,
-   5400.0
+   10720.5
   ],
   "unit": "m",
   "global_pixel_m": 237,
   "data_min": -9045.0,
   "data_max": 10720.5,
-  "global": "layers/altitude_global.png",
   "cap_pixel_m": 80.0,
+  "end_uncertainty": 1.0,
+  "global": "layers/altitude_global.png",
   "cap": "layers/altitude_south.png",
   "strip": "layers/altitude_strip.png"
  },
  "slope": {
   "breaks": [
-   0.4,
-   3.2,
-   6.3,
-   10.1,
-   21.3
+   0.005340671166777611,
+   3.1,
+   6.1,
+   9.9,
+   39.96541213989258
   ],
   "unit": "deg",
   "global_pixel_m": 237,
-  "data_max": 84.13346099853516,
-  "global": "layers/slope_global.png",
+  "data_min": 0.005340671166777611,
+  "data_max": 39.96541213989258,
   "cap_pixel_m": 80.0,
+  "end_uncertainty": 0.2,
+  "global": "layers/slope_global.png",
   "cap": "layers/slope_south.png",
   "strip": "layers/slope_strip.png"
  },
  "sun_visibility": {
   "breaks": [
    0.0,
-   100.0
+   60.75999736785889
   ],
   "unit": "%",
   "global_step_deg": 2.0,
   "global_min": 50.029998779296875,
   "global_max": 59.4900016784668,
   "global_mean": 50.30734002025255,
-  "global": "layers/sun_visibility_global.png",
   "cap_pixel_m": 60.0,
   "cap_max": 60.7599983215332,
+  "global": "layers/sun_visibility_global.png",
   "cap": "layers/sun_visibility_south.png",
-  "strip": "layers/sun_visibility_strip.png"
+  "strip": "layers/sun_visibility_strip.png",
+  "data_min": 0.0,
+  "data_max": 60.75999736785889
  },
  "earth_visibility": {
   "breaks": [
@@ -67,11 +70,13 @@
   "global_min": 0.0,
   "global_max": 100.0,
   "global_mean": 50.68102262575057,
-  "global": "layers/earth_visibility_global.png",
   "cap_pixel_m": 60.0,
   "cap_max": 100.0,
+  "global": "layers/earth_visibility_global.png",
   "cap": "layers/earth_visibility_south.png",
-  "strip": "layers/earth_visibility_strip.png"
+  "strip": "layers/earth_visibility_strip.png",
+  "data_min": 0.0,
+  "data_max": 100.0
  },
  "psr": {
   "global_pixel_m": 240,

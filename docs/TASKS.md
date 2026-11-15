@@ -41,3 +41,6 @@ Status: todo · doing · review · done. Update the row when status changes; add
 | T35 | Show the known landing sites (`data/processed/sites.json` / `/api/sites`) on the 3D globe and the 2D map, styled by `category` and `status` (site panel + live colours done in `fe/requirements`; marker styling next) | FE | doing | T05 |
 | T36 | Artemis III candidate regions on the map: find official region outlines or coordinates (NASA gives names only) | AERO | todo | T05 |
 | T37 | `/api/health` says whether the terrain is used (and which maps are missing), so the FE can warn before showing smooth-sphere numbers | AERO | todo | T28 |
+| T38 | Feedback batch (FE): lat/lon boxes, animation rollover, Sun/Earth period lengths + repeat period, Labels switch, exact colour bar ends with ±, regolith factors in score/requirements, navigator audit (`fe/feedback-batch`) | FE | review | |
+| T39 | Re-run `frontend/scripts/layers.py` with the Diviner maps (temperature, rock, H get exact colour bar ends) and run `analysis/tests` with the regolith maps | AERO | todo | T38 |
+| T40 | Open validation items in `docs/validation/navigator-audit.md`: Earth phase vs Horizons, mast height vs Gläser et al. 2014, whole-Moon visibility vs AVGVISIB overlap, irradiance, Diviner temperature accuracy | AERO | todo | T38 |
