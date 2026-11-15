@@ -1029,7 +1029,7 @@ const DEFS = {
           ['Smoothness', 'relatively few craters', 'Apollo [1]', 'Altitude, slope, rock abundance (qualitative)'],
         ],
       } },
-      { h: 'No published value found', p: ['Rock abundance, surface temperature and H-parameter: no numeric landing limit was found in the sources above. The navigator shows them for context and does not score them. Thermal limits depend on each lander and crew system.'] },
+      { h: 'No published value found', p: ['Rock abundance, surface temperature and H-parameter: no numeric landing limit was found in the sources above. The navigator shows them for context; they enter the score only if you give them a weight (0 by default, with our own linear rule, page "Score") and can be set as your own requirements. Thermal limits depend on each lander and crew system.'] },
       { h: 'How to use them', p: ['Set the limits under "Minimum requirements" (or choose the crewed preset) to check them for a clicked place; the layers show where they can be met. A criterion stated over a baseline (100 m, 2 km) should be compared with a slope measured over a similar distance.'] },
     ],
     refs: ['apollo1968', 'nasaReq', 'novaC'], seeAlso: ['requirements', 'mission-type', 'slope'],

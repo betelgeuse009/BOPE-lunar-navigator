@@ -192,5 +192,5 @@ rock abundance 13.8 % vs Apollo 11 mare 0.6 % (`analysis/tests/test_regolith.py`
 | Landing accuracy | within 100 m of the target | same |
 | Touchdown | slope < 10°, no hazards > 30 cm | Getchius et al. 2022, "Hazard Detection And Avoidance For The Nova-C Lander", arXiv:2204.00660 |
 
-No published numeric landing limit was found for rock abundance, surface temperature or the H-parameter; they stay
-context values. The front end shows these criteria on each layer page and on the page "Landing criteria".
+No published numeric landing limit was found for rock abundance, surface temperature or the H-parameter: they are context
+values, scored only with a user weight (default 0, our own rule in §4) and checked only against the user's own limits. The front end shows these criteria on each layer page and on the page "Landing criteria".
