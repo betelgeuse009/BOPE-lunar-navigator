@@ -127,7 +127,7 @@ export function Viewport({ sites, matrix, area, subsolar, subearth, skyKm, score
               <span title="Worst site on this date">{sitesScale ? formatValue(sitesScale.worst, metric) : metricMeta(metric).higherIsBetter ? 'Less' : 'More'}</span>
               <span className="ramp" style={{ background: `linear-gradient(90deg, ${[0, 0.33, 0.66, 1].map(metricColor).join(',')})` }} />
               <span title="Best site on this date">{sitesScale ? formatValue(sitesScale.best, metric) : metricMeta(metric).higherIsBetter ? 'More' : 'Less'}</span>
-              <Hint mark label="i" title="Site colours">
+              <Hint mark label="i" title="Site colours" topic="site-colours">
                 Each site is coloured by the chosen quantity on the landing date. The colours are stretched between the worst and the best
                 site of that date (the two values printed at the ends of the bar), so differences between sites stay visible even when
                 all the values are close. The palette does not change; only its ends move with the date and the settings.
@@ -145,7 +145,7 @@ export function Viewport({ sites, matrix, area, subsolar, subearth, skyKm, score
               {UNAVAILABLE.map((u) => <option key={u} disabled>{u}</option>)}
             </select>
           </label>
-          {layer && <Hint mark label="i" title={layer.label}>{layer.how}</Hint>}
+          {layer && <Hint mark label="i" title={layer.label} topic={layer.doc}>{layer.how}</Hint>}
           {layerLegend && (
             <div className="legend legend-ticks">
               <span className="ramp" style={{ background: `linear-gradient(90deg, ${[0, 0.33, 0.66, 1].map(metricColor).join(',')})` }} />
@@ -155,7 +155,7 @@ export function Viewport({ sites, matrix, area, subsolar, subearth, skyKm, score
           {layerNote && <span className="layer-note">{layerNote}</span>}
         </div>
         <p className="credit">
-          <Hint label="Info on views" title={view === '3d' ? 'About the 3D view' : 'About the 2D map'}>
+          <Hint label="Info on views" title={view === '3d' ? 'About the 3D view' : 'About the 2D map'} topic="views">
             Moon imagery: NASA's Scientific Visualization Studio, CGI Moon Kit; south pole: LROC WAC mosaic and LOLA 80 m altitude map.
             {view === '3d' ? ' Relief exaggerated four times. ' : ' Flat map: areas stretch toward the poles, so the polar layers appear as a wide strip at the bottom. '}
             {subsolar
