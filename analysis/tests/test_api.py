@@ -130,6 +130,14 @@ def test_ephemeris_has_right_ascension_and_declination():
     assert 0 <= doc["sun_ra_deg"][0] < 360 and -90 <= doc["earth_dec_deg"][0] <= 90
 
 
+def test_evaluate_has_regolith_context_values():
+    doc = get("/api/evaluate", lat_deg=0.67416, lon_deg=23.47314, start_utc=SITE["start_utc"], mission_h=48, use_terrain=False)
+    p = doc["parameters"]
+    for k in ("surface_temp_max_k", "surface_temp_avg_k", "rock_abundance_frac", "h_parameter_m"):
+        assert k in p and set(p[k]) == {"value", "uncertainty"}
+    assert doc["regolith"]["scored"] is False
+
+
 def test_health_reports_terrain_and_maps():
     h = get("/api/health")
     assert h["terrain_available"] in (True, False) and "dem_80s_80m" in h["maps"]

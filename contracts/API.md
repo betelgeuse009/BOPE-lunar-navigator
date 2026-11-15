@@ -226,6 +226,13 @@ clockwise from north) and `horizon_elev_deg` (the elevation below which the sky 
 `dem: { product, resolution_m, max_range_km, layers }`. Draw it as the terrain silhouette in the panorama; a body is
 visible when its elevation is above the skyline at its azimuth (the API already applies this in `*_visible_frac`).
 
+## Regolith context values (`/api/evaluate`)
+
+`parameters` also carries, for context only (not scored, `regolith.scored = false`, sources in `regolith.sources`):
+`surface_temp_max_k`, `surface_temp_avg_k` (Diviner: measured on the whole Moon, thermal model south of 80°S),
+`rock_abundance_frac` (Bandfield et al. 2011, 80°S–80°N) and `h_parameter_m` (Hayne et al. 2017, 70°S–70°N; smaller H =
+higher thermal inertia). `null` outside the mapped band or when the files are missing. Method: `analysis/regolith.py`.
+
 ## Right ascension and declination
 
 `/api/ephemeris` and `/api/scene` carry `sun_ra_deg`, `sun_dec_deg`, `earth_ra_deg`, `earth_dec_deg` (optional fields in the schemas):

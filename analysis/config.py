@@ -36,6 +36,13 @@ MAPS = {
     "diviner_prp_south": ("temperature/dlre_prp_south.tab",
                           "https://pds-geosciences.wustl.edu/lro/urn-nasa-pds-lro_diviner_derived1/data_derived_prp/dlre_prp_south.tab",
                           604_800_210),
+    # Regolith context (analysis/regolith.py, not scored): Diviner rock abundance and H-parameter.
+    "rock_abundance": ("regolith/dgdr_ra_avg_cyl_128_img.img",
+                       "https://pds-geosciences.wustl.edu/lro/urn-nasa-pds-lro_diviner_derived1/data_derived_gdr_l3/cylindrical/img/dgdr_ra_avg_cyl_128_img.img",
+                       1_887_436_800),
+    "h_parameter": ("regolith/hpar_global_128ppd.fits",
+                    "https://pds-geosciences.wustl.edu/lunar/urn-nasa-pds-chang_e_microwave_processed/miscellaneous/hpar_global_128ppd.fits",
+                    1_651_907_520),
     # Background image only (FE). No direct file URL: download by hand from https://data.lroc.im-ldi.com/lroc/view_rdr/WAC_ROI_SOUTH_SUMMER
     "wac_south":     ("imagery/WAC_ROI_SOUTH_SUMMER_064P.PYR.TIF", None, 50_472_972),
 }

@@ -13,7 +13,7 @@ import urllib.request
 
 from . import config
 
-BIG = {"dem_87s_5m", "diviner_prp_south"}   # only with --all
+BIG = {"dem_87s_5m", "diviner_prp_south", "rock_abundance", "h_parameter"}   # only with --all
 
 
 def status(key: str) -> str:
