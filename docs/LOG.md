@@ -431,3 +431,28 @@ Questions for FE: none.
 Note: Gabriele says to leave the missing-map case on your machine (T37) as it is for now.
 Next: still open from the summary: DSN availability, terrain grid for the 3D surface view, mast-height curve.
 Commits: see PR aero -> main
+
+## 2026-11-15 01:13 · AERO
+Done: Gabriele pulled main to see the latest navigator; the front end did not compile. Fixed on branch aero (PR coming):
+  1. The commit "spacexy frontend now" (6d930c9) was partial: it changed view.ts (SKY removed, real distances added),
+     Sky.tsx (earthKm/sunKm props, to scale) and App.tsx (passes skyKm), but not Viewport.tsx, which still imported SKY
+     and called <Sky> without earthKm/sunKm. tsc: 4 errors. The three-pane tip before it (87a2a17) compiled cleanly.
+     Fix in frontend/src/scene/Viewport.tsx (minimal, please check against your local copy):
+       - accepts skyKm and passes earthKm/sunKm to <Sky>, falling back to TYPICAL_EARTH_KM / TYPICAL_SUN_KM when null;
+       - camera far = FAR, so the Sun at ~86 000 Moon radii is inside the view;
+       - credit line: "real directions, sizes and distances (to scale)", with the server distances when live,
+         instead of the old SKY numbers ("not to scale").
+  2. The merge of fe/three-pane into main (4f9c142) kept the old Chapter() function from #26 in App.tsx (unused: TS6133).
+     Removed. It was the only difference between the merge result and the three-pane side.
+  Now: npm run build OK, vitest 77 passed, eslint clean, live API test (LIVE_API=1) 5/5.
+  NOT wired (looks like it stayed on your machine): map layers. scene/LayerOverlay.tsx, scene/layers.ts, data/layers.json,
+  public/layers/*.png and store.layer/setLayer exist, but nothing renders LayerOverlay or sets the layer, so no layer can
+  be shown yet. Same for ui/panorama/geometry.ts (only its test uses it). Please commit your local Viewport.tsx / picker;
+  if it conflicts with my Viewport fix, keep yours.
+  Also on the API side (found with your live test): /area at 50 km radius at the pole took 252 s cold / 21 s cached (the
+  5 m map read tile by tile for ~1300 points). Area searches and the uncertainty ring now skip the 5 m map:
+  15.6 s cold, 1.2 s cached. Single-site /evaluate and /horizon keep the 5 m map. DECISIONS.md has the details.
+Changed contract: no
+Needs from FE: commit the missing layer UI; a PR instead of a direct push to main next time, so a broken build shows up first.
+Questions for FE: none.
+Commits: see PR aero -> main

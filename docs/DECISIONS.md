@@ -136,3 +136,11 @@ Short dated entries: decision, why, alternatives rejected. This becomes the "met
 - Time series only for Nov and Dec 2026 (10 min steps, ENU vectors left out to halve the size); the landing-date matrix
   covers six months of daily landings so seasonal changes are visible offline. Any other date needs the live API.
 - Rebuild with `python -m analysis.build` only when the model changes: every rebuild adds the files again to the git history.
+
+## 2026-11-15 · Area searches and the uncertainty ring do not read the 5 m map
+- Found while checking the merged front end: `/area` with a 50 km radius at the pole took 252 s the first time and 21 s
+  when cached, because ~1300 points spread over 100 km read the 3.3 GB 5 m map in 16 MB tiles, about a hundred per request.
+- Now the coarse profile (area points, uncertainty ring) and their elevations use the 80 m map and coarser; single-site
+  evaluations and `/api/horizon` keep the 5 m near field. Result: 15.6 s first time (including map loading), 1.2 s after.
+- Cost: at the pole example the coarse skyline differs from the fine one by 0.04° median, 0.8° at most (near relief).
+  Acceptable for an area colour map; the clicked point itself is always evaluated with the fine profile.

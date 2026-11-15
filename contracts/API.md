@@ -82,7 +82,7 @@ Two things are computed once and then cached in the server's memory:
 - **Sun/Earth positions, per calendar month** and time step: about 2 s per month at 1 min. Any landing date inside an
   already-computed month is then free (a 14-day window touches one or two months).
 - **The skyline of a point**: about 1 s for a new point (0.1 s away from the pole); 0.01 s per point in `/area`
-  (coarser profile: 2° azimuth steps, within 0.1° of the fine one).
+  (coarser profile: 2° azimuth steps, no 5 m map; median 0.04° from the fine profile at the pole example).
 
 | Request | First time | Afterwards |
 |---|---|---|
@@ -90,6 +90,7 @@ Two things are computed once and then cached in the server's memory:
 | `/evaluate`, same point, new landing date in a computed month | – | 0.07 s |
 | `/area`, 317 points (5 km radius) | 2–7 s | 0.2 s |
 | `/area`, 1257 points (10 km, 0.5 km spacing) | 7 s | not measured |
+| `/area`, 1257 points at the pole, 50 km radius (2.5 km spacing) | 15.6 s (incl. map loading) | 1.2 s |
 | `/horizon` | 1.4 s | cached |
 | Very first request after the server starts | adds 2–3 s (loading the maps) | – |
 
