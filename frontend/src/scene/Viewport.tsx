@@ -122,9 +122,10 @@ export function Viewport({ sites, matrix, area, subsolar, subearth, skyKm, score
           </svg>
           Surface
         </button>
-        <p className={`mode mode-${mode}`} title={mode === 'live' ? 'Connected to the analysis server: click anywhere on the Moon.' : undefined}>
-          {mode === 'live' ? (updating ? 'Live, updating' : 'Live') : mode === 'static' ? 'Offline' : 'Connecting'}
-        </p>
+        <button type="button" className="view-reset" onClick={() => setReset(reset + 1)}
+          title={view === '3d' ? 'Back to the opening view' : 'Show the whole Moon'} aria-label="Reset the view">
+          <svg viewBox="0 0 24 24" aria-hidden><circle cx="12" cy="12" r="10.5" /><path className="n" d="M12 3.5 15 12H9z" /><path className="s" d="M12 20.5 9 12h6z" /></svg>
+        </button>
         {matrix && (
           <button type="button" className="compare-toggle" disabled={pins.length === 0} aria-pressed={compareOpen}
             title={pins.length === 0 ? 'Add places with "Compare at this date" first.' : undefined}
@@ -135,10 +136,9 @@ export function Viewport({ sites, matrix, area, subsolar, subearth, skyKm, score
         <SearchBar sites={sites} />
       </header>
 
-      <button type="button" className="view-reset" onClick={() => setReset(reset + 1)}
-        title={view === '3d' ? 'Back to the opening view' : 'Show the whole Moon'} aria-label="Reset the view">
-        <svg viewBox="0 0 24 24" aria-hidden><circle cx="12" cy="12" r="10.5" /><path className="n" d="M12 3.5 15 12H9z" /><path className="s" d="M12 20.5 9 12h6z" /></svg>
-      </button>
+      <p className={`mode mode-${mode}`} title={mode === 'live' ? 'Connected to the analysis server: click anywhere on the Moon.' : undefined}>
+        {mode === 'live' ? (updating ? 'Live, updating' : 'Live') : mode === 'static' ? 'Offline' : 'Connecting'}
+      </p>
       <MissionCard />
 
       <div className="stage-foot">

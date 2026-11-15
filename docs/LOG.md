@@ -591,3 +591,12 @@ Done: "Max H-parameter" requirement (cm) under Minimum requirements; API limit m
   analysis tests WITH the Diviner maps here: 82 passed (your regolith tests run and pass). FE: 273 passed.
 Changed contract: additions only (optional query parameter max_h_parameter_m).
 Commits: see PR aero -> main
+
+## 2026-11-15 15:10 · AERO
+Done: A/B search fixed. Each field now takes its best match when you type a name and leave it (or press Enter), clearing a
+  field clears its choice, and the comparison opens by itself as soon as A and B are both chosen (changing A or B
+  replaces that column). The separate "Compare" button next to A/B is gone (the header Compare button stays).
+  Home-view button moved into the header bar (where "Live" was); the Live/Offline status is now in the bottom-right
+  corner of the viewer. Search help page updated. FE tests 273 passed.
+Changed contract: no
+Commits: see PR aero -> main
