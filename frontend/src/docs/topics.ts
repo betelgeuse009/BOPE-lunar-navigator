@@ -380,9 +380,13 @@ const DEFS = {
           ['not during the stay', 'never lost inside the mission window'],
         ],
       } },
+      { h: '"Time left in view" banner', p: [
+        'At the top of the Results pane the same values are written as sentences ("Sunset in 3 d 4 h", "Dark at landing, sunrise in 30 h", "Sun up for the whole stay") with the UTC time of the event. Under them the stay is drawn from landing (left) to its end (right), one bar for the Sun and one for the Earth, filled where the body is in view (the periods of the page "Periods in view"); thin lines mark whole days.',
+        'The badge after each sentence follows the warning rules (page "Warnings"): orange when the Sun or the Earth is lost within 24 h of landing or is not in view at landing (our default band), unless a requirement says otherwise.',
+      ] },
       { h: 'Landing criteria', p: ['No published threshold. For operations: the first sunset bounds the time on solar power after landing; landing in darkness (a first sunrise later than 0 h) means starting on batteries.'] },
     ],
-    refs: ['parameters'], seeAlso: ['sunlight', 'earth-in-view'],
+    refs: ['parameters'], seeAlso: ['sunlight', 'earth-in-view', 'visibility-windows', 'warnings'],
   },
   'sun-elevation': {
     title: 'Mean Sun elevation when lit', category: 'Results',
@@ -874,6 +878,38 @@ const DEFS = {
       ] },
     ],
     refs: ['gazetteer', 'layersCode'], seeAlso: ['views', 'coordinates'],
+  },
+  warnings: {
+    title: 'Warnings: fine, check, fails', category: 'Results',
+    summary: 'The badge after a value in the Results pane and in the comparison: ✓ fine, ! check, ✕ fails a requirement you set. Hover a badge for the reason.',
+    sections: [
+      { h: 'Levels', table: {
+        head: ['Badge', 'Meaning'],
+        rows: [
+          ['✕ red', 'The value breaks a minimum requirement you switched on. Only a requirement can give red.'],
+          ['! orange', 'At risk: the requirement is met at this exact point but broken somewhere within the landing accuracy (100 m) or the skyline accuracy (0.1°), as reported by the analysis server; or the requirement cannot be checked (no value); or, with no requirement on that value, the value is outside its default band below.'],
+          ['✓ green', 'The value meets your requirement, or is inside its default band.'],
+          ['none', 'No requirement and no default band for that value (for example the altitude): nothing to judge.'],
+        ],
+      } },
+      { h: 'Default bands', p: ['Shown before any requirement is set, so the values that usually matter stand out. A default band gives at most orange, never red. A requirement on the same value replaces its band. Where a published value exists it is used; the others are our own choice and are labelled so.'], table: {
+        head: ['Value', 'Orange when', 'Origin'],
+        rows: [
+          ['Slope', 'above 10°', 'Artemis III landing limit over 100 m [1]'],
+          ['Earth in view', 'below 25 % of the stay', 'Artemis III excludes areas below 25 % Earth visibility [1] (NASA applies it to the long-term maps)'],
+          ['Longest night (crewed missions only)', 'above 0 h', 'Artemis III: surface lit for the whole stay [1]'],
+          ['Sunlight', 'below 50 % of the stay', 'our choice'],
+          ['First sunset after landing', 'within 24 h, or dark at landing', 'our choice'],
+          ['First Earthset after landing', 'within 24 h, or no Earth at landing', 'our choice'],
+          ['Longest blackout', 'above 72 h', 'our choice'],
+          ['Rock abundance', 'above 1 %', 'our choice: rockier than 98 % of the Moon (whole-Moon map statistics)'],
+          ['Maximum surface temperature', 'above 395 K', 'our choice: hotter than 98 % of the Moon (whole-Moon map statistics)'],
+          ['Score', 'below 0.5', 'our choice'],
+        ],
+      } },
+      { h: 'Limitations', p: ['The bands are reading aids, not mission requirements: a real mission sets its own limits under Minimum requirements. The Artemis III values were written for a crewed south-pole landing.'] },
+    ],
+    refs: ['nasaReq', 'parameters'], seeAlso: ['requirements', 'verdict', 'uncertainty', 'landing-criteria'],
   },
   'site-colours': {
     title: 'Site colours', category: 'Methods',

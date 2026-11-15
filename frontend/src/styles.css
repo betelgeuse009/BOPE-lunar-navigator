@@ -17,6 +17,7 @@
   --chosen: #ffffff;
   --ok: #4fbf9a;
   --warn: #f08a4b;
+  --bad: #ff5d5d;
   --font: 'Archivo Variable', system-ui, sans-serif;
   --gutter: clamp(16px, 3vw, 40px);
   --measure: 62ch;
@@ -236,9 +237,9 @@ fieldset.requirements { margin-top: 0; }
 .score .unc { font-size: 15px; color: var(--text-2); }
 .score .ok, .score .bad, .score .nolimits { margin-left: auto; font-size: 15px; font-weight: 500; }
 .score .ok { color: var(--ok); }
-.score .bad { color: var(--warn); }
+.score .bad { color: var(--bad); }
 .score .nolimits { color: var(--text-2); font-weight: 400; }
-.violations { margin: 6px 0 0; padding-left: 18px; color: var(--warn); }
+.violations { margin: 6px 0 0; padding-left: 18px; color: var(--bad); }
 .pane .at-risk { margin: 8px 0 0; color: var(--warn); }
 .breakdown { width: 100%; margin-top: 18px; border-collapse: collapse; font-size: 15px; }
 .breakdown caption { text-align: left; font-weight: 600; padding-bottom: 6px; }
@@ -269,7 +270,7 @@ fieldset.requirements { margin-top: 0; }
 .compare td.best { font-weight: 700; box-shadow: inset 3px 0 0 var(--ok); }
 .best-key { font-weight: 700; border-left: 3px solid var(--ok); padding-left: 4px; }
 .compare td.ok { color: var(--ok); }
-.compare td.bad { color: var(--warn); }
+.compare td.bad { color: var(--bad); }
 .stale .compare-scroll { opacity: 0.4; }
 
 /* ---------- Narrow screens: the Moon on top (sticky), the panes stacked below ---------- */
@@ -606,3 +607,42 @@ fieldset.requirements { margin-top: 0; }
   border: 1px solid var(--night-text-2); border-radius: 3px;
 }
 .labels-toggle button[aria-pressed='true'] { color: #000; background: var(--night-text); border-color: var(--night-text); }
+
+/* ---------- Warning badges (ui/warnings.ts, ui/Status.tsx) ---------- */
+.status {
+  display: inline-grid; place-items: center; width: 17px; height: 17px; margin-left: 8px; vertical-align: -2px;
+  border-radius: 50%; font-size: 11px; font-weight: 700; line-height: 1; color: #000; cursor: help; flex: none;
+}
+.status-ok { background: var(--ok); }
+.status-warn { background: var(--warn); }
+.status-bad { background: var(--bad); border-radius: 3px; }
+.rows > .level-bad dd { color: var(--bad); }
+.rows > .level-warn dd { color: var(--warn); }
+.status-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 4px; margin: 4px 0 8px; font-size: 13px; color: var(--text-2); }
+.status-legend .status { margin-left: 10px; }
+.status-legend .status:first-child { margin-left: 0; }
+.place-facts .level-bad dd { color: var(--bad); }
+.place-facts .level-warn dd { color: var(--warn); }
+.compare td.level-bad { color: var(--bad); }
+.compare td.level-warn { color: var(--warn); }
+
+/* ---------- Countdown banner (ui/results/Countdown.tsx) ---------- */
+.countdown { margin: 4px 0 16px; padding: 12px 14px; background: var(--surface-raised); border: 1px solid var(--rule); border-radius: 3px; }
+.countdown .rows-title { margin-top: 0; }
+.countdown-line { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; margin: 6px 0; font-size: 18px; }
+.countdown-line strong { font-weight: 600; }
+.countdown-line small { font-size: 13px; color: var(--text-2); }
+.countdown-line .cd-icon { width: 18px; text-align: center; }
+.countdown-line.sun .cd-icon { color: var(--sun); }
+.countdown-line.earth .cd-icon { color: var(--earth); }
+.countdown-line .status { align-self: center; }
+.stay-bars { margin: 10px 0 0; }
+.stay-bars svg { display: block; width: 100%; height: 34px; }
+.stay-bars .track { fill: #24262c; }
+.stay-bars .sun rect:not(.track) { fill: var(--sun); }
+.stay-bars .earth rect:not(.track) { fill: var(--earth); }
+.stay-bars .day { stroke: #000; stroke-width: 0.25; vector-effect: non-scaling-stroke; }
+.stay-bars figcaption { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; color: var(--text-2); }
+.stay-bars .key i { display: inline-block; width: 9px; height: 9px; margin: 0 4px 0 8px; border-radius: 2px; vertical-align: -1px; }
+.stay-bars .key i.sun { background: var(--sun); }
+.stay-bars .key i.earth { background: var(--earth); }
