@@ -32,6 +32,10 @@ MAPS = {
     "avgvisib_sun":  ("illumination/AVGVISIB_85S_060M_201608.tiff", f"{_PGDA}/MoonIllumination/AVGVISIB_85S_060M_201608.TIF", 33_994_464),
     "avgvisib_earth": ("illumination/AVGVISIB_85S_060M_201608_EARTH.tiff", f"{_PGDA}/MoonIllumination/AVGVISIB_85S_060M_201608_EARTH.TIF", 24_862_958),
     "psr_80s":       ("psr/LPSR_80S_20MPP_ADJ_1km2.csv", f"{_PGDA}/LOLA_20mpp/LPSR_80S_20MPP_ADJ_1km2.CSV", 29_642_968),
+    # Display layer only (frontend/scripts/layers.py): Diviner Polar Resource Product, yearly average / maximum temperature.
+    "diviner_prp_south": ("temperature/dlre_prp_south.tab",
+                          "https://pds-geosciences.wustl.edu/lro/urn-nasa-pds-lro_diviner_derived1/data_derived_prp/dlre_prp_south.tab",
+                          604_800_210),
     # Background image only (FE). No direct file URL: download by hand from https://data.lroc.im-ldi.com/lroc/view_rdr/WAC_ROI_SOUTH_SUMMER
     "wac_south":     ("imagery/WAC_ROI_SOUTH_SUMMER_064P.PYR.TIF", None, 50_472_972),
 }

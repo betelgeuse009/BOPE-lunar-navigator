@@ -93,7 +93,7 @@ for key, name in (("sun_visibility", "AVGVISIB_85S_060M_201608.tiff"), ("earth_v
     meta[key] = {"range": [0, 100], "unit": "%", "cap": f"layers/{key}_south.png", "cap_pixel_m": px, "data_max": float(np.nanmax(f[ok]) * 100)}
 
 # ---- Permanently shadowed regions larger than 1 km2 (polygons in polar stereographic metres).
-csv.field_size_limit(sys.maxsize)
+csv.field_size_limit(2**31 - 1)   # sys.maxsize overflows a C long on Windows
 img = Image.new("RGBA", (N, N), (0, 0, 0, 0))
 draw = ImageDraw.Draw(img)
 
@@ -118,6 +118,49 @@ with open(MAPS / "psr/LPSR_80S_20MPP_ADJ_1km2.csv", newline="") as fh:
                 draw.polygon(to_px(hole), fill=(0, 0, 0, 0))
 img.save(OUT / "psr_south.png", optimize=True)
 meta["psr"] = {"cap": "layers/psr_south.png", "count": count, "area_km2": round(area)}
+
+(Path(__file__).resolve().parents[1] / "src/data/layers.json").write_text(json.dumps(meta, indent=1) + "\n")
+print(json.dumps(meta, indent=1))
+
+# ---- Surface temperature: Diviner Polar Resource Product (PDS LRO-L-DLRE-5-PRP-V2.0, Paige et al.), south pole.
+# A table of terrain triangles with the yearly average temperature (2 cm below the surface) and the yearly maximum
+# surface temperature, both calculated by the Diviner team's thermal model. Each cap pixel takes the nearest triangle.
+PRP = MAPS / "temperature/dlre_prp_south.tab"
+if PRP.exists():
+    from scipy.spatial import cKDTree
+    t = np.loadtxt(PRP, delimiter=",", skiprows=1, usecols=(9, 10, 12, 13), dtype=np.float32)   # lon, lat, avg, max
+    t = t[(t[:, 2] > 0) & (t[:, 3] > 0)]
+
+    def unit(la, lo):
+        la, lo = np.radians(la), np.radians(lo)
+        return np.stack([np.cos(la) * np.cos(lo), np.cos(la) * np.sin(lo), np.sin(la)], axis=-1)
+
+    dist, idx = cKDTree(unit(t[:, 1], t[:, 0])).query(unit(lat, lon).reshape(-1, 3))
+    near = (dist.reshape(lat.shape) * R < 2000) & inside                       # within 2 km of a triangle centre
+    idx = idx.reshape(lat.shape)
+    for key, col_, label in (("temperature_max", 3, "yearly maximum"), ("temperature_avg", 2, "yearly average")):
+        v = t[idx, col_]
+        lo_, hi_ = (float(round(p, -1)) for p in np.percentile(v[near], [1, 99]))
+        colour(v, lo_, hi_, near).save(OUT / f"{key}_south.png", optimize=True)
+        meta[key] = {"range": [lo_, hi_], "unit": "K", "cap": f"layers/{key}_south.png", "triangles": int(len(t)),
+                     "data_min": float(v[near].min()), "data_max": float(v[near].max()),
+                     "north_limit_deg": float(t[:, 1].max())}
+
+# ---- Flat-map strips: every polar layer again as a simple cylindrical strip (longitude -180..180 across,
+# latitude -90+CAP_DEG at the top to -90 at the bottom), for the 2D map. Resampled from the cap images above.
+SW, SH = 7200, 200
+sl = -90 + CAP_DEG * (1 - (np.arange(SH) + 0.5) / SH)                # row 0 = northern edge of the cap
+so = -180 + 360 * (np.arange(SW) + 0.5) / SW
+so, sl = np.meshgrid(so, sl)
+rho = (90 + sl) / CAP_DEG
+cx = np.clip(((0.5 + 0.5 * rho * np.cos(np.radians(so))) * N).astype(int), 0, N - 1)
+cy = np.clip(((0.5 - 0.5 * rho * np.sin(np.radians(so))) * N).astype(int), 0, N - 1)
+for key, m in meta.items():
+    if isinstance(m, dict) and "cap" in m:
+        cap = np.asarray(Image.open(OUT.parent / m["cap"]).convert("RGBA"))
+        Image.fromarray(cap[cy, cx], "RGBA").save(OUT / f"{key}_strip.png", optimize=True)
+        m["strip"] = f"layers/{key}_strip.png"
+meta["strip_deg"] = CAP_DEG
 
 (Path(__file__).resolve().parents[1] / "src/data/layers.json").write_text(json.dumps(meta, indent=1) + "\n")
 print(json.dumps(meta, indent=1))

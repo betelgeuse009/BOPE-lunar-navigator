@@ -20,6 +20,7 @@ it replaces the old `README.txt` that described a `backend/` layout.
 | `illumination/AVGVISIB_85S_060M_201608.tiff` | Mean Sun visibility (long-term average) | 60 m | 85°S–pole | int16 × 4e-5 = fraction 0..1 | LOLA, Mazarico et al. 2011, [PGDA 69](https://pgda.gsfc.nasa.gov/products/69) |
 | `illumination/AVGVISIB_85S_060M_201608_EARTH.tiff` | Mean Earth visibility | 60 m | 85°S–pole | int16 × 4e-5 = fraction 0..1 | same |
 | `psr/LPSR_80S_20MPP_ADJ_1km2.csv` | Permanently shadowed regions > 1 km² (1531 polygons) | – | 80°S–pole | columns `gid, WKT, area_km2, name`; WKT x/y in m, polar stereographic | LOLA, Barker et al., PGDA 90 |
+| `temperature/dlre_prp_south.tab` (605 MB, added 2026-11-15) | Diviner Polar Resource Product: 2 880 000 terrain triangles with yearly average temperature (2 cm deep) and yearly maximum surface temperature, calculated by the Diviner team's thermal model | ~0.7 km triangles | 75.9°S–pole | ASCII table; columns `tri_clon`, `tri_clat`, `temp_avg`, `temp_max` in K | Diviner, Paige et al. (UCLA), PDS `LRO-L-DLRE-5-PRP-V2.0`, [PDS Geosciences](https://pds-geosciences.wustl.edu/lro/urn-nasa-pds-lro_diviner_derived1/data_derived_prp/). Display layer only, not used by the analysis |
 | `imagery/WAC_ROI_SOUTH_SUMMER_064P.PYR.TIF` | Photo mosaic (background for FE) | 474 m (64 px/deg) | 45°S–pole | uint8 | [LROC WAC](https://data.lroc.im-ldi.com/lroc/view_rdr/WAC_ROI_SOUTH_SUMMER) (download by hand) |
 
 Server file names end in `.TIF`; the local copies are saved as `.tiff`. The download script does the same.
