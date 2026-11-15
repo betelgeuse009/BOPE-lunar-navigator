@@ -581,3 +581,13 @@ Done: pulled PR #30 (aero = main). On Windows the app was a blank page: src/ui/r
 Changed contract: no
 Answer: the 2 km /api/area call once per place is fine for the server.
 Commits: see PR aero -> main
+
+## 2026-11-15 14:45 · AERO
+Done: "Max H-parameter" requirement (cm) under Minimum requirements; API limit max_h_parameter_m (not checked beyond 70°);
+  red/green badge on the H value in Results; analysis test added. Checked: Apollo 11 H 6.15 cm fails a 5 cm limit, passes
+  20 cm; pole reports "not checked". Mission setup sub-headings restyled like the Results titles (uppercase, small).
+  Docs: requirements table, H-parameter page, landing-criteria text (regolith values can now be scored / limited),
+  "five scored factors" wording fixed; PARAMETERS.md §3 and API.md list the new limit.
+  analysis tests WITH the Diviner maps here: 82 passed (your regolith tests run and pass). FE: 273 passed.
+Changed contract: additions only (optional query parameter max_h_parameter_m).
+Commits: see PR aero -> main

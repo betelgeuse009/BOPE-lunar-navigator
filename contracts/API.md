@@ -57,7 +57,7 @@ which maps are present. `python -m analysis.download_maps --all` adds the 3.3 GB
 
 **Requirements = feasibility limits** (`/evaluate`, `/area`; all optional, no limit unless given):
 `min_sunlit_frac`, `max_dark_h`, `min_earth_visible_frac`, `max_no_earth_h`, `max_slope_deg`, `min_energy_margin_kwh`,
-`max_rock_abundance_frac`, `max_surface_temp_k`.
+`max_rock_abundance_frac`, `max_surface_temp_k`, `max_h_parameter_m`.
 
 Parameter definitions, formulas and sources: `docs/PARAMETERS.md`.
 

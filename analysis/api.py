@@ -83,11 +83,13 @@ def feasibility_limits(
     min_energy_margin_kwh: Annotated[float | None, Query(description="Feasible only if energy_margin_kwh >= this (needs load_w, panel_area_m2, panel_efficiency_frac)")] = None,
     max_rock_abundance_frac: Annotated[float | None, Query(ge=0, le=1, description="Feasible only if rock_abundance_frac <= this (not checked beyond 80 deg)")] = None,
     max_surface_temp_k: Annotated[float | None, Query(ge=0, description="Feasible only if surface_temp_max_k <= this")] = None,
+    max_h_parameter_m: Annotated[float | None, Query(ge=0, le=1, description="Feasible only if h_parameter_m <= this (not checked beyond 70 deg)")] = None,
 ) -> dict:
     return {"min_sunlit_frac": min_sunlit_frac, "max_dark_h": max_dark_h,
             "min_earth_visible_frac": min_earth_visible_frac, "max_no_earth_h": max_no_earth_h,
             "max_slope_deg": max_slope_deg, "min_energy_margin_kwh": min_energy_margin_kwh,
-            "max_rock_abundance_frac": max_rock_abundance_frac, "max_surface_temp_k": max_surface_temp_k}
+            "max_rock_abundance_frac": max_rock_abundance_frac, "max_surface_temp_k": max_surface_temp_k,
+            "max_h_parameter_m": max_h_parameter_m}
 
 
 ModelInputs = Annotated[Inputs, Depends(model_inputs)]

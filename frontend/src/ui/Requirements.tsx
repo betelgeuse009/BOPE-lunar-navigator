@@ -30,7 +30,8 @@ export function Requirements({ disabled }: { disabled: boolean }) {
       {LIMITS.map((l) => {
         const on = l.key in settings.limits
         const v = settings.limits[l.key] ?? null
-        const shown = v === null ? '' : String(l.pct ? +(v * 100).toFixed(3) : v) // rock abundance needs hundredths of a percent
+        const k = l.pct ? 100 : l.scale ?? 1
+        const shown = v === null ? '' : String(+(v * k).toFixed(3)) // rock abundance needs hundredths of a percent
         return (
           <div key={l.key} className="limit">
             <span><label>
@@ -40,7 +41,7 @@ export function Requirements({ disabled }: { disabled: boolean }) {
             {' '}<Help topic={l.help} /></span>
             <span className="limit-value">
               <input type="number" min={0} max={l.max} step="any" value={shown} disabled={!on} aria-label={`${l.label} (${l.unit})`}
-                onChange={(e) => setLimit(l.key, e.target.value === '' ? null : Number(e.target.value) / (l.pct ? 100 : 1))} />
+                onChange={(e) => setLimit(l.key, e.target.value === '' ? null : Number(e.target.value) / k)} />
               {l.unit}
             </span>
             {on && v === null && <p className="note">Enter a value.</p>}

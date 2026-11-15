@@ -256,3 +256,10 @@ Short dated entries: decision, why, alternatives rejected. This becomes the "met
 - "Why it changes": only server values side by side (strips, the uncertainty's position term, /api/area within 2 km)
   plus reasons read from the Sun / Earth tracks against the skyline. Lazy block: its requests start only when opened.
 - "Moon vs Earth": paired bars on a linear scale (the size of the difference is the message), NASA fact sheet values.
+
+## 2026-11-15 · H-parameter as a requirement; pane sub-headings in the site style
+- New optional limit `max_h_parameter_m` (feasible if H <= limit; not checked beyond 70°, where the map has no value),
+  typed in cm under Minimum requirements. No published landing threshold exists for H, so there is no default value and
+  no default warning band: the user types their own (page "Landing criteria" says so).
+- Mission setup sub-headings (Coordinates, Mission type, Minimum requirements, Stay and hardware, ...) now use the same
+  small uppercase title as the Results pane, instead of a larger mixed-case bold heading. Font family unchanged (Archivo).
