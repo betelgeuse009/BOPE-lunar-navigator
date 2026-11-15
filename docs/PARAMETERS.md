@@ -126,3 +126,30 @@ accuracy. A limit that holds at the point but breaks within the uncertainty is r
 
 What it does not include: errors in the Sun/Earth directions (below 0.0001°, checked against JPL Horizons), DEM artefacts
 beyond the height-error map, and the flat-skyline approximation across the disk width.
+
+## 7. Right ascension and declination (API)
+
+`sun_ra_deg`, `sun_dec_deg`, `earth_ra_deg`, `earth_dec_deg` in `/api/ephemeris` and `/api/scene`: direction of the body seen
+from the centre of the Moon, J2000 (ICRF) axes, LT+S. RA = atan2(y, x) mod 360°, Dec = asin(z / |r|). Selenocentric, so the
+same for every site. Validation and the size of the aberration term: `contracts/API.md`.
+
+## 8. Map layers (display; `frontend/scripts/layers.py`, wording in `frontend/src/scene/layers.ts`)
+
+Wording: **altitude** = height of the surface above the 1737.4 km sphere; **elevation** = angle of the Sun or the Earth above
+the local horizontal. API field names are unchanged (`elevation_m` is the altitude, `*_el_deg` are elevation angles).
+
+| Layer | Whole Moon | South of 80° S (finer) | Computed or read |
+|---|---|---|---|
+| Altitude | LOLA LDEM_128, 237 m | LDEM_80S_80MPP_ADJ, 80 m | read |
+| Slope | central differences on LDEM_128 over one 237 m pixel, slope = atan(√((∂z/∂x)² + (∂z/∂y)²)), east-west spacing × cos(lat), averaged to the 3.8 km image pixel | official LOLA 80 m slope map | computed / read |
+| Sun, Earth visibility (long term) | `analysis/global_visibility.py`: share of time with any part of the disc above a smooth-sphere horizon (observer 2 m), 2° grid, 2020–2038 every 6 h | NASA AVGVISIB (terrain, south of 85° S) | computed / read |
+| Permanently shadowed regions | NASA LPSR_65N_240M and LPSR_65S_240M (240 m, poleward of 65°) | LPSR_80S_20MPP_ADJ outlines > 1 km² | read |
+| Surface temperature, maximum | Diviner GCP (Williams et al. 2017): highest bolometric brightness temperature over the local times of each 0.5° bin | Diviner PRP: yearly maximum (thermal model) | read (max over local time) |
+| Surface temperature, average | Diviner GCP: mean over the day; unobserved local times filled by linear interpolation for gaps ≤ 4 h, longer gaps left blank | Diviner PRP: yearly average 2 cm deep | read (mean over local time) |
+| Day and night at landing time | smooth sphere, from the sub-solar point: sin h = sin φ sin φs + cos φ cos φs cos(λ − λs) | – | computed in the browser |
+| Score for your settings | `/api/grid`, 4° cells, smooth-sphere horizon + LOLA slope | `/api/area` around the pole, 15 km, terrain skyline | computed live |
+
+Colour scales (same palette everywhere): altitude, slope and temperature are coloured **by distribution**: the palette is
+spread evenly over the 2nd, 25th, 50th, 75th and 98th area-weighted percentile of the whole-Moon map, so each colour
+covers a quarter of the surface. Visibility is linear 0–100 %. Site markers, the calendar strip and the score layer are
+stretched between the lowest and highest value of the set shown; the two ends are printed next to the bar.

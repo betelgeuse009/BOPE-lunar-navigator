@@ -156,3 +156,19 @@ Short dated entries: decision, why, alternatives rejected. This becomes the "met
 - Day/night line: smooth sphere, from the sub-solar point; terrain shadows are not in this layer (the metrics have them).
 - Score map: one `/api/area` request centred on the south pole (300 km radius, 15 km spacing): 12 s first time, 0.9 s after.
 - Not available: Artemis III candidate regions (no coordinates published); shown disabled in the picker with the reason.
+
+## 2026-11-15 · Whole-Moon map layers, distribution-based colour scales, altitude vs elevation, RA/Dec
+- Every map layer now covers the whole Moon, with the finer south-pole data on top. New sources: Diviner GCP (global
+  measured temperature, Williams et al. 2017), LPSR_65N/65S (shadowed regions at both poles). Slope outside the south
+  pole is computed from LDEM_128; long-term visibility outside the NASA polar maps is computed by us on a smooth sphere
+  (`analysis/global_visibility.py`). Table of what is read and what is computed: `docs/PARAMETERS.md` §8.
+- Honest limits: the global temperature (measured, by local time) and the polar one (modelled, yearly) are different
+  products, so a step can show at 80° S; the global "average" fills local-time gaps up to 4 h by interpolation and is blank elsewhere; the global
+  visibility and the global score ignore the terrain (0.3 s per skyline on the global map makes a grid impractical).
+- Colour scales: skewed layers are coloured by distribution (percentile breakpoints), sets of values (sites, calendar
+  strip, score layer) are stretched between their extremes, printed on the bar. Palette unchanged.
+- Wording: altitude = surface height, elevation = angle above the horizon. Only labels and texts changed; the API field
+  `elevation_m` keeps its name (contract).
+- RA/Dec of the Sun and the Earth from the Moon's centre added to `/api/ephemeris` and `/api/scene` (J2000, LT+S);
+  LT-only values match JPL Horizons astrometric RA/Dec to 1e-6 deg.
+- New endpoint `/api/grid` (whole-Moon score grid).

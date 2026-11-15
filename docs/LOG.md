@@ -473,3 +473,20 @@ Known: while the globe textures load, the Sun/Earth labels log "Cannot read prop
   (drei Html occlude with the Moon group not mounted yet). It stops once loaded; not fixed here.
 Changed contract: no
 Commits: see PR aero -> main
+
+## 2026-11-15 02:13 · AERO + FE (working together on Gabriele's PC)
+Done:
+  - Map layers cover the whole Moon (globe and 2D), finer south-pole data on top: altitude, slope (computed from LDEM_128
+    outside the pole), long-term Sun / Earth visibility (computed on a smooth sphere outside NASA's polar maps),
+    permanently shadowed regions (both poles), surface temperature maximum / average (Diviner GCP global + PRP pole),
+    day/night, score (new /api/grid for the whole Moon + /api/area at the pole). Each (i) states what is read and what is computed.
+  - Colour bars balanced, same palette: distribution-based scales for altitude, slope, temperature (three labels under the
+    bar); site markers, calendar strip and score layer stretched between their extremes, printed on the bar.
+  - "Altitude" for the surface height everywhere in the interface; "elevation" only for the Sun/Earth angle.
+  - API: right ascension and declination of the Sun and the Earth (from the Moon's centre, J2000, LT+S) in /api/ephemeris and
+    /api/scene; shown under Sun and Earth "At landing" with a help mark and a documentation page (ra-dec). Checked against
+    JPL Horizons. New endpoint /api/grid.
+  - New data in data/raw/maps: temperature/gcp (2.8 GB), psr/LPSR_65N|65S (164 MB). data/MAPS.md, PARAMETERS.md §7-8,
+    API.md, DECISIONS.md updated.
+Changed contract: additions only (optional RA/Dec fields in ephemeris and scene schemas; /api/grid).
+Commits: see PR aero -> main
