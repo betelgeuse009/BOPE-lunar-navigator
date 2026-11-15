@@ -1,82 +1,126 @@
 {
  "cap_deg": 10,
- "elevation": {
-  "range": [
-   -5300.0,
-   5700.0
+ "strip_deg": 10,
+ "quantiles": [
+  2,
+  25,
+  50,
+  75,
+  98
+ ],
+ "altitude": {
+  "breaks": [
+   -4600.0,
+   -1800.0,
+   -600.0,
+   1100.0,
+   5400.0
   ],
   "unit": "m",
-  "global": "layers/elevation_global.png",
-  "cap": "layers/elevation_south.png",
   "global_pixel_m": 237,
-  "cap_pixel_m": 80.0,
   "data_min": -9045.0,
   "data_max": 10720.5,
-  "strip": "layers/elevation_strip.png"
+  "global": "layers/altitude_global.png",
+  "cap_pixel_m": 80.0,
+  "cap": "layers/altitude_south.png",
+  "strip": "layers/altitude_strip.png"
  },
  "slope": {
-  "range": [
-   0,
-   30
+  "breaks": [
+   0.4,
+   3.2,
+   6.3,
+   10.1,
+   21.3
   ],
   "unit": "deg",
-  "cap": "layers/slope_south.png",
+  "global_pixel_m": 237,
+  "data_max": 84.13346099853516,
+  "global": "layers/slope_global.png",
   "cap_pixel_m": 80.0,
+  "cap": "layers/slope_south.png",
   "strip": "layers/slope_strip.png"
  },
  "sun_visibility": {
-  "range": [
-   0,
-   100
+  "breaks": [
+   0.0,
+   100.0
   ],
   "unit": "%",
-  "cap": "layers/sun_visibility_south.png",
+  "global_step_deg": 2.0,
+  "global_min": 50.029998779296875,
+  "global_max": 59.4900016784668,
+  "global_mean": 50.30734002025255,
+  "global": "layers/sun_visibility_global.png",
   "cap_pixel_m": 60.0,
-  "data_max": 60.7599983215332,
+  "cap_max": 60.7599983215332,
+  "cap": "layers/sun_visibility_south.png",
   "strip": "layers/sun_visibility_strip.png"
  },
  "earth_visibility": {
-  "range": [
-   0,
-   100
+  "breaks": [
+   0.0,
+   100.0
   ],
   "unit": "%",
-  "cap": "layers/earth_visibility_south.png",
+  "global_step_deg": 2.0,
+  "global_min": 0.0,
+  "global_max": 100.0,
+  "global_mean": 50.68102262575057,
+  "global": "layers/earth_visibility_global.png",
   "cap_pixel_m": 60.0,
-  "data_max": 100.0,
+  "cap_max": 100.0,
+  "cap": "layers/earth_visibility_south.png",
   "strip": "layers/earth_visibility_strip.png"
  },
  "psr": {
-  "cap": "layers/psr_south.png",
+  "global_pixel_m": 240,
+  "global": "layers/psr_global.png",
   "count": 1531,
   "area_km2": 18921,
+  "cap": "layers/psr_south.png",
   "strip": "layers/psr_strip.png"
  },
  "temperature_max": {
-  "range": [
-   60.0,
-   320.0
+  "breaks": [
+   260.0,
+   347.0,
+   374.0,
+   387.0,
+   395.0
   ],
   "unit": "K",
+  "global_bin_deg": 0.5,
+  "covered_frac": 1.0,
+  "max_gap_h": 4,
+  "data_min": 51.31230163574219,
+  "data_max": 438.9996032714844,
+  "cap_triangles": 2880000,
+  "cap_min": 26.770000457763672,
+  "cap_max": 348.7439880371094,
+  "global": "layers/temperature_max_global.png",
   "cap": "layers/temperature_max_south.png",
-  "triangles": 2880000,
-  "data_min": 26.770000457763672,
-  "data_max": 348.7439880371094,
-  "north_limit_deg": -75.9013442993164,
   "strip": "layers/temperature_max_strip.png"
  },
  "temperature_avg": {
-  "range": [
-   40.0,
-   180.0
+  "breaks": [
+   142.0,
+   194.0,
+   208.0,
+   215.0,
+   219.0
   ],
   "unit": "K",
+  "global_bin_deg": 0.5,
+  "covered_frac": 1.0,
+  "max_gap_h": 4,
+  "data_min": 40.176475524902344,
+  "data_max": 230.84019470214844,
+  "cap_triangles": 2880000,
+  "cap_min": 25.114999771118164,
+  "cap_max": 209.38400268554688,
+  "global": "layers/temperature_avg_global.png",
   "cap": "layers/temperature_avg_south.png",
-  "triangles": 2880000,
-  "data_min": 25.114999771118164,
-  "data_max": 209.38400268554688,
-  "north_limit_deg": -75.9013442993164,
   "strip": "layers/temperature_avg_strip.png"
- },
- "strip_deg": 10
+ }
 }
