@@ -12,6 +12,8 @@ export type Pin = { id: string; label: string; lat: number; lon: number; dateIdx
 // Live mode: the date strip shows this many days from the day chosen in the calendar.
 export const STRIP_DAYS = 30
 export const MAX_PINS = 4
+// Live: any day the ephemeris file covers (de440s.bsp, 1849 to 2150; contracts/API.md), leaving room for the strip and the stay.
+export const LIVE_RANGE = ['1850-01-01', '2149-09-30']
 
 type AppState = {
   dateIdx: number
@@ -36,7 +38,7 @@ type AppState = {
   setDateIdx: (i: number) => void
   setDateCount: (n: number) => void
   setStaticDates: (d: string[]) => void
-  setStripStart: (d: string) => void
+  setStripStart: (d: string, dateIdx?: number) => void
   setMinuteUtc: (m: number) => void
   setMetric: (m: string) => void
   setHovered: (id: string | null) => void
@@ -76,7 +78,7 @@ export const useApp = create<AppState>((set) => ({
   setDateIdx: (i) => set((s) => ({ dateIdx: clamp(i, s.dateCount) })),
   setDateCount: (n) => set((s) => ({ dateCount: n, dateIdx: clamp(s.dateIdx, n) })),
   setStaticDates: (staticDates) => set({ staticDates }),
-  setStripStart: (stripStart) => set({ stripStart, dateIdx: 0 }),
+  setStripStart: (stripStart, dateIdx = 0) => set((s) => ({ stripStart, dateIdx: clamp(dateIdx, s.dateCount) })),
   setMinuteUtc: (minuteUtc) => set({ minuteUtc }),
   setMetric: (metric) => set({ metric }),
   setHovered: (hoveredSite) => set({ hoveredSite }),

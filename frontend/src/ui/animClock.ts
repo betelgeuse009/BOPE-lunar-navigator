@@ -20,3 +20,22 @@ export function fmtRate(a: AnimationState): string {
   const m = a.stepMin * a.ticksPerSec
   return m < 60 ? `${m} min` : m < 1440 ? `${(m / 60).toFixed(m % 60 ? 1 : 0)} h` : `${(m / 1440).toFixed(1)} days`
 }
+
+// One step of the landing-time animation. Live: the time of day rolls over into the next days, and past the last day of
+// the date strip the strip moves on by whole strips (the next month), so the animation keeps going until the last day
+// the ephemeris covers (lastDay). Offline: only the precomputed days exist, so it stops at the end of the table.
+// Returns null when the animation must stop.
+export type LandingClock = { live: boolean; minuteUtc: number; dateIdx: number; dateCount: number; first: string }
+export function stepLanding(c: LandingClock, stepMin: number, lastDay: string):
+  { minuteUtc: number; dateIdx: number; stripStart?: string } | null {
+  const total = (c.live ? c.minuteUtc : 0) + stepMin
+  const idx = c.dateIdx + Math.floor(total / 1440)
+  const minuteUtc = c.live ? total % 1440 : c.minuteUtc
+  if (idx < c.dateCount) return { minuteUtc, dateIdx: idx }
+  if (!c.live || c.dateCount < 1) return null
+  const pages = Math.floor(idx / c.dateCount)
+  const stripStart = new Date(Date.parse(c.first) + pages * c.dateCount * 86_400_000).toISOString().replace('.000Z', 'Z')
+  const dateIdx = idx - pages * c.dateCount
+  const day = new Date(Date.parse(stripStart) + dateIdx * 86_400_000).toISOString().slice(0, 10)
+  return day > lastDay ? null : { minuteUtc, dateIdx, stripStart }
+}
