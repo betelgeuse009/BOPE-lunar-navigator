@@ -1,6 +1,7 @@
 """Surface temperature, rock abundance and H-parameter at any point, from Diviner (LRO) maps.
 
-Context values for the regolith at a site, shown next to the altitude and the slope. They are NOT used in the score.
+Regolith values at a site, shown next to the altitude and the slope. In the score only when the user gives them a
+weight (rock abundance, maximum temperature, H-parameter; analysis/scoring.py), and in the requirements as limits.
 The map layers of the front end (frontend/scripts/layers.py) use the same functions, so a clicked value and the colour
 of the layer always agree. Files: data/MAPS.md. Missing files -> values are None (the API shows "n/a").
 

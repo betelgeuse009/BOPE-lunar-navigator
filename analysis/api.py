@@ -65,9 +65,13 @@ def score_weights(
     w_earth: Annotated[float, Query(ge=0, description="Weight of earth_visible_frac")] = config.SCORE_WEIGHTS["earth_visible_frac"],
     w_no_earth: Annotated[float, Query(ge=0, description="Weight of longest_no_earth_h")] = config.SCORE_WEIGHTS["longest_no_earth_h"],
     w_slope: Annotated[float, Query(ge=0, description="Weight of slope_deg (left out when the terrain is not used)")] = config.SCORE_WEIGHTS["slope_deg"],
+    w_rock: Annotated[float, Query(ge=0, description="Weight of rock_abundance_frac (lower is better; left out beyond 80 deg)")] = config.SCORE_WEIGHTS["rock_abundance_frac"],
+    w_temp: Annotated[float, Query(ge=0, description="Weight of surface_temp_max_k (lower is better)")] = config.SCORE_WEIGHTS["surface_temp_max_k"],
+    w_h: Annotated[float, Query(ge=0, description="Weight of h_parameter_m (lower = denser regolith is better; left out beyond 70 deg)")] = config.SCORE_WEIGHTS["h_parameter_m"],
 ) -> dict:
     return {"sunlit_frac": w_sunlit, "longest_dark_h": w_dark, "earth_visible_frac": w_earth,
-            "longest_no_earth_h": w_no_earth, "slope_deg": w_slope}
+            "longest_no_earth_h": w_no_earth, "slope_deg": w_slope,
+            "rock_abundance_frac": w_rock, "surface_temp_max_k": w_temp, "h_parameter_m": w_h}
 
 
 def feasibility_limits(
@@ -77,10 +81,13 @@ def feasibility_limits(
     max_no_earth_h: Annotated[float | None, Query(ge=0, description="Feasible only if longest_no_earth_h <= this")] = None,
     max_slope_deg: Annotated[float | None, Query(ge=0, le=90, description="Feasible only if slope_deg <= this (not checked when the terrain is not used)")] = None,
     min_energy_margin_kwh: Annotated[float | None, Query(description="Feasible only if energy_margin_kwh >= this (needs load_w, panel_area_m2, panel_efficiency_frac)")] = None,
+    max_rock_abundance_frac: Annotated[float | None, Query(ge=0, le=1, description="Feasible only if rock_abundance_frac <= this (not checked beyond 80 deg)")] = None,
+    max_surface_temp_k: Annotated[float | None, Query(ge=0, description="Feasible only if surface_temp_max_k <= this")] = None,
 ) -> dict:
     return {"min_sunlit_frac": min_sunlit_frac, "max_dark_h": max_dark_h,
             "min_earth_visible_frac": min_earth_visible_frac, "max_no_earth_h": max_no_earth_h,
-            "max_slope_deg": max_slope_deg, "min_energy_margin_kwh": min_energy_margin_kwh}
+            "max_slope_deg": max_slope_deg, "min_energy_margin_kwh": min_energy_margin_kwh,
+            "max_rock_abundance_frac": max_rock_abundance_frac, "max_surface_temp_k": max_surface_temp_k}
 
 
 ModelInputs = Annotated[Inputs, Depends(model_inputs)]

@@ -18,7 +18,7 @@ landing-safety indicator). Each parameter is computed over the mission window `[
 | `earth_min_elev_deg` | 0 | Antenna mask: minimum Earth elevation for a link |
 | `load_w` | none | Average electrical load, also during darkness |
 | `panel_area_m2`, `panel_efficiency_frac` | none | Sun-tracking solar array |
-| weights `w_*` | 1 each | Importance of each scored parameter |
+| weights `w_*` | 1 each; 0 for `w_rock`, `w_temp`, `w_h` | Importance of each scored parameter |
 | limits `min_*`, `max_*` | none | Hard requirements; a site that violates one is "not feasible" |
 
 ## 2. Parameters
@@ -66,6 +66,8 @@ A site is **feasible** when it meets every limit the user has set:
 | `max_no_earth_h` | `longest_no_earth_h` ≤ limit |
 | `max_slope_deg` | `slope_deg` ≤ limit (if the terrain is not used it cannot be judged and is reported in `not_checked`) |
 | `min_energy_margin_kwh` | `energy_margin_kwh` ≥ limit |
+| `max_rock_abundance_frac` | `rock_abundance_frac` ≤ limit (not checked beyond 80°, where the map has no value) |
+| `max_surface_temp_k` | `surface_temp_max_k` ≤ limit |
 
 The API returns the verdict twice: `feasible` (true/false) and **`requirements_violated`** (0/1: 1 = at least one limit
 is not respected), plus the list of `violations`.
@@ -83,8 +85,15 @@ Each scored parameter becomes a sub-score from 0 (worst) to 1 (best):
 | `earth_visible_frac` | the value itself |
 | `longest_no_earth_h` | 1 − longest_no_earth_h / window length |
 | `slope_deg` | 1 − slope / 20°, floored at 0. Left out of the score when the terrain is not used |
+| `rock_abundance_frac` (`w_rock`) | (x₀ − x)/(x₀ − x₁) clipped to 0..1, x₁ = 0.0013, x₀ = 0.0101. Left out beyond 80° |
+| `surface_temp_max_k` (`w_temp`) | same rule, x₁ = 260 K, x₀ = 395 K |
+| `h_parameter_m` (`w_h`) | same rule, x₁ = 0.0499 m, x₀ = 0.0886 m. Left out beyond 70° |
 
-**score = Σ wᵢ · sᵢ / Σ wᵢ** over the available parameters with weight > 0. Default weights: 1 each.
+**score = Σ wᵢ · sᵢ / Σ wᵢ** over the available parameters with weight > 0. Default weights: 1 each, except the three
+regolith factors (0: the default score is unchanged by them). Regolith ends x₁ (sub-score 1) and x₀ (sub-score 0) are the
+whole-Moon, area-weighted 2nd and 98th percentiles of each Diviner map (`config.REGOLITH_SCORE_RANGES`), lower is better
+for all three. This is our choice (no published landing threshold exists, §10): fewer rocks = fewer hazards, cooler peak =
+smaller thermal load, smaller H = denser near-surface regolith (Hayne et al. 2017), taken as firmer footing.
 A weight of 0 removes a parameter (for example `w_earth=0&w_no_earth=0` for a mission with a relay satellite).
 The 20° slope scale is a display default chosen by AERO, adjustable in `analysis/config.py`; it is not a published limit.
 
@@ -154,7 +163,7 @@ spread evenly over the 2nd, 25th, 50th, 75th and 98th area-weighted percentile o
 covers a quarter of the surface. Visibility is linear 0–100 %. Site markers, the calendar strip and the score layer are
 stretched between the lowest and highest value of the set shown; the two ends are printed next to the bar.
 
-## 9. Regolith context values (`analysis/regolith.py`, not scored)
+## 9. Regolith values (`analysis/regolith.py`; scored only with a weight > 0, see §4)
 
 | Parameter | Unit | Source and method | Coverage |
 |---|---|---|---|

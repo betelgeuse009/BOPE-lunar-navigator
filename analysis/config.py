@@ -79,5 +79,19 @@ SCORE_WEIGHTS = {
     "earth_visible_frac": 1.0,
     "longest_no_earth_h": 1.0,
     "slope_deg": 1.0,   # left out of the score when the terrain maps are missing or use_terrain is off
+    # Regolith factors (analysis/regolith.py): off by default, so the default score is unchanged. Left out where not
+    # mapped (rock abundance beyond 80 deg, H-parameter beyond 70 deg) or when the Diviner maps are missing.
+    "rock_abundance_frac": 0.0,
+    "surface_temp_max_k": 0.0,
+    "h_parameter_m": 0.0,
+}
+# Regolith sub-scores: linear from 1 at the first value to 0 at the second (lower is better for all three). The ends
+# are the whole-Moon, area-weighted 2nd and 98th percentiles of each Diviner map (frontend/src/data/layers.json as made
+# by frontend/scripts/layers.py on 2026-11-14), so the best 2 % of the Moon scores 1 and the worst 2 % scores 0.
+# Our choice, not a landing requirement: no published landing threshold exists for these quantities (PARAMETERS.md 10).
+REGOLITH_SCORE_RANGES = {
+    "rock_abundance_frac": (0.0013, 0.0101),   # fraction of the surface covered by rocks > ~1 m (Bandfield et al. 2011)
+    "surface_temp_max_k": (260.0, 395.0),      # highest surface temperature, K (Williams et al. 2017; PRP south of 80 S)
+    "h_parameter_m": (0.0499, 0.0886),         # H-parameter, m (Hayne et al. 2017); smaller = denser near-surface regolith
 }
 SLOPE_SCORE_ZERO_DEG = 20.0  # slope where the slope sub-score reaches 0 (a user-adjustable default, not a literature limit)
