@@ -115,6 +115,21 @@ def test_bad_requests_get_422(path, params):
     assert client.get(path, params=params).status_code == 422
 
 
+def test_grid_covers_the_whole_moon():
+    doc = get("/api/grid", start_utc=SITE["start_utc"], step_deg=30, mission_h=48, max_no_earth_h=1)
+    assert len(doc["lat_deg"]) == 6 and len(doc["lon_deg"]) == 12 and doc["horizon_source"] == "smooth-sphere"
+    assert len(doc["score"]) == 6 and all(len(r) == 12 for r in doc["score"])
+    # Far side (lon +-165): the Earth is never in view, so a blackout limit is broken; near side centre: not broken.
+    assert doc["requirements_violated"][2][0] == 1 and doc["requirements_violated"][2][5] == 0
+    assert client.get("/api/grid", params={"start_utc": SITE["start_utc"], "step_deg": 7}).status_code == 422
+
+
+def test_ephemeris_has_right_ascension_and_declination():
+    doc = get("/api/ephemeris", **SITE, mission_h=6)
+    assert len(doc["sun_ra_deg"]) == len(doc["time_utc"]) == len(doc["earth_dec_deg"])
+    assert 0 <= doc["sun_ra_deg"][0] < 360 and -90 <= doc["earth_dec_deg"][0] <= 90
+
+
 def test_health_reports_terrain_and_maps():
     h = get("/api/health")
     assert h["terrain_available"] in (True, False) and "dem_80s_80m" in h["maps"]

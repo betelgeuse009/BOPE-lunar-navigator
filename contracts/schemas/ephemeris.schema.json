@@ -44,6 +44,10 @@
       "type": "array", "items": { "$ref": "common.schema.json#/$defs/frac" },
       "description": "OPTIONAL: illuminated fraction of the Earth disk seen from the Moon, (1 + cos(phase angle)) / 2"
     },
+    "sun_ra_deg": { "type": "array", "items": { "type": "number", "minimum": 0, "exclusiveMaximum": 360 }, "description": "OPTIONAL: right ascension of the Sun seen from the Moon's centre, J2000 (ICRF) axes, LT+S" },
+    "sun_dec_deg": { "type": "array", "items": { "type": "number", "minimum": -90, "maximum": 90 }, "description": "OPTIONAL: declination of the Sun seen from the Moon's centre, J2000 (ICRF) axes, LT+S" },
+    "earth_ra_deg": { "type": "array", "items": { "type": "number", "minimum": 0, "exclusiveMaximum": 360 }, "description": "OPTIONAL: right ascension of the Earth seen from the Moon's centre, J2000 (ICRF) axes, LT+S" },
+    "earth_dec_deg": { "type": "array", "items": { "type": "number", "minimum": -90, "maximum": 90 }, "description": "OPTIONAL: declination of the Earth seen from the Moon's centre, J2000 (ICRF) axes, LT+S" },
     "sun_dir_enu": {
       "type": "array", "description": "OPTIONAL, for the panorama: unit vector site->Sun in local East-North-Up, one [e,n,u] per step",
       "items": { "type": "array", "items": { "type": "number" }, "minItems": 3, "maxItems": 3 }
