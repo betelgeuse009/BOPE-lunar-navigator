@@ -3,7 +3,7 @@ import { SPREAD_KM, useDayStrip, useHorizon, useNearbySpread, usePointDays } fro
 import { landingDay, useApp } from '../../state/store'
 import { fmtH, fmtPct } from '../format'
 import { Row, Rows } from './Rows'
-import { terrainBlocking, type Blocking } from './why'
+import { terrainBlocking, type Blocking } from './whyReasons'
 
 const deg = (v: number) => `${v.toFixed(1)}°`
 const sector = (s: [number, number]) => (Math.round(s[0]) === Math.round(s[1]) ? `azimuth ${Math.round(s[0])}°` : `azimuth ${Math.round(s[0])}° to ${Math.round(s[1])}°`)

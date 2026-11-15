@@ -8,7 +8,7 @@ export const API_BASE: string = import.meta.env.VITE_API_BASE ?? 'http://localho
 export type Weights = { sunlit: number; dark: number; earth: number; noEarth: number; slope: number; rock: number; temp: number; hpar: number }
 // User limits (docs/PARAMETERS.md §3). Key present = switched on; null = on but no value entered yet (not sent).
 export type LimitKey = 'max_slope_deg' | 'max_dark_h' | 'min_sunlit_frac' | 'min_earth_visible_frac' | 'max_no_earth_h'
-  | 'max_rock_abundance_frac' | 'max_surface_temp_k'
+  | 'max_rock_abundance_frac' | 'max_surface_temp_k' | 'max_h_parameter_m'
 export type Limits = Partial<Record<LimitKey, number | null>>
 export type ProfileId = 'none' | 'robotic' | 'crewed'
 export type Settings = { missionDays: number; obsHeightM: number; weights: Weights; profile: ProfileId; limits: Limits }

@@ -209,7 +209,8 @@ h1 { flex: 1; min-width: 0; margin: 0; font-size: 15px; line-height: 1.2; font-w
 /* ---------- Forms ---------- */
 fieldset { margin: 24px 0 0; padding: 0; border: 0; min-width: 0; }
 fieldset:disabled { opacity: 0.5; }
-legend { padding: 0; margin-bottom: 4px; font-size: 16px; font-weight: 600; font-stretch: 110%; }
+/* Sub-headings of the panes: the same small uppercase title as the Results pane (.rows-title). */
+legend, .requirements h3 { padding: 0; margin-bottom: 4px; font-size: 12px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-2); }
 .slider { display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; margin-top: 14px; max-width: 520px; }
 .slider output { font-weight: 600; }
 .slider input { grid-column: 1 / -1; width: 100%; accent-color: var(--text); }
@@ -220,7 +221,7 @@ legend { padding: 0; margin-bottom: 4px; font-size: 16px; font-weight: 600; font
   color: var(--text); background: transparent; border: 1px solid var(--text); border-radius: 3px;
 }
 fieldset.requirements { margin-top: 0; }
-.requirements h3 { margin: 24px 0 4px; font-size: 16px; font-weight: 600; font-stretch: 110%; }
+.requirements h3 { margin: 24px 0 4px; }
 .limit { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 0 12px; padding: 10px 0; border-bottom: 1px solid var(--rule); max-width: 520px; }
 .limit .note, .limit .source { grid-column: 1 / -1; }
 .limit-value { display: flex; align-items: center; gap: 6px; color: var(--text-2); }

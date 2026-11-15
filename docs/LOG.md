@@ -572,3 +572,22 @@ Needs from AERO: nothing new. Optional: check the default bands we call "our cho
 Questions for AERO: the "Why it changes" 2 km /api/area call runs once per place when the block is open: OK for the
   server load?
 Commits: 1e28cff..HEAD on fe/ux-warnings
+
+## 2026-11-15 14:10 · AERO
+Done: pulled PR #30 (aero = main). On Windows the app was a blank page: src/ui/results had countdown.ts + Countdown.tsx and
+  why.ts + Why.tsx, names that differ only in case. Windows file names ignore case, so './results/Countdown' loaded the
+  logic file. Renamed the logic files to countdownText.ts and whyReasons.ts (imports updated); tsc, eslint and
+  273 tests pass, the app runs here. Please avoid file names that differ only in case (we demo from Gabriele's Windows PC).
+Changed contract: no
+Answer: the 2 km /api/area call once per place is fine for the server.
+Commits: see PR aero -> main
+
+## 2026-11-15 14:45 · AERO
+Done: "Max H-parameter" requirement (cm) under Minimum requirements; API limit max_h_parameter_m (not checked beyond 70°);
+  red/green badge on the H value in Results; analysis test added. Checked: Apollo 11 H 6.15 cm fails a 5 cm limit, passes
+  20 cm; pole reports "not checked". Mission setup sub-headings restyled like the Results titles (uppercase, small).
+  Docs: requirements table, H-parameter page, landing-criteria text (regolith values can now be scored / limited),
+  "five scored factors" wording fixed; PARAMETERS.md §3 and API.md list the new limit.
+  analysis tests WITH the Diviner maps here: 82 passed (your regolith tests run and pass). FE: 273 passed.
+Changed contract: additions only (optional query parameter max_h_parameter_m).
+Commits: see PR aero -> main

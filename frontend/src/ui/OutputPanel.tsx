@@ -57,7 +57,7 @@ export function OutputPanel({ sites, matrix, ev, area, landingUtc }: {
             <Fact label="Rock abundance" help="rock-abundance" e={e} k="rock_abundance_frac" fmt={fmtRock} missing="not mapped beyond 80°" status={warn('rock_abundance_frac')} />
             <Fact label="Surface temp., max" help="surface-temperature" e={e} k="surface_temp_max_k" fmt={fmtK} status={warn('surface_temp_max_k')} />
             <Fact label="Surface temp., average" help="surface-temperature" e={e} k="surface_temp_avg_k" fmt={fmtK} />
-            <Fact label="H-parameter (thermal inertia)" help="h-parameter" e={e} k="h_parameter_m" fmt={fmtH_cm} missing="not mapped beyond 70°" />
+            <Fact label="H-parameter (thermal inertia)" help="h-parameter" e={e} k="h_parameter_m" fmt={fmtH_cm} missing="not mapped beyond 70°" status={warn('h_parameter_m')} />
           </dl>
           <PinButton label={`Point ${fmtCoords(point.lat, point.lon)}`} lat={point.lat} lon={point.lon} />
           {ev.error && <p className="error-inline">{ev.error}</p>}

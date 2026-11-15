@@ -131,6 +131,8 @@ def test_regolith_factors_in_score_and_requirements():
     f = scoring.feasibility(p, {"max_rock_abundance_frac": 0.001, "max_surface_temp_k": 600.0})
     assert [v["limit"] for v in f["violations"]] == ["max_rock_abundance_frac"]
     assert scoring.feasibility({**p, "rock_abundance_frac": None}, {"max_rock_abundance_frac": 0.001})["not_checked"] == ["max_rock_abundance_frac"]
+    assert scoring.feasibility(p, {"max_h_parameter_m": 0.06})["not_checked"] == ["max_h_parameter_m"]   # H not mapped here
+    assert [v["limit"] for v in scoring.feasibility({**p, "h_parameter_m": 0.08}, {"max_h_parameter_m": 0.06})["violations"]] == ["max_h_parameter_m"]
 
 
 def test_disc_grid_and_offsets():
