@@ -577,3 +577,4 @@ fieldset.requirements { margin-top: 0; }
   .compass { width: 84px; }
   .surface-time-panel { flex: 1; width: auto; }
 }
+.periods .dur { white-space: nowrap; }

@@ -56,6 +56,7 @@ export const REFS = {
   wikipedia: { text: 'Wikipedia, the free encyclopedia: opening paragraphs of each mission article, licence CC BY-SA 4.0; images from Wikimedia Commons under the licence shown on each card.', url: 'https://en.wikipedia.org' },
   nssdca: { text: 'NASA NSSDCA, lunar landing and impact site coordinates.', url: 'https://nssdc.gsfc.nasa.gov/planetary/lunar/lunar_sites.html' },
   lroc: { text: 'LROC (Lunar Reconnaissance Orbiter Camera) image measurements of landing sites.', url: 'https://lroc.im-ldi.com' },
+  meeus1998: { text: 'Meeus, J. (1998), Astronomical Algorithms, 2nd ed., Willmann-Bell, Richmond (mean lengths of the synodic, anomalistic and draconic months).' },
 } satisfies Record<string, { text: string; url?: string }>
 export type RefId = keyof typeof REFS
 
@@ -530,18 +531,26 @@ const DEFS = {
   },
   'visibility-windows': {
     title: 'Periods in view', category: 'Results',
-    summary: 'The start and end of every period with sunlight, and of every period with the Earth in view, during the stay.',
+    summary: 'The start, end and length of every period with sunlight, and of every period with the Earth in view, during the stay; and how often these periods come back.',
     sections: [
       { h: 'Definition', p: [
         'A sunlit period is an unbroken run of time steps with at least half of the solar disc above the skyline. A period with the Earth in view is an unbroken run of steps with at least half of the Earth\'s disc visible and the Earth above the antenna\'s minimum elevation. The analysis server lists the exact start and end of each [1].',
+        'Length of a period: end minus start, shown in hours below two days and in days above.',
+      ] },
+      { h: 'Repeats every', p: [
+        'How often the periods come back: the mean time between the starts of successive periods (sunrise to sunrise, Earthrise to Earthrise), over the 90 days that follow the landing, whatever the stay. For this the analysis server is asked for the same periods over 90 days, with a 10 min step. A period that is already running at the landing time is cut by the window, so its start is not a rise and is left out. With $n+1$ rises at times $t_0 < \\dots < t_n$:',
+      ], eq: 'P = \\frac{t_n - t_0}{n}' },
+      { h: 'Expected values', p: [
+        'For comparison only (not used in the computation): the Sun comes back once per synodic month, 29.53 days on average [3]. The Earth hardly moves in the sky of a given place; it rises and sets only near the edge of the near side and near the poles, where the librations carry it across the horizon, with periods close to the anomalistic month (27.55 days, longitude libration) and the draconic month (27.21 days, latitude libration) [3].',
       ] },
       { h: 'Reading', p: [
         'The end of a sunlit period is a sunset and the start of the next one a sunrise; likewise Earthset and Earthrise.',
-        'A period that starts exactly at the landing time, or ends exactly at the end of the stay, is cut by the mission window: the Sun (or Earth) was already up before, or stays up after.',
+        'A period that starts exactly at the landing time, or ends exactly at the end of the stay, is cut by the mission window: the Sun (or Earth) was already up before, or stays up after. Its length is then the part inside the stay.',
+        'Nothing is shown when fewer than two rises happen in 90 days: the body stays in view, never comes into view, or rises once only.',
       ] },
-      { h: 'Limitations', p: ['Times have the resolution of the time step, 60 s.', 'Ground-station availability is not included in the Earth periods.'] },
+      { h: 'Limitations', p: ['Times have the resolution of the time step: 60 s for the periods of the stay, 10 min for the repeat period.', 'Ground-station availability is not included in the Earth periods.', 'The repeat period is a mean: single cycles differ from it by up to several hours, because the Moon\'s orbit is elliptical and perturbed [3].'] },
     ],
-    refs: ['contract', 'parameters'], seeAlso: ['sunlight', 'earth-in-view', 'countdowns'],
+    refs: ['contract', 'parameters', 'meeus1998'], seeAlso: ['sunlight', 'earth-in-view', 'countdowns'],
   },
   'solar-energy': {
     title: 'Irradiance and solar energy', category: 'Results',
@@ -847,8 +856,8 @@ const DEFS = {
         'Speed: ticks per second, 1 to 30. Time step: how much mission time each tick adds, in minutes (presets from 1 min to 1 day). Mission time per second of animation:',
       ], eq: '\\dot t = n_{\\text{ticks/s}} \\times \\Delta t' },
       { h: 'Mission setup', p: [
-        'Moves the landing time of the whole navigator: the time of day, rolling into the next days of the date strip, and stops at the last day of the strip. The lighting of the globe, the results and the strips follow. Every new landing time is a new request to the analysis server, so a short step at high speed can run ahead of the answers; the results then show the newest time the server has finished.',
-        'Without the analysis server only whole days exist (the precomputed files are at 00:00 UTC), so the step is at least one day.',
+        'Moves the landing time of the whole navigator: the time of day, rolling into the next days of the date strip. Past the last day of the strip the strip moves on to the next 30 days (the calendar and the date slider follow), so the animation keeps going until the last day the ephemeris covers (30 Sep 2149). The lighting of the globe, the results and the strips follow. Every new landing time is a new request to the analysis server, so a short step at high speed can run ahead of the answers; the results then show the newest time the server has finished.',
+        'Without the analysis server only whole days exist (the precomputed files are at 00:00 UTC), so the step is at least one day, and the animation stops at the last precomputed day.',
       ] },
       { h: 'Surface view', p: ['Moves the clock of the surface view only, within its 30-day window; the landing time of the navigator does not change. Positions between two computed samples (every 10 min) are interpolated linearly for display.'] },
       { h: 'Limitations', p: ['The tick rate is the browser timer: a busy computer can tick slower than asked. Nothing computed depends on it.'] },
