@@ -122,5 +122,35 @@
   "global": "layers/temperature_avg_global.png",
   "cap": "layers/temperature_avg_south.png",
   "strip": "layers/temperature_avg_strip.png"
+ },
+ "rock_abundance": {
+  "breaks": [
+   0.0013,
+   0.0023,
+   0.0029,
+   0.0035,
+   0.0101
+  ],
+  "unit": "fraction",
+  "pixel_km": 0.9476047007546713,
+  "median": 0.002812500111758709,
+  "data_max": 0.6774167418479919,
+  "max_lat": 80.0,
+  "global": "layers/rock_abundance_global.png"
+ },
+ "h_parameter": {
+  "breaks": [
+   0.0499,
+   0.0662,
+   0.0704,
+   0.0744,
+   0.0886
+  ],
+  "unit": "m",
+  "pixel_km": 0.9476047007546713,
+  "median": 0.0705176442861557,
+  "data_max": 0.9987009763717651,
+  "max_lat": 70.0,
+  "global": "layers/h_parameter_global.png"
  }
 }

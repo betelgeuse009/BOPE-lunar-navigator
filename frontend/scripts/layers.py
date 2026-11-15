@@ -249,6 +249,21 @@ for key, grid, col_ in (("temperature_max", tmax, 3), ("temperature_avg", tmean,
     save(key, "global", colour(big, b, okbig))
     save(key, "south", colour(v, b, near))
 
+# ---- Regolith: rock abundance (Bandfield et al. 2011, 80 S - 80 N) and H-parameter (Hayne et al. 2017, 70 S - 70 N), read
+# with the same functions the API uses for a clicked point (analysis/regolith.py), so map and value agree. Whole Moon
+# image only: no Diviner product covers the poles, so nothing is drawn there.
+import sys  # noqa: E402
+sys.path.insert(0, str(REPO))
+from analysis import regolith as rg  # noqa: E402
+
+for key, fn, ppd, decimals in (("rock_abundance", rg.rock_abundance_frac, rg.RA_PPD, 4), ("h_parameter", rg.h_parameter_m, rg.H_PPD_OUT, 4)):
+    v = fn(glat.ravel(), glon.ravel()).reshape(glat.shape).astype(np.float32)
+    ok = np.isfinite(v)
+    b = breaks_of(np.nan_to_num(v), ok, decimals)
+    meta[key] = {"breaks": b, "unit": "fraction" if key == "rock_abundance" else "m", "pixel_km": 1737.4 * np.pi / 180 / ppd,
+                 "median": float(np.nanmedian(v)), "data_max": float(np.nanmax(v)), "max_lat": rg.RA_MAX_LAT if key == "rock_abundance" else rg.H_MAX_LAT}
+    save(key, "global", colour(np.nan_to_num(v), b, ok))
+
 # ---- Flat-map strips: every cap again as a simple cylindrical strip (longitude -180..180 across, latitude
 # -90+CAP_DEG at the top to -90 at the bottom), for the 2D map. Resampled from the cap images above.
 sl = -90 + CAP_DEG * (1 - (np.arange(SH) + 0.5) / SH)
