@@ -209,3 +209,33 @@ Short dated entries: decision, why, alternatives rejected. This becomes the "met
   time of the whole navigator (whole days offline).
 - Fix: the date and time strips were coloured at start-up with the best catalogue site before any place was chosen; they
   now stay neutral until a place is chosen and then show that place's values.
+
+## 2026-11-15 · Feedback batch: colour bar ends, regolith in the score, repeat period, labels (FE session)
+- Colour bars of the map layers: the ends are now the exact lowest and highest value drawn (whole Moon and polar cap
+  together), the inner breakpoints the 25/50/75th percentiles (detail kept); visibility is linear between its min and max.
+  End labels carry ± where a source gives one: altitude ± 1 m (gridded LOLA vertical accuracy, Smith et al. 2017),
+  slope ± 0.2° (that 1 m propagated over the 237 m central difference, our derivation), H-parameter ± 1 cm (Hayne et al.
+  2017 §3.3.3: dH/dT 0.5–1 cm/K, Diviner noise < 1 K). No ± for temperature (no published absolute accuracy found) and
+  rock abundance (Bandfield et al. 2011: error roughly proportional to the rock fraction, no single number).
+  Rejected: keeping the 2nd/98th percentile ends (the bar's labels were not the data's extremes, user feedback); a plain
+  linear min–max scale (rock abundance median 0.3 % vs max 68 % would make the map one colour).
+  Layers whose raw maps are not on the machine are skipped by layers.py and keep their images (temperature, rock, H wait
+  for a run on AERO's PC; until then their ends are marked ≤ / ≥).
+- Whole-Moon slope layer bug: the east-west central difference used one column, under 1 m on the ground at the pole rows,
+  so height noise gave false slopes up to 84°. Now k = ceil(1/cos lat) columns (≥ 237 m), the same ground distance the
+  API already uses. 15 slightly negative pixels of LDSM_80S_80MPP_ADJ (to −0.42°) are treated as no data.
+- Score: rock abundance, maximum surface temperature and H-parameter can enter the score (weights w_rock, w_temp, w_h,
+  default 0 so the default score is unchanged) and two limits (max rock abundance, max surface temperature). Sub-score
+  linear, lower is better, between the whole-Moon 2nd and 98th percentiles. Our choice, documented as such: no published
+  landing threshold exists for these quantities. The direction for H (denser near-surface regolith = better) is the least
+  certain and is flagged in its documentation. The regolith values join the per-site series in metrics.py so every
+  endpoint (evaluate, area, grid, matrix, uncertainty ring) scores them the same way. Rejected: scoring them only in
+  /evaluate (the score layer and the date strip would disagree with the clicked value).
+- "Repeats every" for Sun and Earth periods: the lag (10–45 days) with the highest autocorrelation of the in-view series
+  over 90 days. Rejected: mean rise-to-rise time, which a ridge interrupting the Sun for a few hours breaks (21 d instead
+  of ~30 d at 89.45° S). Checked: Sun 29.5–30.2 d, Earth 26.2–28.1 d on 4 places (synodic 29.53 d, draconic 27.21 d).
+- Labels: IAU/USGS Gazetteer of Planetary Nomenclature (2 023 adopted names, lettered satellite craters left out),
+  drawn at a fixed screen size; a name shows once its feature is ≥ 28 px across, largest first, no overlaps.
+- Animation of the landing time now moves on to the next 30-day strip instead of stopping at its end (live mode).
+- Audit of everything on screen with sources and validation status: docs/validation/navigator-audit.md; documentation
+  checks are now automatic (frontend/src/docs/topics.test.ts).

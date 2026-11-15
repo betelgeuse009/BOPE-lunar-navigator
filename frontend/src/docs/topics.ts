@@ -56,6 +56,14 @@ export const REFS = {
   wikipedia: { text: 'Wikipedia, the free encyclopedia: opening paragraphs of each mission article, licence CC BY-SA 4.0; images from Wikimedia Commons under the licence shown on each card.', url: 'https://en.wikipedia.org' },
   nssdca: { text: 'NASA NSSDCA, lunar landing and impact site coordinates.', url: 'https://nssdc.gsfc.nasa.gov/planetary/lunar/lunar_sites.html' },
   lroc: { text: 'LROC (Lunar Reconnaissance Orbiter Camera) image measurements of landing sites.', url: 'https://lroc.im-ldi.com' },
+  lroCoord: {
+    text: 'LRO Project and LGCWG (2008), "A Standardized Lunar Coordinate System for the Lunar Reconnaissance Orbiter and Lunar Datasets", white paper, version 5, 1 Oct 2008 (Mean Earth / Polar Axis frame for lunar data products).',
+    url: 'https://science.nasa.gov/wp-content/uploads/2024/01/luncoordwhitepaper-10-08.pdf',
+  },
+  glaser2014: {
+    text: 'Gläser, P. et al. (2014), "Illumination conditions at the lunar south pole using high resolution Digital Terrain Models from LOLA", Icarus 243, 78-90, doi:10.1016/j.icarus.2014.08.013.',
+    url: 'https://ui.adsabs.harvard.edu/abs/2014Icar..243...78G',
+  },
   smith2017: {
     text: 'Smith, D. E. et al. (2017), "Summary of the results from the lunar orbiter laser altimeter after seven years in lunar orbit", Icarus 283, 70-91 (vertical accuracy of the gridded LOLA altitude maps about 1 m, as listed in the USGS planetary data product table).',
     url: 'https://fdp.astrogeology.usgs.gov/fdp/moon/',
@@ -104,7 +112,7 @@ const DEFS = {
     summary: 'Type the latitude and longitude of the place to evaluate, instead of clicking on the Moon. The boxes show the coordinates of the place chosen last.',
     sections: [
       { h: 'Convention', p: [
-        'Selenographic coordinates in the Mean Earth / Polar Axis frame (MOON_ME), the frame of the LOLA maps and of every result of the analysis server [1][2]. Latitude: planetocentric, −90° (south pole) to +90° (north pole). Longitude: east-positive, −180° to +180°; a value from 180° to 360° is also accepted and turned into the same place west of 0° (for example 270° E = −90°).',
+        'Selenographic coordinates in the Mean Earth / Polar Axis frame (MOON_ME), the frame of the LOLA maps and of every result of the analysis server [1][2], recommended for lunar data products by the LRO Project and the Lunar Geodesy and Cartography Working Group [3]. Latitude: planetocentric, −90° (south pole) to +90° (north pole). Longitude: east-positive, −180° to +180°; a value from 180° to 360° is also accepted and turned into the same place west of 0° (for example 270° E = −90°).',
         'Decimal degrees only. South latitudes and west longitudes are negative. A comma is read as a decimal point.',
       ] },
       { h: 'What happens', p: [
@@ -115,7 +123,7 @@ const DEFS = {
         'A position typed here is a point; the landing accuracy of a real lander is handled by the uncertainty ring (see Uncertainty).',
       ] },
     ],
-    refs: ['contract', 'api'], seeAlso: ['uncertainty', 'known-sites'],
+    refs: ['contract', 'api', 'lroCoord'], seeAlso: ['uncertainty', 'known-sites'],
   },
   'mission-type': {
     title: 'Mission type', category: 'Mission setup',
@@ -185,9 +193,10 @@ const DEFS = {
     sections: [
       { h: 'Description', p: ['The observer is placed this high above the surface at the chosen point, and the skyline is computed from there. One height is used for both the solar array and the antenna.'] },
       { h: 'Values', p: ['Default: 2 m.'] },
+      { h: 'Published comparison', p: ['Gläser et al. computed the sunlight over a full 19-year precession cycle at the best-lit spots near the south pole with a 20 m LOLA terrain model: on the ridge between Shackleton and de Gerlache craters, 92.27 % of the time at 2 m above the ground and 95.65 % at 10 m, with the longest dark periods typically only 3 to 5 days [2]. The navigator\'s mast-height effect can be compared with these numbers; this comparison has not been run yet (docs/validation/navigator-audit.md).'] },
       { h: 'Without terrain', p: ['When the LOLA maps are not available the horizon is a smooth sphere of radius $R = 1737.4\\ \\text{km}$, and a mast of height $h$ only lowers it by the dip angle $\\delta$ ($0.087^\\circ$ at $h = 2\\ \\text{m}$):'], eq: '\\delta = \\arccos\\!\\left( \\frac{R}{R + h} \\right)' },
     ],
-    refs: ['parameters'], seeAlso: ['terrain-horizon', 'sunlight'],
+    refs: ['parameters', 'glaser2014'], seeAlso: ['terrain-horizon', 'sunlight'],
   },
   'score-weights': {
     title: 'Score weights', category: 'Mission setup',
@@ -642,11 +651,11 @@ const DEFS = {
     sections: [
       { h: 'Description', p: [
         'The record shows the site you point at or chose in the list. Its numbers come from the precomputed site-by-date table for the chosen landing date; with the analysis server running the table is recomputed with your settings.',
-        'Slope and altitude are the LOLA values at the cited coordinate. The link at the bottom opens the source of the coordinate.',
+        'Slope and altitude are the LOLA values at the cited coordinate. The link at the bottom opens the source of the coordinate: the NASA NSSDCA landing-site tables [3] or LROC image measurements [4], as listed per site in the catalogue [1].',
       ] },
       { h: 'How it differs from "Can we land there?"', p: ['"Can we land there?" is the full evaluation of the chosen place, with uncertainties and the requirements check. The site record is the short catalogue entry.'] },
     ],
-    refs: ['sites', 'api'], seeAlso: ['known-sites', 'score'],
+    refs: ['sites', 'api', 'nssdca', 'lroc'], seeAlso: ['known-sites', 'score'],
   },
 
   // ---------------- Methods ----------------
