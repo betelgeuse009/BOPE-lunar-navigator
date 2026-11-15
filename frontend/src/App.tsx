@@ -11,6 +11,7 @@ import { ComparePanel } from './ui/ComparePanel'
 import { InputPanel } from './ui/InputPanel'
 import { OutputPanel } from './ui/OutputPanel'
 import { Pane } from './ui/Pane'
+import { useStoryLink } from './ui/storyLink'
 
 // public/data/ is filled by scripts/sync-data.mjs from data/processed/ (or data/samples/ until AERO publishes)
 const DATA_BASE: string = import.meta.env.VITE_DATA_BASE ?? `${import.meta.env.BASE_URL}data/`
@@ -34,6 +35,7 @@ export default function App() {
   // Days on the date strip: the precomputed ones offline, a fixed number from the calendar's day when live.
   const staticCount = data?.matrix.landing_dates_utc.length ?? 0
   useEffect(() => setDateCount(mode === 'live' ? STRIP_DAYS : staticCount), [mode, staticCount, setDateCount])
+  useStoryLink(data !== null)
 
   // Landing time: the chosen date at the chosen time of day (live only; the offline files are computed at 00:00 UTC).
   const landingDate = useApp(landingDay)
