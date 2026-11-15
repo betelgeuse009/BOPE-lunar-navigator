@@ -11,6 +11,8 @@ import { EarthBlock, NearbyBlock, ScoreBlock, SunBlock, TerrainBlock } from './r
 import { useWarn } from './useWarn'
 import { Status, StatusLegend } from './Status'
 import { Countdown } from './results/Countdown'
+import { MoonVsEarth } from './results/MoonVsEarth'
+import { WhyBlock } from './results/Why'
 import type { Verdict } from './warnings'
 import { TimePlot } from './results/TimePlot'
 import { SitePanel } from './SitePanel'
@@ -72,6 +74,8 @@ export function OutputPanel({ sites, matrix, ev, area, landingUtc }: {
           <Block title="Sun" help="sunlight" open={false}><SunBlock ev={e} eph={eph.data} windows={windows.data} repeat={repeat.data} /></Block>
           <Block title="Earth" help="earth-in-view" open={false}><EarthBlock ev={e} eph={eph.data} windows={windows.data} repeat={repeat.data} /></Block>
           <Block title="Terrain" help="slope" open={false}><TerrainBlock ev={e} /></Block>
+          <Block title="Why it changes" help="sensitivity" open={false} lazy><WhyBlock ev={e} eph={eph.data} /></Block>
+          <Block title="Moon vs Earth" help="moon-vs-earth" open={false} lazy><MoonVsEarth ev={e} eph={eph.data} /></Block>
           {radiusKm > 0 && <Block title={`Within ${radiusKm} km`} help="nearby-search"><NearbyBlock area={area.data} loading={area.loading} error={area.error} /></Block>}
           <Block title="Plot over time" help="time-series" open={false}><TimePlot data={eph.data} loading={eph.loading} error={eph.error} /></Block>
         </div>

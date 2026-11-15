@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import type { TopicId } from '../docs/topics'
 import { Help } from './Help'
 
@@ -22,11 +22,13 @@ export function Pane({ side, title, open, onToggle, children }: {
 }
 
 // One self-contained block inside a pane. New features are added as new blocks.
-export function Block({ title, help, open = true, children }: { title: string; help: TopicId; open?: boolean; children: ReactNode }) {
+// `lazy`: the content is mounted only once the block is opened (for blocks that ask the server for more data).
+export function Block({ title, help, open = true, lazy = false, children }: { title: string; help: TopicId; open?: boolean; lazy?: boolean; children: ReactNode }) {
+  const [shown, setShown] = useState(open)
   return (
-    <details className="block" open={open}>
+    <details className="block" open={open} onToggle={(e) => e.currentTarget.open && setShown(true)}>
       <summary><span>{title} <Help topic={help} /></span></summary>
-      <div className="block-body">{children}</div>
+      <div className="block-body">{!lazy || shown ? children : null}</div>
     </details>
   )
 }

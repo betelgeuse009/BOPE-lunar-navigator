@@ -676,3 +676,34 @@ fieldset.requirements { margin-top: 0; }
 .search-kind { width: 14px; text-align: center; color: var(--text-2); }
 .kind-site { color: var(--chosen); }
 .search-note { flex: 1 1 100%; margin: 0; font-size: 13px; color: var(--warn); }
+
+/* ---------- Why it changes (ui/results/Why.tsx) ---------- */
+.why-reasons { margin: 0 0 8px; padding-left: 18px; }
+.why-reasons li { margin: 6px 0; line-height: 1.45; }
+.panorama { margin: 16px 0 0; }
+.panorama svg { display: block; width: 100%; height: 150px; background: #050608; border: 1px solid var(--rule); }
+.panorama .terrain { fill: #3a3c43; }
+.panorama .flat { stroke: #6b6e78; stroke-width: 1; stroke-dasharray: 3 3; vector-effect: non-scaling-stroke; }
+.panorama circle.sun { fill: var(--sun); }
+.panorama circle.earth { fill: var(--earth); }
+.panorama circle.hidden { opacity: 0.35; }
+.panorama figcaption { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-2); }
+.panorama .note { margin: 4px 0 0; font-size: 12.5px; }
+.panorama .k-sun { color: var(--sun); }
+.panorama .k-earth { color: var(--earth); }
+
+/* ---------- Moon vs Earth (ui/results/MoonVsEarth.tsx) ---------- */
+.vs-key { display: flex; align-items: center; gap: 6px; margin: 0 0 8px; font-size: 13px; color: var(--text-2); }
+.vs-key i { width: 10px; height: 10px; border-radius: 2px; margin-left: 6px; }
+.vs-key i.m { background: #d9d9e0; margin-left: 0; }
+.vs-key i.e { background: var(--earth); }
+.vs { list-style: none; margin: 0; padding: 0; }
+.vs li { display: grid; grid-template-columns: 1fr auto; gap: 3px 10px; padding: 10px 0; border-bottom: 1px solid var(--rule); }
+.vs-label { font-size: 14px; }
+.vs-ratio { font-weight: 700; font-size: 14px; }
+.vs-bar { grid-column: 1 / -1; position: relative; height: 18px; background: #16171b; border-radius: 2px; }
+.vs-bar i { position: absolute; left: 0; top: 0; bottom: 0; min-width: 2px; border-radius: 2px; }
+.vs-bar.m i { background: #d9d9e0; }
+.vs-bar.e i { background: var(--earth); }
+.vs-bar b { position: relative; display: block; padding: 0 6px; font-size: 12.5px; font-weight: 600; line-height: 18px; color: #fff; text-shadow: 0 0 3px #000, 0 0 2px #000; }
+.vs li small { grid-column: 1 / -1; font-size: 12px; color: var(--text-2); }

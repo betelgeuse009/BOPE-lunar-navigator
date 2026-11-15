@@ -190,6 +190,27 @@ export function useWindows(startUtc: string | undefined): Result<Windows> {
   return useApiRequest(site && JSON.stringify(site), (p) => apiGet('metrics', p, Windows))
 }
 
+// The terrain skyline of the chosen place, for the "Why it changes" panorama (same request as the surface view).
+export function useHorizon(): Result<Horizon> {
+  const { mode, settings, point } = useApp()
+  const where = mode === 'live' && point
+    ? { lat_deg: point.lat.toFixed(4), lon_deg: point.lon.toFixed(4), obs_height_m: String(settings.obsHeightM) }
+    : null
+  return useApiRequest(where && JSON.stringify(where), (p) => apiGet('horizon', p, Horizon))
+}
+
+// Score of every point within SPREAD_KM of the chosen place (spacing SPREAD_KM / 8), for "Why it changes".
+export const SPREAD_KM = 2
+export function useNearbySpread(startUtc: string | undefined): Result<Area> {
+  const { mode, settings, point } = useApp()
+  const s = useDebounced(settings, 300)
+  const params = mode === 'live' && point && startUtc
+    ? { ...settingsQuery(s), ...limitsQuery(s), lat_deg: point.lat.toFixed(4), lon_deg: point.lon.toFixed(4), start_utc: startUtc,
+        radius_km: String(SPREAD_KM), spacing_km: String(SPREAD_KM / 8) }
+    : null
+  return useApiRequest(params && JSON.stringify(params), (p) => apiGet('area', p, Area))
+}
+
 // The same periods over REPEAT_DAYS from the landing, whatever the stay, to measure how often they come back
 // (10 min resolution is enough for a period of weeks).
 export const REPEAT_DAYS = 90

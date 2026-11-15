@@ -72,6 +72,8 @@ export const REFS = {
     text: 'IAU Working Group for Planetary System Nomenclature and USGS Astrogeology Science Center, Gazetteer of Planetary Nomenclature: Moon, centre points (MOON_nomenclature_center_pts), downloaded 2026-11-15.',
     url: 'https://planetarynames.wr.usgs.gov/',
   },
+  moonFact: { text: 'Williams, D. R., "Moon Fact Sheet", NASA Goddard Space Flight Center, NSSDCA, last updated 11 Jan 2024.', url: 'https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html' },
+  earthFact: { text: 'Williams, D. R., "Earth Fact Sheet", NASA Goddard Space Flight Center, NSSDCA, last updated 15 Nov 2024.', url: 'https://nssdc.gsfc.nasa.gov/planetary/factsheet/earthfact.html' },
   meeus1998: { text: 'Meeus, J. (1998), Astronomical Algorithms, 2nd ed., Willmann-Bell, Richmond (mean lengths of the synodic, anomalistic and draconic months).' },
 } satisfies Record<string, { text: string; url?: string }>
 export type RefId = keyof typeof REFS
@@ -949,6 +951,52 @@ const DEFS = {
       { h: 'Limitations', p: ['The bands are reading aids, not mission requirements: a real mission sets its own limits under Minimum requirements. The Artemis III values were written for a crewed south-pole landing.'] },
     ],
     refs: ['nasaReq', 'parameters'], seeAlso: ['requirements', 'verdict', 'uncertainty', 'landing-criteria'],
+  },
+  sensitivity: {
+    title: 'Why it changes', category: 'Results',
+    summary: 'Why a small change of place or landing date can change the result a lot: what the result does one day or one hour earlier or later and a few hundred metres away, and what in the sky and the terrain causes it.',
+    sections: [
+      { h: 'The physics in one paragraph', p: [
+        'The Moon\'s spin axis is tilted only about 1.5° to the ecliptic, so near the poles the Sun stays within a few degrees of the horizon all year and circles it once per lunar day of 29.5 Earth days [1][2]. A ridge one or two degrees high, or a crater rim a few hundred metres away, then decides whether the Sun is seen. The Earth hardly moves in the sky of a given place: it only swings by several degrees with the librations over about a month, so near the poles and the limb a small rise of terrain decides whether it is in view [1]. Away from the poles both bodies rise high and small changes matter much less.',
+      ] },
+      { h: 'Reasons', p: [
+        'From the server\'s Sun and Earth positions every 10 minutes over the stay and the terrain skyline (360° in 0.5° steps, from the mast height). "Hidden by terrain": a time step with the centre of the disc above the flat horizon ($h > 0$) but less than half of the disc above the skyline. The sector is the smallest compass arc that holds every such step; the skyline height given is the highest point of the skyline in that arc along the body\'s path.',
+        'The sentence about a low Sun appears when the Sun never climbs above 10° during the stay, the one about a low Earth when the Earth stays within 10° of the horizon. The 10° is a wording choice, not a published value.',
+      ] },
+      { h: 'Landing date and time', p: [
+        'Score for a landing one day earlier and later (same time of day), from the same request as the date strip, and one hour earlier and later, from the time-of-day strip (every 10 minutes). "n/a" at the ends of a strip. Over the 30 days: the lowest and highest score of the date strip.',
+      ] },
+      { h: 'Place', p: [
+        'Moving by the landing accuracy: for each value, the largest change found by the server on a ring of 8 points at the landing accuracy (100 m by default) around the place: the position part of the uncertainty (page "Uncertainty").',
+        'Anywhere within 2 km: the lowest and highest score on a grid of points every 250 m within 2 km (/api/area, faster skyline with 2° azimuth steps), and the best of them.',
+      ] },
+      { h: 'Panorama', p: ['The skyline seen from the mast as a grey silhouette over 360° of azimuth (north at both ends), with the Sun and Earth positions every 10 minutes (or less often for long stays) over the stay: bright when at least half of the disc is in view, faint when hidden. The elevation axis is stretched to show degrees near the horizon.'] },
+      { h: 'Limitations', p: ['The terrain is the LOLA skyline out to 200 km; boulders and anything smaller than the map pixels are not in it. Without the terrain maps the skyline is a smooth sphere and nothing is "hidden by terrain".'] },
+    ],
+    refs: ['meeus1998', 'pgda69', 'api', 'parameters'], seeAlso: ['terrain-horizon', 'uncertainty', 'nearby-search', 'landing-time'],
+  },
+  'moon-vs-earth': {
+    title: 'Moon vs Earth', category: 'Results',
+    summary: 'The chosen place next to everyday values on Earth, as pairs of bars, to show how different the conditions are.',
+    sections: [
+      { h: 'Values', table: {
+        head: ['Row', 'Moon', 'Earth', 'Source'],
+        rows: [
+          ['Day and night, one full cycle', 'synodic period 29.53 days', '24 h', 'Moon [1], Earth [2]'],
+          ['Longest night of your stay', 'computed for the place and the stay (page "Longest night")', 'about 12 h: half of a 24 h day at the equator, ignoring refraction', 'Earth: our arithmetic from [2]'],
+          ['Ground temperature swing in a day', '95 to 390 K at the equator', '283 to 293 K (diurnal range of the global average)', 'Moon [1], Earth [2]'],
+          ['Highest Sun during your stay', 'computed for the place and the stay', 'up to 90°: at noon on the equator at an equinox', 'geometry'],
+          ['Air pressure at the ground', '$3 \\times 10^{-15}$ bar (night)', '1.014 bar', 'Moon [1], Earth [2]'],
+          ['Gravity', '1.62 m/s²', '9.80 m/s²', 'Moon [1] (Earth value as given there)'],
+          ['Size in the sky', 'the Earth seen from the place, $2\\rho_\\oplus$ from the server at landing', 'the Moon seen from Earth: $2 \\arctan(1737.4 / 384\\,400) = 0.52^\\circ$', 'mean radius and distance [1]'],
+        ],
+      } },
+      { h: 'Reading the bars', p: ['Each row is drawn on a linear scale: the longer of the two values fills the row, the other is in proportion, so a tiny bar means a tiny value (air pressure on the Moon is too small to draw). The number on the right is the ratio Moon / Earth.'] },
+      { h: 'Radio delay', p: ['Light time to the Earth from the place at landing: distance / speed of light ($c = 299\\,792.458$ km/s, exact), once one way and twice for there and back. The distance is the server\'s, from the JPL ephemeris.'] },
+      { h: 'What it means', p: ['No air: the sky is black in full daylight, shadows are hard and nothing carries heat away, so the ground swings by hundreds of kelvin between day and night. The Moon\'s axis is tilted only about 1.5° to the ecliptic [3], so there are almost no seasons and near the poles the Sun skims the horizon all year.'] },
+      { h: 'Limitations', p: ['The Earth values are global or equatorial references, not a particular place on Earth. The Moon\'s temperature swing is the equatorial value; this place\'s own maximum and average temperatures are under its coordinates.'] },
+    ],
+    refs: ['moonFact', 'earthFact', 'meeus1998', 'api'], seeAlso: ['sensitivity', 'surface-temperature', 'longest-night', 'earth-position'],
   },
   'site-colours': {
     title: 'Site colours', category: 'Methods',

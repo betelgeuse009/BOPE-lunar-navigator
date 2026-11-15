@@ -72,7 +72,10 @@ export const Evaluation = z.object({
   requirements_at_risk: z.array(z.string()).optional(),
   uncertainty_model: z.object({
     position_uncertainty_m: z.number().optional(),
-    components: z.record(z.object({ range: z.tuple([z.number(), z.number()]).nullable().optional() })).optional(),
+    // Per parameter: the part of the ± from the landing position (`position`, ring at position_uncertainty_m) and from
+    // the skyline (`horizon`), and the range found (contracts/API.md).
+    components: z.record(z.object({ range: z.tuple([z.number(), z.number()]).nullable().optional(),
+      position: z.number().nullable().optional(), horizon: z.number().nullable().optional() })).optional(),
   }).optional(),
 })
 export type Evaluation = z.infer<typeof Evaluation>
