@@ -42,7 +42,7 @@ def site_series(bv: eph.BodyVectors, lat_deg, lon_deg, inp: Inputs) -> dict[str,
     use_terrain = horizon.source(inp.use_terrain) == horizon.TERRAIN
     nan = np.full(lat.shape, np.nan)
     if use_terrain:
-        elevation = terrain.elevation_m(lat, lon)
+        elevation = terrain.elevation_m(lat, lon, use_5m=not inp.fast_horizon)   # same maps as the skyline
         slope, slope_baseline, slope_source = terrain.slope_deg(lat, lon)
         height_error = terrain.height_error_m(lat, lon)
     else:
