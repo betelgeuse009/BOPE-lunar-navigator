@@ -156,6 +156,8 @@ const DEFS = {
           ['Min sunlight', '$f_\\odot \\ge f_{\\odot,\\min}$'],
           ['Min Earth in view', '$f_\\oplus \\ge f_{\\oplus,\\min}$'],
           ['Max longest blackout', '$L_{\\text{blackout}} \\le L_{\\text{blackout,max}}$'],
+          ['Max rock abundance', 'rock fraction $\\le$ the value typed (in %); not checked beyond 80°'],
+          ['Max surface temperature', 'highest surface temperature $T_{\\max} \\le$ the value typed (in K)'],
         ],
       } },
       { h: 'Defaults', p: ['No limit is set by default. The limits depend on the lander (battery, slope tolerance, link needs), so they are yours to choose, or come from the mission type.'] },
@@ -189,12 +191,12 @@ const DEFS = {
   },
   'score-weights': {
     title: 'Score weights', category: 'Mission setup',
-    summary: 'How much each of the five factors counts in the score. A weight of 0 leaves that factor out.',
+    summary: 'How much each of the eight factors counts in the score. A weight of 0 leaves that factor out.',
     sections: [
       { h: 'Description', p: ['The score is the weighted average of the sub-scores. Raising a weight makes that factor count more; setting it to 0 removes it, for example the two Earth factors when a relay satellite carries the link.', 'Here $s_i \\in [0, 1]$ is the sub-score of factor $i$ and $w_i \\ge 0$ its weight.'], eq: 'S = \\frac{\\sum_i w_i\\, s_i}{\\sum_i w_i}' },
-      { h: 'Values', p: ['Default: 1 for every factor. The defaults are a first proposal of the analysis team, not values taken from the literature.'] },
+      { h: 'Values', p: ['Default: 1 for sunlight, longest night, Earth in view, longest blackout and landing slope; 0 for the three regolith factors (rock abundance, maximum surface temperature, H-parameter), so the default score is the same as before they were added. The defaults are a first proposal of the analysis team, not values taken from the literature.', 'A regolith factor counts only where its map has a value: rock abundance between 80° S and 80° N, the H-parameter between 70° S and 70° N. Near the poles they are left out of the average even with a weight above 0.'] },
     ],
-    refs: ['parameters'], seeAlso: ['score', 'sunlight', 'longest-night', 'earth-in-view', 'longest-blackout', 'slope'],
+    refs: ['parameters'], seeAlso: ['score', 'sunlight', 'longest-night', 'earth-in-view', 'longest-blackout', 'slope', 'rock-abundance', 'surface-temperature', 'h-parameter'],
   },
   'nearby-search': {
     title: 'Search nearby', category: 'Mission setup',
@@ -245,7 +247,7 @@ const DEFS = {
   // ---------------- Results ----------------
   score: {
     title: 'Score', category: 'Results',
-    summary: 'A number from 0 (worst) to 1 (best): the weighted average of five sub-scores for power, survival, communication and terrain.',
+    summary: 'A number from 0 (worst) to 1 (best): the weighted average of up to eight sub-scores for power, survival, communication, terrain and regolith.',
     sections: [
       { h: 'Description', p: ['The score ranks places and landing dates for one mission window. It is a comparison tool defined by the analysis team, not a published standard.', 'Here $s_i \\in [0, 1]$ is the sub-score of factor $i$ and $w_i \\ge 0$ its weight. The sum runs over the factors that have a value and a weight above 0.'], eq: 'S = \\frac{\\sum_i w_i\\, s_i}{\\sum_i w_i}' },
       { h: 'Sub-scores', table: {
@@ -256,12 +258,16 @@ const DEFS = {
           ['Earth in view', 'share of the window $f_\\oplus$', '$s_3 = f_\\oplus$'],
           ['Longest blackout', 'duration $L_{\\text{blackout}}$', '$s_4 = 1 - L_{\\text{blackout}} / T$'],
           ['Landing slope', 'slope $\\theta$', '$s_5 = \\max\\left( 0,\\ 1 - \\theta / 20^\\circ \\right)$'],
+          ['Rock abundance (weight 0 by default)', 'rock fraction $x$; $x_1 = 0.13\\ \\%$, $x_0 = 1.01\\ \\%$', '$s_6 = \\min\\big(1,\\ \\max\\big(0,\\ (x_0 - x)/(x_0 - x_1)\\big)\\big)$'],
+          ['Max surface temperature (weight 0 by default)', '$T_{\\max}$; $x_1 = 260$ K, $x_0 = 395$ K', '$s_7 = \\min\\big(1,\\ \\max\\big(0,\\ (x_0 - x)/(x_0 - x_1)\\big)\\big)$'],
+          ['H-parameter (weight 0 by default)', '$H$; $x_1 = 5.0$ cm, $x_0 = 8.9$ cm', '$s_8 = \\min\\big(1,\\ \\max\\big(0,\\ (x_0 - x)/(x_0 - x_1)\\big)\\big)$'],
         ],
       } },
       { h: 'Reading the table', p: ['"Share" is $w_i s_i / \\sum_j w_j$: the part of the score that comes from that factor. The shares add up to the score. The ± after the score is its uncertainty.'] },
       { h: 'Limitations', p: [
         'The 20° slope scale is a display choice of the analysis team, not a published lander limit.',
         'Without terrain data the slope has no value and is left out of the average.',
+        'Regolith factors: lower is better for all three, linear between $x_1$ (sub-score 1) and $x_0$ (sub-score 0). The ends are the 2nd and 98th percentile of each whole-Moon map, area-weighted, so the best 2 % of the Moon scores 1 and the worst 2 % scores 0. This is our choice: no published landing threshold exists for these quantities (page "Landing criteria"). They are left out where the map has no value (rock abundance beyond 80°, H-parameter beyond 70°).',
         'A high score does not mean the place meets your minimum requirements: those are checked separately.',
       ] },
       { h: 'Landing criteria', p: ['The score ranks places by the weighted factors; it does not say whether a published criterion is met. Criteria are checked by the requirements (limits); their published values and sources are on the page "Landing criteria" [3].'] },
@@ -391,7 +397,7 @@ const DEFS = {
         'Read at the clicked point from the Diviner level 3 map (128 pixels per degree, averaged by the analysis server to 32 pixels per degree, about 950 m), covering 80° S to 80° N. Poleward of 80° the map has no values and none is shown.',
       ] },
       { h: 'Reading the value', p: ['Most of the Moon is below 1 %. Young craters, their ejecta and steep slopes reach several percent, up to a few tens of percent on fresh crater walls. The value says nothing about boulders smaller than about 1 m or about the exact spot of the footpads.'] },
-      { h: 'Use', p: ['Shown for context. It is not part of the score or of the requirements.'] },
+      { h: 'Use', p: ['Shown next to the altitude. It can also enter the score (Score weights, "Rock abundance", weight 0 by default): fewer rocks score higher, linearly from 1 at 0.13 % to 0 at 1.01 %, the whole-Moon 2nd and 98th percentiles (our choice, not a published limit). And it can be a requirement: "Max rock abundance" under Minimum requirements. Beyond 80° it is not mapped: left out of the score, and a limit on it is reported as not checked.'] },
       { h: 'Formula', p: ['The analysis server averages the valid pixels of each 4 by 4 block of the 128 pixels-per-degree map, with DN the stored value:'], eq: 'RA = \\frac{1}{n} \\sum_{\\text{valid}} 0.001 \\cdot DN, \\qquad \\text{missing}: DN = -32768' },
       { h: 'Landing criteria', p: [
         'No published numeric limit for rock abundance was found. Apollo asked for sites with relatively few craters, a smoothness criterion without a number [4]. The Nova-C lander must land free of hazards larger than 30 cm [5]: smaller than the rocks this map counts (larger than about 1 m), so a low value is necessary but not sufficient.',
@@ -411,7 +417,7 @@ const DEFS = {
         'Thermal inertia $I = \\sqrt{k \\rho c}$ (conductivity $k$, density $\\rho$, heat capacity $c$) measures how strongly the ground resists temperature changes. A small $H$ means the dense, more conductive regolith is close to the surface, so the near-surface thermal inertia is higher and the night-time surface stays warmer; a large $H$ means a thick fluffy layer, lower thermal inertia and colder nights. $H$ is the quantity the Diviner team mapped; it is shown instead of a single thermal inertia, which would also depend on temperature.',
       ] },
       { h: 'Source and coverage', p: ['Fitted by Hayne et al. to Diviner channel 7 (25 to 41 µm) night-time temperatures, map of 128 pixels per degree (PDS file hpar_global_128ppd), averaged by the analysis server to 32 pixels per degree. Covered from 70° S to 70° N; poleward of that no value is shown. Global mean about 7 cm [1].'] },
-      { h: 'Use', p: ['Shown for context (regolith properties, thermal design). It is not part of the score.'] },
+      { h: 'Use', p: ['Shown next to the altitude. It can also enter the score (Score weights, "H-parameter", weight 0 by default): a smaller H scores higher, linearly from 1 at 5.0 cm to 0 at 8.9 cm, the whole-Moon 2nd and 98th percentiles. The direction is our choice: a smaller H means denser regolith close to the surface [1], taken here as firmer ground under the footpads; no published landing criterion says so, so leave the weight at 0 if your mission sees it otherwise. Beyond 70° it is not mapped and is left out.'] },
       { h: 'Landing criteria', p: ['No published landing threshold. Large values mark thick, loose regolith; small values (young crater ejecta and rays) mark denser, rockier ground. Half of the mapped Moon is between 6.6 and 7.4 cm (this map).'] },
     ],
     refs: ['hayne2017', 'api'], seeAlso: ['rock-abundance', 'surface-temperature'],
@@ -425,7 +431,7 @@ const DEFS = {
         'Maximum: the highest value over the local times of the bin. Average: the mean over the lunar day, after filling hours of local time that were not observed by linear interpolation when the gap is at most 4 hours; with a longer gap no average is shown.',
       ] },
       { h: 'South of 80° S', p: ['Diviner Polar Resource Product: yearly maximum surface temperature and yearly average temperature 2 cm below the surface, calculated by the Diviner team\'s thermal model on terrain triangles about 0.7 km across; the value of the nearest triangle within 2 km is shown [2].'] },
-      { h: 'Use', p: ['Shown for context (thermal design, volatiles). It is not part of the score. The two products differ (measured by local time vs modelled yearly values), so values can step at 80° S.'] },
+      { h: 'Use', p: ['Shown next to the altitude. The maximum can also enter the score (Score weights, "Max surface temperature", weight 0 by default): a cooler peak scores higher, linearly from 1 at 260 K to 0 at 395 K, the whole-Moon 2nd and 98th percentiles (our choice: a lower peak is a smaller thermal load; not a published limit). And it can be a requirement: "Max surface temperature" under Minimum requirements, checked against the maximum. The two products differ (measured by local time vs modelled yearly values), so values can step at 80° S.'] },
       { h: 'Formula', p: ['With $T_\\ell$ the measured bolometric temperature in local-time bin $\\ell$ (96 bins of 15 minutes) and $\\tilde T_\\ell$ the same after filling gaps of at most 4 h by linear interpolation:'], eq: 'T_{\\max} = \\max_\\ell T_\\ell, \\qquad \\bar T = \\frac{1}{96} \\sum_{\\ell=1}^{96} \\tilde T_\\ell' },
       { h: 'Landing criteria', p: ['No published landing threshold: the limits come from the thermal design of each lander and crew system. Apollo chose the landing time so that Sun angle and surface temperature together left a launch window of about a day per month [4].'] },
     ],

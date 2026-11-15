@@ -51,13 +51,15 @@ export const LIMITS: { key: LimitKey; label: string; unit: string; pct?: boolean
   { key: 'min_sunlit_frac', label: 'Min sunlight', unit: '%', pct: true, max: 100, help: 'sunlight' },
   { key: 'min_earth_visible_frac', label: 'Min Earth in view', unit: '%', pct: true, max: 100, help: 'earth-in-view' },
   { key: 'max_no_earth_h', label: 'Max longest blackout', unit: 'h', max: 1000, help: 'longest-blackout' },
+  { key: 'max_rock_abundance_frac', label: 'Max rock abundance', unit: '%', pct: true, max: 100, help: 'rock-abundance' },
+  { key: 'max_surface_temp_k', label: 'Max surface temperature', unit: 'K', max: 1000, help: 'surface-temperature' },
 ]
 
 // "Max landing slope: 13.1° (limit 10°)" from an /api/evaluate violation.
 export function describeViolation(v: { limit?: string; value?: number | null; limit_value?: number }): string {
   const l = LIMITS.find((x) => x.key === v.limit)
   if (!l) return `${v.limit}: ${v.value} (limit ${v.limit_value})`
-  const f = (x: number | null | undefined) => (x == null ? 'n/a' : l.pct ? `${Math.round(x * 100)} %` : `${+x.toFixed(1)}${l.unit === '°' ? '°' : ` ${l.unit}`}`)
+  const f = (x: number | null | undefined) => (x == null ? 'n/a' : l.pct ? `${+(x * 100).toFixed(x < 0.1 ? 2 : 0)} %` : `${+x.toFixed(1)}${l.unit === '°' ? '°' : ` ${l.unit}`}`)
   return `${l.label}: ${f(v.value)} (limit ${f(v.limit_value)})`
 }
 

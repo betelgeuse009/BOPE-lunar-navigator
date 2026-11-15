@@ -30,7 +30,7 @@ export function Requirements({ disabled }: { disabled: boolean }) {
       {LIMITS.map((l) => {
         const on = l.key in settings.limits
         const v = settings.limits[l.key] ?? null
-        const shown = v === null ? '' : String(l.pct ? Math.round(v * 1000) / 10 : v)
+        const shown = v === null ? '' : String(l.pct ? +(v * 100).toFixed(3) : v) // rock abundance needs hundredths of a percent
         return (
           <div key={l.key} className="limit">
             <span><label>
