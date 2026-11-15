@@ -40,6 +40,17 @@ record: NSSDCA, LROC).
 | Nearby search: best point, scores in the area | `/api/area`, fast skyline (2° azimuth steps) | nearby-search | **Checked**: fast profile within 0.04° median of the fine one at the pole example (contracts/API.md) |
 | Site record | `data/processed/sites.json`, coordinates from NSSDCA / LROC (data/SITES.md) | site-record, known-sites | **Read** (cited per site) |
 
+### Added 2026-11-15 (afternoon)
+
+| Item | Source / method | Page | Status |
+|---|---|---|---|
+| Warning badges ✓ / ! / ✕ | `frontend/src/ui/warnings.ts`: requirements, server's at-risk list, default bands (Artemis III values cited, the rest our choice) | warnings | **Definition**; unit tests `warnings.test.ts` |
+| Time left in view (countdown banner, stay bars) | `/api/evaluate` countdowns, `/api/metrics` periods | countdowns | **Checked** (same values as the Sun / Earth rows); unit tests `countdown.test.ts` |
+| Why it changes: date and place sensitivity | date / time strips (`/api/matrix`), position term of the uncertainty, `/api/area` 2 km | sensitivity | **Definition** (server values side by side) |
+| Why it changes: reasons, panorama | Sun / Earth tracks (`/api/ephemeris`) vs LOLA skyline (`/api/horizon`) | sensitivity | **Checked**: unit tests `why.test.ts`; at 89.45° S, 137.31° W the Sun stays 1.4–2.1° high and sweeps 62° → 251° over 14 days (checked against the raw API answer) |
+| Moon vs Earth | NASA Moon and Earth fact sheets (Williams, NSSDCA, 2024); place values from the server | moon-vs-earth | **Read** (cited per row); Earth night "about 12 h" and Moon apparent size 0.52° are our arithmetic from the fact sheets |
+| Search, A/B | catalogue sites, IAU gazetteer, typed coordinates | search, compare | **Checked**: unit tests `search.test.ts` |
+
 ## Mission setup pane
 
 | Item | Source / method | Page | Status |

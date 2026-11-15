@@ -552,3 +552,23 @@ Needs from AERO:
 Questions for AERO: do you know a published absolute accuracy for the Diviner GCP / PRP temperatures (for the ± on the
   temperature colour bar)? Open validation items are listed at the end of navigator-audit.md (T40).
 Commits: 6ffc955..HEAD on fe/feedback-batch
+
+## 2026-11-15 13:30 · FE
+Done (branch fe/ux-warnings, front end only, no analysis/ or contract change):
+  - Warning badges ✓ / ! / ✕ on the Results rows and in Compare: red = breaks your requirement, orange = at risk / not
+    checked / outside a default band, green = fine. Default bands (before any requirement): Artemis III values where
+    published, our own otherwise (page "Warnings" lists them). Legend line at the top of Results and Compare.
+  - "Time left in view" banner at the top of Results: "Sunset in 3 d 4 h", "Earthset in 12 h 51 min" + UTC time,
+    stay bars of the periods in view.
+  - Mission card (Wikipedia card on hover) moves away from the hovered site and the chosen point.
+  - Search bar at the top of the viewer: known sites, the 2 023 IAU names, coordinates ("89.45S 137.31W"). "A/B" picks
+    two places and opens Compare with columns A and B. New help page for the Compare panel (it had none).
+  - "Why it changes" block: score ±1 day / ±1 h, range over the strip, change within 100 m (your uncertainty ring's
+    position term, now kept by our schema), score within 2 km (/api/area), reasons from the Sun / Earth tracks vs your
+    skyline, 360° panorama. "Moon vs Earth" block: paired bars with NASA fact sheet values.
+  - Results order: place, legend, countdown, score, Sun, Earth, Terrain, Why it changes, Moon vs Earth, nearby, plot.
+Changed contract: no (reads existing endpoints; frontend schema now keeps uncertainty_model.components.*.position/horizon).
+Needs from AERO: nothing new. Optional: check the default bands we call "our choice" (docs/DECISIONS.md, page Warnings).
+Questions for AERO: the "Why it changes" 2 km /api/area call runs once per place when the block is open: OK for the
+  server load?
+Commits: 1e28cff..HEAD on fe/ux-warnings

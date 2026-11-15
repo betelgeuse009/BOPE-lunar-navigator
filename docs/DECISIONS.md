@@ -239,3 +239,20 @@ Short dated entries: decision, why, alternatives rejected. This becomes the "met
 - Animation of the landing time now moves on to the next 30-day strip instead of stopping at its end (live mode).
 - Audit of everything on screen with sources and validation status: docs/validation/navigator-audit.md; documentation
   checks are now automatic (frontend/src/docs/topics.test.ts).
+
+## 2026-11-15 · Intuitiveness: warnings, countdown, search A/B, "Why it changes", "Moon vs Earth" (FE session)
+- Warning badges (✓ fine / ! check / ✕ fails) on Results rows and Compare cells. Red only when a requirement the user set
+  is broken; orange for at risk (server), not checked, or outside a default band; green otherwise. Default bands are
+  shown before any requirement so the important values stand out (user's request): Artemis III values where published
+  (slope 10°, Earth in view 25 %, lit whole stay for crewed), our own otherwise (sunlight 50 %, sunset / Earthset within
+  24 h, blackout 72 h, rocks 1 %, peak 395 K, score 0.5), labelled as such. Signs plus colours, so they read without
+  colour vision. New colour --bad (red) for failures; orange stays for warnings.
+- Countdown banner at the top of Results ("Sunset in 3 d 4 h", UTC time) with stay bars: the challenge asks to make the
+  time left before sunset / Earthset clear.
+- Mission card moves to the corner farthest from the hovered site and the chosen point. Rejected: anchoring it next to
+  the marker (it would move while sweeping over the sites).
+- Search bar (sites, IAU names, coordinates) with an A/B mode that fills the existing Compare panel. Rejected: a
+  traverse planner A → B (user chose the quick comparison).
+- "Why it changes": only server values side by side (strips, the uncertainty's position term, /api/area within 2 km)
+  plus reasons read from the Sun / Earth tracks against the skyline. Lazy block: its requests start only when opened.
+- "Moon vs Earth": paired bars on a linear scale (the size of the difference is the message), NASA fact sheet values.
