@@ -83,16 +83,18 @@ class BodyVectors:
     sun_km: np.ndarray            # (T, 3) Moon centre -> Sun in MOON_ME
     earth_km: np.ndarray          # (T, 3) Moon centre -> Earth in MOON_ME
     earth_phase_frac: np.ndarray  # (T,) illuminated fraction of Earth seen from the Moon
+    radec_deg: np.ndarray         # (T, 4) right ascension and declination of the Sun, then of the Earth, seen from
+                                  # the Moon's centre, in the J2000 (ICRF) axes, LT+S
 
     def __len__(self) -> int:
         return len(self.times_utc)
 
 
-def _compute(times: list[str]) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+def _compute(times: list[str]) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """SPICE calls for a list of UTC instants: Moon->Sun, Moon->Earth (MOON_ME, LT+S) and Earth phase."""
     load_kernels()
     n = len(times)
-    sun, earth, phase = np.empty((n, 3)), np.empty((n, 3)), np.empty(n)
+    sun, earth, phase, radec = np.empty((n, 3)), np.empty((n, 3)), np.empty(n), np.empty((n, 4))
     with _LOCK:
         for i, t in enumerate(times):
             et = sp.str2et(t[:-1])
@@ -100,7 +102,11 @@ def _compute(times: list[str]) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
             earth[i] = sp.spkpos("EARTH", et, config.FRAME, config.ABCORR, "MOON")[0]
             # Phase angle at Earth between Earth->Sun and Earth->Moon; k = (1 + cos(alpha)) / 2.
             phase[i] = (1.0 + math.cos(sp.phaseq(et, "EARTH", "SUN", "MOON", config.ABCORR))) / 2.0
-    return sun, earth, phase
+            # Right ascension / declination: the same Moon->body direction, expressed in the inertial J2000 axes.
+            for j, body in enumerate(("SUN", "EARTH")):
+                _r, ra, dec = sp.recrad(sp.spkpos(body, et, "J2000", config.ABCORR, "MOON")[0])
+                radec[i, 2 * j], radec[i, 2 * j + 1] = math.degrees(ra), math.degrees(dec)
+    return sun, earth, phase, radec
 
 
 def _next_month(t: datetime) -> datetime:
@@ -108,7 +114,7 @@ def _next_month(t: datetime) -> datetime:
 
 
 @lru_cache(maxsize=48)
-def _month(year: int, month: int, step_s: int) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+def _month(year: int, month: int, step_s: int) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """One calendar month on the grid that starts at 00:00 UTC of the 1st. Shared by every window inside it."""
     first = datetime(year, month, 1, tzinfo=timezone.utc)
     return _compute(utc_grid(format_utc(first), format_utc(_next_month(first)), step_s))
@@ -133,12 +139,12 @@ def body_vectors(start_utc: str, end_utc: str, step_s: int) -> BodyVectors:
             take = min(left, len(month[2]) - i0)
             parts.append([a[i0:i0 + take] for a in month])
             left, t = left - take, _next_month(t)
-        sun, earth, phase = (np.concatenate([p[k] for p in parts]) for k in range(3))
+        sun, earth, phase, radec = (np.concatenate([p[k] for p in parts]) for k in range(4))
     else:
-        sun, earth, phase = _compute(times)
-    for a in (sun, earth, phase):
+        sun, earth, phase, radec = _compute(times)
+    for a in (sun, earth, phase, radec):
         a.setflags(write=False)
-    return BodyVectors(tuple(times), step_s, sun, earth, phase)
+    return BodyVectors(tuple(times), step_s, sun, earth, phase, radec)
 
 
 def site_positions_km(lat_deg, lon_deg, height_m=0.0) -> np.ndarray:

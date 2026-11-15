@@ -126,3 +126,62 @@ accuracy. A limit that holds at the point but breaks within the uncertainty is r
 
 What it does not include: errors in the Sun/Earth directions (below 0.0001°, checked against JPL Horizons), DEM artefacts
 beyond the height-error map, and the flat-skyline approximation across the disk width.
+
+## 7. Right ascension and declination (API)
+
+`sun_ra_deg`, `sun_dec_deg`, `earth_ra_deg`, `earth_dec_deg` in `/api/ephemeris` and `/api/scene`: direction of the body seen
+from the centre of the Moon, J2000 (ICRF) axes, LT+S. RA = atan2(y, x) mod 360°, Dec = asin(z / |r|). Selenocentric, so the
+same for every site. Validation and the size of the aberration term: `contracts/API.md`.
+
+## 8. Map layers (display; `frontend/scripts/layers.py`, wording in `frontend/src/scene/layers.ts`)
+
+Wording: **altitude** = height of the surface above the 1737.4 km sphere; **elevation** = angle of the Sun or the Earth above
+the local horizontal. API field names are unchanged (`elevation_m` is the altitude, `*_el_deg` are elevation angles).
+
+| Layer | Whole Moon | South of 80° S (finer) | Computed or read |
+|---|---|---|---|
+| Altitude | LOLA LDEM_128, 237 m | LDEM_80S_80MPP_ADJ, 80 m | read |
+| Slope | central differences on LDEM_128 over one 237 m pixel, slope = atan(√((∂z/∂x)² + (∂z/∂y)²)), east-west spacing × cos(lat), averaged to the 3.8 km image pixel | official LOLA 80 m slope map | computed / read |
+| Sun, Earth visibility (long term) | `analysis/global_visibility.py`: share of time with any part of the disc above a smooth-sphere horizon (observer 2 m), 2° grid, 2020–2038 every 6 h | NASA AVGVISIB (terrain, south of 85° S) | computed / read |
+| Permanently shadowed regions | NASA LPSR_65N_240M and LPSR_65S_240M (240 m, poleward of 65°) | LPSR_80S_20MPP_ADJ outlines > 1 km² | read |
+| Surface temperature, maximum | Diviner GCP (Williams et al. 2017): highest bolometric brightness temperature over the local times of each 0.5° bin | Diviner PRP: yearly maximum (thermal model) | read (max over local time) |
+| Surface temperature, average | Diviner GCP: mean over the day; unobserved local times filled by linear interpolation for gaps ≤ 4 h, longer gaps left blank | Diviner PRP: yearly average 2 cm deep | read (mean over local time) |
+| Day and night at landing time | smooth sphere, from the sub-solar point: sin h = sin φ sin φs + cos φ cos φs cos(λ − λs) | – | computed in the browser |
+| Score for your settings | `/api/grid`, 4° cells, smooth-sphere horizon + LOLA slope | `/api/area` around the pole, 15 km, terrain skyline | computed live |
+
+Colour scales (same palette everywhere): altitude, slope and temperature are coloured **by distribution**: the palette is
+spread evenly over the 2nd, 25th, 50th, 75th and 98th area-weighted percentile of the whole-Moon map, so each colour
+covers a quarter of the surface. Visibility is linear 0–100 %. Site markers, the calendar strip and the score layer are
+stretched between the lowest and highest value of the set shown; the two ends are printed next to the bar.
+
+## 9. Regolith context values (`analysis/regolith.py`, not scored)
+
+| Parameter | Unit | Source and method | Coverage |
+|---|---|---|---|
+| `surface_temp_max_k` | K | Diviner GCP (Williams et al. 2017): highest bolometric brightness temperature over local time in the 0.5° bin; south of 80°S Diviner PRP yearly maximum (thermal model), nearest triangle within 2 km | whole Moon |
+| `surface_temp_avg_k` | K | Diviner GCP: mean over the day, local-time gaps ≤ 4 h filled by linear interpolation; south of 80°S PRP yearly average 2 cm deep | whole Moon (blank where gaps > 4 h) |
+| `rock_abundance_frac` | 0..1 | Bandfield et al. 2011: areal fraction of rocks > ~1 m from night-time temperatures; 128 px/deg map averaged to 32 px/deg (0.95 km) | 80°S–80°N |
+| `h_parameter_m` | m | Hayne et al. 2017: ρ(z) = ρd − (ρd − ρs)·exp(−z/H), fitted to Diviner channel 7; averaged to 32 px/deg. Smaller H = denser near-surface regolith = higher thermal inertia | 70°S–70°N |
+
+Checks: equator maximum ~396 K (Williams et al. report ~390 K); global median H 7.05 cm (Hayne et al.: ~7 cm); Tycho floor
+rock abundance 13.8 % vs Apollo 11 mare 0.6 % (`analysis/tests/test_regolith.py`).
+
+## 10. Landing criteria with a published source (used in the documentation pages)
+
+| Criterion | Value | Source |
+|---|---|---|
+| General slope of the landing area | < 2° | Apollo Site Selection Board 1968, in J. Uri, "50 Years Ago: Lunar Landing Sites Selected", NASA JSC, 2018 |
+| Sun angle during the approach | 7°–20° behind the LM | same |
+| Approach path | no large hills, tall cliffs or deep craters | same |
+| Smoothness | relatively few craters | same |
+| Location | within 6° of the south pole | NASA, "Key Artemis III Landing Requirements", NTRS 20250009323 (2025) |
+| Landing slope | < 10° over 100 m | same |
+| EVA slope | < 20° over 2 km | same |
+| Communication | direct with Earth, no relay; areas with Earth visibility < 25 % excluded | same |
+| Surface lighting | lit for the whole stay; areas with solar visibility < 5 % excluded | same |
+| Approach lighting | beneficial | same |
+| Landing accuracy | within 100 m of the target | same |
+| Touchdown | slope < 10°, no hazards > 30 cm | Getchius et al. 2022, "Hazard Detection And Avoidance For The Nova-C Lander", arXiv:2204.00660 |
+
+No published numeric landing limit was found for rock abundance, surface temperature or the H-parameter; they stay
+context values. The front end shows these criteria on each layer page and on the page "Landing criteria".

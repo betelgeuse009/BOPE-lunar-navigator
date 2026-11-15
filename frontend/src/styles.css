@@ -440,3 +440,140 @@ fieldset.requirements { margin-top: 0; }
 .map-reticle { stroke-width: 1.6; vector-effect: non-scaling-stroke; pointer-events: none; }
 .map-reticle * { vector-effect: non-scaling-stroke; }
 .map-reticle .back { fill: rgba(0, 0, 0, 0.45); stroke: none; }
+
+/* ---------- Hints: an underlined word or an (i) mark that shows an explanation on hover ---------- */
+.hint { display: inline-block; pointer-events: auto; }
+.hint-link {
+  font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: help;
+  text-decoration: underline; text-underline-offset: 3px;
+}
+.hint-link:hover, .hint-link:focus-visible { color: var(--night-text); }
+.hint-mark {
+  display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; padding: 0;
+  font: italic 600 12px/1 Georgia, serif; color: var(--night-text-2); background: none; border: 1px solid #5b5f66; cursor: help;
+}
+.hint-mark:hover, .hint-mark:focus-visible { color: var(--night); background: var(--night-text); border-color: var(--night-text); }
+.layer-row { margin-top: 10px; }
+.layer-row .metric select { max-width: 300px; }
+.layer-note { color: #9a9ca1; font-size: 13px; }
+.map-night { fill: rgba(0, 0, 0, 0.62); stroke: #f2e08a; stroke-width: 1.2; vector-effect: non-scaling-stroke; pointer-events: none; }
+
+/* Layer legend: the colour bar with its labels spread evenly under it (2 = ends, 3 = low / middle / high). */
+.legend-ticks { display: grid; gap: 3px; }
+.legend-ticks .ramp { width: 420px; max-width: 100%; }
+.legend-ticks .ticks { display: flex; justify-content: space-between; gap: 12px; width: 420px; max-width: 100%; font-size: 12.5px; white-space: nowrap; }
+
+/* ---------- Time animation (Mission setup and surface view) ---------- */
+.mission-anim { margin-top: 24px; max-width: 520px; }
+.anim { display: grid; grid-template-columns: auto 1fr; align-items: end; gap: 8px 14px; margin-top: 8px; }
+.anim-play {
+  grid-row: span 2; align-self: center; width: 40px; height: 40px; padding: 11px; cursor: pointer;
+  background: transparent; border: 1px solid var(--text); border-radius: 50%;
+}
+.anim-play svg { display: block; width: 100%; height: 100%; fill: var(--text); }
+.anim-play[aria-pressed='true'] { background: var(--text); }
+.anim-play[aria-pressed='true'] svg { fill: var(--night); }
+.anim-field { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; font-size: 14px; color: var(--text-2); }
+.anim-field input[type='range'] { grid-column: 1 / -1; width: 100%; margin: 0; accent-color: var(--text); }
+.anim-field output { color: var(--text); font-weight: 600; }
+.anim-step { display: flex; align-items: center; gap: 6px; }
+.anim-step input, .anim-step select {
+  font: 500 14px var(--font); color: var(--text); background: var(--surface-raised);
+  border: 1px solid var(--rule); border-radius: 3px; padding: 3px 6px;
+}
+.anim-step input { width: 76px; }
+.anim-note { grid-column: 1 / -1; margin: 0; font-size: 13px; color: var(--text-2); }
+
+/* ---------- Surface view: header button and the full-window view ---------- */
+.surface-toggle {
+  display: flex; align-items: center; gap: 6px; font: 500 14px var(--font); color: var(--night-text);
+  background: rgba(0, 0, 0, 0.6); border: 1px solid #5b5f66; border-radius: 3px; padding: 4px 10px; cursor: pointer; white-space: nowrap;
+}
+.surface-toggle svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linejoin: round; }
+.surface-toggle svg .fill { fill: var(--sun); stroke: none; }
+.surface-toggle:disabled { color: var(--night-text-2); cursor: default; }
+.surface-toggle:disabled svg .fill { fill: var(--night-text-2); }
+.surface-toggle:not(:disabled):hover { border-color: var(--night-text); }
+
+.surface { position: fixed; inset: 0; z-index: 9; background: #000; color: var(--night-text); }
+.surface-canvas { position: absolute; inset: 0; cursor: grab; touch-action: none; }
+.surface-canvas:active { cursor: grabbing; }
+.surface-top {
+  position: absolute; top: 0; left: 0; right: 0; display: flex; align-items: center; gap: 16px;
+  padding: 14px var(--gutter) 36px; background: linear-gradient(rgba(0, 0, 0, 0.85) 40%, transparent); pointer-events: none;
+}
+.surface-top > * { pointer-events: auto; }
+.surface-top h2 { margin: 0; font-size: 15px; font-weight: 600; font-stretch: 125%; letter-spacing: 0.14em; text-transform: uppercase; }
+.surface-where { color: var(--night-text-2); }
+.surface-hint { flex: 1; color: var(--night-text-2); font-size: 14px; }
+.surface-close {
+  font: 500 15px var(--font); color: var(--night); background: var(--night-text); cursor: pointer;
+  border: 1px solid var(--night-text); border-radius: 3px; padding: 5px 14px;
+}
+.surface-msg { position: absolute; top: 45%; left: 50%; translate: -50% 0; margin: 0; padding: 12px 18px; background: rgba(0, 0, 0, 0.75); border: 1px solid var(--rule); }
+.surface-read {
+  position: absolute; top: 64px; left: var(--gutter); display: grid; gap: 8px; max-width: 480px;
+  padding: 12px 14px; background: rgba(0, 0, 0, 0.62); border: 1px solid var(--rule); border-radius: 3px; font-size: 14.5px;
+}
+.surface-time { margin: 0; font-size: 18px; font-weight: 600; font-stretch: 115%; }
+.surface-body { display: grid; grid-template-columns: 64px 1fr; gap: 0 10px; }
+.surface-body button {
+  grid-row: span 2; align-self: start; padding: 2px 0; font: 600 14.5px var(--font); text-align: left;
+  background: none; border: 0; border-bottom: 1px dashed currentColor; cursor: pointer;
+}
+.surface-body button.sun { color: var(--sun); }
+.surface-body button.earth { color: var(--earth); }
+.surface-body .dim { color: var(--night-text-2); font-size: 13.5px; }
+.surface-bottom {
+  position: absolute; left: 0; right: 0; bottom: 0; display: flex; align-items: flex-end; gap: 16px;
+  padding: 40px var(--gutter) 16px; background: linear-gradient(transparent, rgba(0, 0, 0, 0.8) 45%); pointer-events: none;
+}
+.surface-bottom > * { pointer-events: auto; }
+.surface-plots { flex: 1; display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; min-width: 0; }
+.surface-time-panel { width: 340px; padding: 10px 14px 12px; background: rgba(0, 0, 0, 0.62); border: 1px solid var(--rule); border-radius: 3px; }
+.surface-time-panel .slider { margin-top: 6px; font-size: 14px; }
+.surface-time-panel .anim { margin-top: 10px; }
+
+.compass { width: 116px; text-align: center; }
+.compass svg { width: 100%; display: block; }
+.compass .ring { fill: rgba(0, 0, 0, 0.62); stroke: #5b5f66; }
+.compass .tick { stroke: #7d7f84; stroke-width: 1; }
+.compass text { font: 600 11px var(--font); fill: var(--night-text-2); }
+.compass text.north { fill: var(--night-text); font-size: 13px; }
+.compass .heading { fill: var(--chosen); }
+.compass .sun-dot { fill: var(--sun); }
+.compass .earth-dot { fill: var(--earth); }
+.compass p { margin: 2px 0 0; font-size: 14px; font-weight: 600; }
+
+.elev-plot { margin: 0; width: 320px; max-width: 100%; padding: 6px 8px 4px; background: rgba(0, 0, 0, 0.62); border: 1px solid var(--rule); border-radius: 3px; }
+.elev-plot figcaption { font-size: 13px; color: var(--night-text-2); }
+.elev-plot figcaption span { font-weight: 600; }
+.elev-plot figcaption i { float: right; font-style: normal; font-size: 11.5px; }
+.elev-plot svg { display: block; width: 100%; cursor: crosshair; }
+.elev-plot text { font: 9px var(--font); fill: var(--night-text-2); }
+.elev-plot .grid { stroke: #24262b; }
+.elev-plot .zero { stroke: #5b5f66; }
+.elev-plot .axis { stroke: #5b5f66; }
+.elev-plot .sky { fill: none; stroke: #9a9ca6; stroke-width: 1; stroke-dasharray: 3 2; }
+.elev-plot .el { fill: none; stroke-width: 1.6; }
+.elev-plot.sun .el { stroke: var(--sun); }
+.elev-plot.earth .el { stroke: var(--earth); }
+.elev-plot.sun .band { fill: rgba(240, 178, 84, 0.14); }
+.elev-plot.earth .band { fill: rgba(111, 177, 230, 0.14); }
+.elev-plot .cursor { stroke: var(--chosen); stroke-width: 1.2; }
+
+.sky-label, .cardinal { text-transform: none; letter-spacing: 0; }
+.sky-label { font: 600 13px var(--font); color: var(--night-text); white-space: nowrap; pointer-events: none; text-shadow: 0 0 4px #000; }
+.sky-label.hidden-body { color: var(--night-text-2); font-weight: 400; }
+.sky-label.hidden-body::after { content: ' (behind the terrain)'; }
+.cardinal { font: 500 12px var(--font); color: var(--night-text-2); pointer-events: none; text-shadow: 0 0 4px #000; }
+.cardinal.main { font-size: 16px; font-weight: 700; color: var(--night-text); }
+
+@media (max-width: 900px) {
+  .surface-hint { display: none; }
+  .surface-read { top: 56px; right: var(--gutter); max-width: none; font-size: 13px; }
+  .surface-bottom { flex-wrap: wrap; }
+  .surface-plots { order: 3; flex-basis: 100%; }
+  .compass { width: 84px; }
+  .surface-time-panel { flex: 1; width: auto; }
+}

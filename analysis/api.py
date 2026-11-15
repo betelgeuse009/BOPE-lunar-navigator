@@ -162,6 +162,14 @@ def get_area(inp: ModelInputs, weights: Weights, limits: Limits, start_utc: Star
                              _end(start_utc, end_utc, mission_h), calc_step_s, inp, weights, limits)
 
 
+@app.get("/api/grid", summary="Score on a whole-Moon lat/lon grid (smooth-sphere horizon, LOLA slope)")
+def get_grid(inp: ModelInputs, weights: Weights, limits: Limits, start_utc: Start, end_utc: End = None,
+             mission_h: MissionH = config.MISSION_H,
+             step_deg: Annotated[float, Query(ge=2, le=30, description="Grid spacing, deg (must divide 180)")] = 4.0,
+             calc_step_s: Annotated[int, Query(ge=60, le=3600)] = config.AREA_CALC_STEP_S) -> dict:
+    return products.grid_doc(step_deg, start_utc, _end(start_utc, end_utc, mission_h), calc_step_s, inp, weights, limits)
+
+
 @app.get("/api/matrix", summary="Site x landing-date grid (matrix.schema.json)")
 def get_matrix(inp: ModelInputs, weights: Weights, start_utc: Start,
                site_ids: Annotated[str | None, Query(description="Comma-separated catalogue ids; default: all catalogue sites")] = None,

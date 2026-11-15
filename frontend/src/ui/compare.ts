@@ -20,7 +20,7 @@ export const ROWS: Row[] = [
     fmt: (v) => untilLoss(v, 'no Earth at landing'), nullText: 'not during the stay', nullMeans: Infinity },
   { field: 'both_frac', label: 'Sunlight and Earth together', better: 'high', fmt: fmtPct, bounds: [0, 1] },
   { field: 'slope_deg', label: 'Slope', better: 'low', fmt: fmtDeg, bounds: [0, 90] },
-  { field: 'elevation_m', label: 'Elevation', better: null, fmt: (v) => `${v.toFixed(1)} m` },
+  { field: 'elevation_m', label: 'Altitude', better: null, fmt: (v) => `${v.toFixed(1)} m` },
 ]
 
 export function formatCell(row: Row, cell: Cell | undefined, range?: [number, number] | null): string {

@@ -1,37 +1,61 @@
 import { OrbitControls } from '@react-three/drei'
 import { Canvas } from '@react-three/fiber'
-import { Suspense, useRef, useState } from 'react'
+import { Suspense, useMemo, useRef, useState } from 'react'
 import type { Group } from 'three'
-import type { Area } from '../data/api'
+import type { Area, ScoreGrid } from '../data/api'
 import type { Matrix, Site } from '../data/schemas'
 import { useApp } from '../state/store'
 import { metricColor } from '../ui/colors'
-import { metricMeta } from '../ui/metrics'
+import { formatValue, metricMeta, siteScale } from '../ui/metrics'
 import { MissionCard } from '../ui/MissionCard'
 import { AreaDots, PointMarkers } from './AreaLayer'
 import { CameraFocus } from './CameraFocus'
 import { CameraReset } from './CameraReset'
+import { Hint } from '../ui/Hint'
 import { vec3ToLatLon } from './geo'
+import { LayerOverlay } from './LayerOverlay'
+import { LAYERS, UNAVAILABLE, layerById, type LayerId } from './layers'
 import { Map2D } from './Map2D'
+import { scoreGridImage } from './scoreImage'
 import { Lights, Moon } from './Moon'
 import { SiteMarkers } from './SiteMarkers'
 import { Sky } from './Sky'
-import { HOME, SKY } from './view'
+import { FAR, HOME, TYPICAL_EARTH_KM, TYPICAL_SUN_KM } from './view'
 import { SouthCap } from './SouthCap'
 
 // Centre of the workbench: the Moon, what is drawn on it, and the controls that belong to the view.
-export function Viewport({ sites, matrix, area, subsolar, subearth, updating }: {
+const BASE = import.meta.env.BASE_URL
+
+export function Viewport({ sites, matrix, area, subsolar, subearth, skyKm, scoreMap, scoreGrid, updating }: {
   sites: Site[] | null; matrix: Matrix | null; area: Area | null
-  subsolar: { lat: number; lon: number } | null; subearth: { lat: number; lon: number } | null; updating: boolean
+  subsolar: { lat: number; lon: number } | null; subearth: { lat: number; lon: number } | null
+  skyKm: { earthKm: number; sunKm: number } | null
+  scoreMap: { data: Area | null; loading: boolean; error: string | null }
+  scoreGrid: { data: ScoreGrid | null; loading: boolean; error: string | null }; updating: boolean
 }) {
-  const { metric, mode, point, scaleMode, pins, compareOpen, setMetric, setSelected, setPoint, setCompareOpen } = useApp()
+  const { metric, mode, point, scaleMode, pins, compareOpen, dateIdx, layer: layerId, surfaceOpen, setMetric, setSelected, setPoint, setCompareOpen, setLayer, setSurfaceOpen } = useApp()
   const [view, setView] = useState<'3d' | '2d'>('3d')
   const [reset, setReset] = useState(0) // each press of the reset button
   const moon = useRef<Group>(null)
+  const layer = layerById(layerId)
+  // What the chosen layer cannot show right now, said next to the picker instead of failing silently.
+  const layerNote = !layer ? null
+    : layer.kind === 'score' ? (mode !== 'live' ? 'Needs the live analysis server.'
+      : scoreGrid.error ?? scoreMap.error ? `Could not compute: ${scoreGrid.error ?? scoreMap.error}`
+      : scoreGrid.loading ? 'Computing the whole Moon…' : scoreMap.loading && view === '2d' ? 'Computing the south pole in detail…' : null)
+    : layer.kind === 'daynight' ? (view === '3d' ? 'On the globe the lighting already shows it; the line is drawn on the 2D map.' : !subsolar ? 'No Sun position for this date.' : null)
+    : null
+  // Score layer: both parts share one colour range, the lowest and highest score found on the whole Moon.
+  const scoreRange = scoreGrid.data?.score_range ?? null
+  const scoreGlobal = useMemo(() => (layer?.kind === 'score' && scoreGrid.data && scoreRange ? scoreGridImage(scoreGrid.data, scoreRange) : null),
+    [layer, scoreGrid.data, scoreRange])
+  const layerLegend = layer?.kind === 'score' ? (scoreRange ? [scoreRange[0].toFixed(2), scoreRange[1].toFixed(2)] : null) : layer?.legend ?? null
+  const sitesScale = matrix ? siteScale(matrix, metric, dateIdx) : null
   return (
     <div className="stage">
-      {view === '2d' && <Map2D sites={sites} matrix={matrix} area={area} subsolar={subsolar} subearth={subearth} resetSignal={reset} />}
-      {view === '3d' && <Canvas camera={{ position: HOME, fov: 35, near: 0.01 }} onPointerMissed={() => setSelected(null)}>
+      {view === '2d' && <Map2D sites={sites} matrix={matrix} area={area} subsolar={subsolar} subearth={subearth} resetSignal={reset}
+        layer={layer} scoreMap={scoreMap.data} scoreGlobal={scoreGlobal} scoreRange={scoreRange} />}
+      {view === '3d' && <Canvas camera={{ position: HOME, fov: 35, near: 0.01, far: FAR }} onPointerMissed={() => setSelected(null)}>
         <color attach="background" args={['#000000']} />
         <Lights subsolar={subsolar} />
         <Suspense fallback={null}>
@@ -48,10 +72,19 @@ export function Viewport({ sites, matrix, area, subsolar, subearth, updating }: 
             <SouthCap />
           </group>
         </Suspense>
+        {layer?.kind === 'image' && (
+          <Suspense fallback={null}>
+            <LayerOverlay globalUrl={layer.global && BASE + layer.global} capUrl={layer.cap && BASE + layer.cap} />
+          </Suspense>
+        )}
+        {layer?.kind === 'score' && scoreGlobal && <Suspense fallback={null}><LayerOverlay globalUrl={scoreGlobal} /></Suspense>}
         {sites && matrix && <SiteMarkers sites={sites} matrix={matrix} />}
         {area && <AreaDots area={area} mode={scaleMode} />}
         {point && <PointMarkers point={point} best={area && !area.center_is_best ? area.best : null} />}
-        <Suspense fallback={null}><Sky subsolar={subsolar} subearth={subearth} moon={moon} /></Suspense>
+        <Suspense fallback={null}>
+          <Sky subsolar={subsolar} subearth={subearth} moon={moon}
+            earthKm={skyKm?.earthKm ?? TYPICAL_EARTH_KM} sunKm={skyKm?.sunKm ?? TYPICAL_SUN_KM} />
+        </Suspense>
         <OrbitControls makeDefault enablePan={false} minDistance={1.15} maxDistance={16} rotateSpeed={0.5} zoomSpeed={0.7} />
         <CameraFocus point={point} />
         <CameraReset signal={reset} />
@@ -63,6 +96,16 @@ export function Viewport({ sites, matrix, area, subsolar, subearth, updating }: 
           <button type="button" role="radio" aria-checked={view === '3d'} onClick={() => setView('3d')}>3D globe</button>
           <button type="button" role="radio" aria-checked={view === '2d'} onClick={() => setView('2d')}>2D map</button>
         </div>
+        <button type="button" className="surface-toggle" disabled={!point || mode !== 'live'} aria-pressed={surfaceOpen}
+          onClick={() => setSurfaceOpen(true)} aria-label="Surface view: stand at the chosen place"
+          title={mode !== 'live' ? 'The surface view needs the analysis server.' : !point ? 'Choose a place on the Moon first.' : 'Stand at the chosen place and look at the sky'}>
+          <svg viewBox="0 0 24 24" aria-hidden>
+            <circle cx="17" cy="6" r="2.4" className="fill" />
+            <path d="M1.5 19.5 7 12.5l3.5 4 3-3 9 6" />
+            <path d="M1.5 22.5h21" />
+          </svg>
+          Surface
+        </button>
         <p className={`mode mode-${mode}`} title={mode === 'live' ? 'Connected to the analysis server: click anywhere on the Moon.' : undefined}>
           {mode === 'live' ? (updating ? 'Live, updating' : 'Live') : mode === 'static' ? 'Offline' : 'Connecting'}
         </p>
@@ -91,26 +134,53 @@ export function Viewport({ sites, matrix, area, subsolar, subearth, updating }: 
               </select>
             </label>
             <div className="legend">
-              <span>{metricMeta(metric).higherIsBetter ? 'Less' : 'More'}</span>
+              <span title="Worst site on this date">{sitesScale ? formatValue(sitesScale.worst, metric) : metricMeta(metric).higherIsBetter ? 'Less' : 'More'}</span>
               <span className="ramp" style={{ background: `linear-gradient(90deg, ${[0, 0.33, 0.66, 1].map(metricColor).join(',')})` }} />
-              <span>{metricMeta(metric).higherIsBetter ? 'More' : 'Less'}</span>
+              <span title="Best site on this date">{sitesScale ? formatValue(sitesScale.best, metric) : metricMeta(metric).higherIsBetter ? 'More' : 'Less'}</span>
+              <Hint mark label="i" title="Site colours" topic="site-colours">
+                Each site is coloured by the chosen quantity on the landing date. The colours are stretched between the worst and the best
+                site of that date (the two values printed at the ends of the bar), so differences between sites stay visible even when
+                all the values are close. The palette does not change; only its ends move with the date and the settings.
+              </Hint>
               <span className="nodata"><i style={{ background: metricColor(null) }} />No data</span>
             </div>
           </div>
         )}
-        <p className="credit">
-          Moon imagery: NASA's Scientific Visualization Studio, CGI Moon Kit; south pole: LROC WAC mosaic and LOLA 80 m elevation.
-          {view === '3d' ? ' Relief exaggerated four times. ' : ' Flat map: areas stretch toward the poles. '}
-          {subsolar
-            ? `Sunlight from the Sun's position at landing time (sub-solar point ${subsolar.lat.toFixed(1)}°, ${subsolar.lon.toFixed(1)}°).`
-            : 'Lighting is illustrative: no Sun position data for this date.'}
-          {view === '3d' && (subsolar || subearth) && (
-            <>
-              {' '}Sun and Earth: real directions, not to scale. Drawn {SKY.earthRadius} and {SKY.sunRadius} Moon radii in size at {SKY.earthDist} and{' '}
-              {SKY.sunDist} Moon radii away; really the Earth is 3.67 Moon radii in radius about 221 away, the Sun 400 in radius
-              about 86 100 away. Stars are decorative. Earth and Sun textures: Solar System Scope, CC BY 4.0.
-            </>
+        <div className="legend-row layer-row">
+          <label className="metric">
+            <span>Map layer</span>
+            <select value={layerId ?? ''} onChange={(e) => setLayer((e.target.value || null) as LayerId | null)}>
+              <option value="">None</option>
+              {LAYERS.map((l) => <option key={l.id} value={l.id}>{l.label}</option>)}
+              {UNAVAILABLE.map((u) => <option key={u} disabled>{u}</option>)}
+            </select>
+          </label>
+          {layer && <Hint mark label="i" title={layer.label} topic={layer.doc}>{layer.how}</Hint>}
+          {layerLegend && (
+            <div className="legend legend-ticks">
+              <span className="ramp" style={{ background: `linear-gradient(90deg, ${[0, 0.33, 0.66, 1].map(metricColor).join(',')})` }} />
+              <span className="ticks">{layerLegend.map((l) => <span key={l}>{l}</span>)}</span>
+            </div>
           )}
+          {layerNote && <span className="layer-note">{layerNote}</span>}
+        </div>
+        <p className="credit">
+          <Hint label="Info on views" title={view === '3d' ? 'About the 3D view' : 'About the 2D map'} topic="views">
+            Moon imagery: NASA's Scientific Visualization Studio, CGI Moon Kit; south pole: LROC WAC mosaic and LOLA 80 m altitude map.
+            {view === '3d' ? ' Relief exaggerated four times. ' : ' Flat map: areas stretch toward the poles, so the polar layers appear as a wide strip at the bottom. '}
+            {subsolar
+              ? `Sunlight from the Sun's position at landing time (sub-solar point ${subsolar.lat.toFixed(1)}°, ${subsolar.lon.toFixed(1)}°).`
+              : 'Lighting is illustrative: no Sun position data for this date.'}
+            {view === '3d' && (subsolar || subearth) && (
+              <>
+                {' '}Sun and Earth: real directions, sizes and distances at landing time (to scale), so they look small from the Moon.
+                {skyKm
+                  ? ` Distances from the analysis server: Earth ${Math.round(skyKm.earthKm).toLocaleString('en-GB')} km, Sun ${(skyKm.sunKm / 1e6).toFixed(1)} million km.`
+                  : ' Without the analysis server the average distances are used (Earth 384 400 km, Sun 1 AU).'}
+                {' '}Stars are decorative. Earth and Sun textures: Solar System Scope, CC BY 4.0.
+              </>
+            )}
+          </Hint>
         </p>
       </div>
     </div>

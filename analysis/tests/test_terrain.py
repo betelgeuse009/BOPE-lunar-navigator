@@ -99,6 +99,15 @@ def test_slope_sources_and_baselines():
     assert all(s.startswith("computed from") for s in source) and ((value >= 0) & (value < 60)).all()
 
 
+@needs_5m
+def test_fast_horizon_skips_the_5m_map_but_stays_close():
+    """Area searches use the coarse profile without the 5 m map (performance); it must stay close to the fine one."""
+    fine, fast = terrain.horizon(-89.5, -135.0, 2.0), terrain.horizon(-89.5, -135.0, 2.0, fast=True)
+    assert fine.layers[0]["resolution_m"] == 5.0 and fast.layers[0]["resolution_m"] == 80.0
+    diff = np.abs(terrain.horizon_at(fine, fast.az_deg) - fast.elev_deg)
+    assert np.median(diff) < 0.3 and diff.max() < 2.0
+
+
 @needs_maps
 def test_fast_horizon_is_close_to_the_fine_one():
     fine, fast = terrain.horizon(-84.0, 100.0, 2.0), terrain.horizon(-84.0, 100.0, 2.0, fast=True)

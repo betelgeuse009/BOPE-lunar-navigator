@@ -136,3 +136,76 @@ Short dated entries: decision, why, alternatives rejected. This becomes the "met
 - Time series only for Nov and Dec 2026 (10 min steps, ENU vectors left out to halve the size); the landing-date matrix
   covers six months of daily landings so seasonal changes are visible offline. Any other date needs the live API.
 - Rebuild with `python -m analysis.build` only when the model changes: every rebuild adds the files again to the git history.
+
+## 2026-11-15 · Area searches and the uncertainty ring do not read the 5 m map
+- Found while checking the merged front end: `/area` with a 50 km radius at the pole took 252 s the first time and 21 s
+  when cached, because ~1300 points spread over 100 km read the 3.3 GB 5 m map in 16 MB tiles, about a hundred per request.
+- Now the coarse profile (area points, uncertainty ring) and their elevations use the 80 m map and coarser; single-site
+  evaluations and `/api/horizon` keep the 5 m near field. Result: 15.6 s first time (including map loading), 1.2 s after.
+- Cost: at the pole example the coarse skyline differs from the fine one by 0.04° median, 0.8° at most (near relief).
+  Acceptable for an area colour map; the clicked point itself is always evaluated with the fine profile.
+
+## 2026-11-15 · Map layers on the 2D map and the globe; surface temperature from Diviner
+- Layers (picker under the view, with an (i) that states the source or the calculation of each): slope, elevation,
+  long-term Sun and Earth visibility, permanently shadowed regions, surface temperature (yearly maximum, yearly average),
+  day/night at landing time, score for the user's settings. Polar image layers are drawn on the globe cap and, on the
+  flat map, as a strip from 80 S to the pole (`frontend/scripts/layers.py`).
+- Temperature source (new): Diviner Polar Resource Product, PDS LRO-L-DLRE-5-PRP-V2.0 (Paige et al., UCLA): yearly average
+  (2 cm deep) and yearly maximum surface temperature per terrain triangle, calculated by the Diviner team's thermal model.
+  A display layer only: it is a yearly figure, not the temperature on the landing date, and the analysis does not use it.
+- Day/night line: smooth sphere, from the sub-solar point; terrain shadows are not in this layer (the metrics have them).
+- Score map: one `/api/area` request centred on the south pole (300 km radius, 15 km spacing): 12 s first time, 0.9 s after.
+- Not available: Artemis III candidate regions (no coordinates published); shown disabled in the picker with the reason.
+
+## 2026-11-15 · Whole-Moon map layers, distribution-based colour scales, altitude vs elevation, RA/Dec
+- Every map layer now covers the whole Moon, with the finer south-pole data on top. New sources: Diviner GCP (global
+  measured temperature, Williams et al. 2017), LPSR_65N/65S (shadowed regions at both poles). Slope outside the south
+  pole is computed from LDEM_128; long-term visibility outside the NASA polar maps is computed by us on a smooth sphere
+  (`analysis/global_visibility.py`). Table of what is read and what is computed: `docs/PARAMETERS.md` §8.
+- Honest limits: the global temperature (measured, by local time) and the polar one (modelled, yearly) are different
+  products, so a step can show at 80° S; the global "average" fills local-time gaps up to 4 h by interpolation and is blank elsewhere; the global
+  visibility and the global score ignore the terrain (0.3 s per skyline on the global map makes a grid impractical).
+- Colour scales: skewed layers are coloured by distribution (percentile breakpoints), sets of values (sites, calendar
+  strip, score layer) are stretched between their extremes, printed on the bar. Palette unchanged.
+- Wording: altitude = surface height, elevation = angle above the horizon. Only labels and texts changed; the API field
+  `elevation_m` keeps its name (contract).
+- RA/Dec of the Sun and the Earth from the Moon's centre added to `/api/ephemeris` and `/api/scene` (J2000, LT+S);
+  LT-only values match JPL Horizons astrometric RA/Dec to 1e-6 deg.
+- New endpoint `/api/grid` (whole-Moon score grid).
+
+## 2026-11-15 · Regolith context: surface temperature, rock abundance, H-parameter
+- Shown under the altitude for a clicked point and as whole-Moon layers, from Diviner products (Williams et al. 2017,
+  Paige et al., Bandfield et al. 2011, Hayne et al. 2017). Context only: not part of the score or the requirements,
+  because there is no sourced threshold for them yet.
+- H-parameter shown as the measure of thermal inertia: Hayne et al. mapped H, not a single thermal inertia (it would
+  depend on temperature); the documentation explains the relation.
+- Coverage is the products' own: rock abundance 80°S–80°N, H 70°S–70°N; poleward nothing is drawn and "not mapped" is shown.
+- The layers and the clicked values use the same reader (`analysis/regolith.py`), so they agree.
+
+## 2026-11-15 · Documentation: every layer and view has a page with formulas, sources and landing criteria
+- The (i) of each map layer, "Info on views" and the site-colour (i) now open documentation pages (new category "Map layers",
+  plus "Views", "Site colours", "Landing criteria"). Each layer page states the data, the formula used to make the image,
+  the colour scale and the published landing criteria that apply.
+- Criteria are taken only from verified sources: Apollo Site Selection Board criteria (NASA, Uri 2018), NASA Key Artemis III
+  Landing Requirements (NTRS 20250009323), Nova-C design criteria (Getchius et al. 2022). Where no source gives a number
+  (rock abundance, temperature, H-parameter) the page says so.
+- Audit of all 45 pages: every citation points to an existing reference; formulas added where missing (longest night,
+  longest blackout, both in view, countdowns, mean Sun elevation, altitude, NASA visibility, rock abundance, temperature).
+
+## 2026-11-15 · Surface view: real directions and skyline, display-only ground and light
+- New "Surface" button in the viewer header (enabled once a place is chosen and the server is live) opens a full-window,
+  street-level view from the place. Sun and Earth azimuth/elevation, angular size, visible fraction and Earth lit fraction
+  all come from the server (/api/ephemeris, every 10 min for 30 days from the landing day); the skyline is /api/horizon
+  (LOLA, 720 azimuths, observer height from Mission setup). The front end only interpolates linearly between samples.
+- Only directions and angular sizes are real: the skyline is a wall at a fixed distance raised to the skyline elevation,
+  Sun and Earth sit beyond it with r = D tan(rho). A body below the skyline is hidden by the wall, consistent with the
+  server's visible fraction.
+- Display only, stated in the documentation: procedural regolith texture (scripts/regolith_texture.py, not the place),
+  decorative stars, ground brightness (sunlight scaled by the visible solar disc, weak earthshine, faint ambient so the
+  night ground stays visible). The Earth's own rotation is not modelled.
+- The view has its own clock (starts at the landing time, does not change it). Rejected: driving the navigator's landing
+  time from the view, which would send a full re-evaluation per animation step.
+- Time animation (play, speed in steps/s, time step) in the surface view and in Mission setup; the latter moves the landing
+  time of the whole navigator (whole days offline).
+- Fix: the date and time strips were coloured at start-up with the best catalogue site before any place was chosen; they
+  now stay neutral until a place is chosen and then show that place's values.

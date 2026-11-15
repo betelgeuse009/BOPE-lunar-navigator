@@ -10,7 +10,7 @@ from functools import lru_cache
 
 import numpy as np
 
-from . import config, ephemeris as eph, horizon, metrics, scoring, sites, terrain, uncertainty, visibility as vis
+from . import config, ephemeris as eph, horizon, metrics, regolith, scoring, sites, terrain, uncertainty, visibility as vis
 from .metrics import Inputs
 
 _TERRAIN_MAPS = ("dem_87s_5m", "dem_80s_80m", "dem_60s_240m", "dem_global", "slope_80s_80m", "dem_err_80s_80m")
@@ -96,6 +96,8 @@ def ephemeris_doc(site_id: str, period_id: str, lat: float, lon: float, start: s
         "sun_dist_km": _r(s["sun_dist_km"][0], 0), "earth_dist_km": _r(s["earth_dist_km"][0], 1),
         "sun_radius_deg": _r(s["sun_radius_deg"][0], 4), "earth_radius_deg": _r(s["earth_radius_deg"][0], 4),
         "earth_phase_frac": _r(bv.earth_phase_frac, 4),
+        "sun_ra_deg": _r(bv.radec_deg[:, 0], 4), "sun_dec_deg": _r(bv.radec_deg[:, 1], 4),
+        "earth_ra_deg": _r(bv.radec_deg[:, 2], 4), "earth_dec_deg": _r(bv.radec_deg[:, 3], 4),
     }
     if include_enu:
         doc["sun_dir_enu"] = _r(eph.dir_enu(s["sun_az_deg"][0], s["sun_el_deg"][0]), 5)
@@ -135,6 +137,8 @@ def scene_doc(period_id: str, start: str, end: str, step_s: int) -> dict:
         "subsolar_lat_deg": _r(ss_lat, 3), "subsolar_lon_deg": _r(ss_lon, 3),
         "subearth_lat_deg": _r(se_lat, 3), "subearth_lon_deg": _r(se_lon, 3),
         "earth_phase_frac": _r(bv.earth_phase_frac, 4),
+        "sun_ra_deg": _r(bv.radec_deg[:, 0], 4), "sun_dec_deg": _r(bv.radec_deg[:, 1], 4),
+        "earth_ra_deg": _r(bv.radec_deg[:, 2], 4), "earth_dec_deg": _r(bv.radec_deg[:, 3], 4),
     }
 
 
@@ -239,6 +243,10 @@ def evaluate_doc(lat: float, lon: float, start: str, end: str, calc_step_s: int,
         mean_sun, mean_earth = terrain.lola_mean_visibility(lat, lon)
         params["lola_mean_sun_visibility_frac"] = _metric(mean_sun[0])       # long-term LOLA average, for context
         params["lola_mean_earth_visibility_frac"] = _metric(mean_earth[0])
+    # Regolith context from Diviner (not scored): surface temperature, rock abundance, H-parameter.
+    reg = regolith.point_values(lat, lon)
+    for k, v in reg["values"].items():
+        params[k] = _metric(v, 4)
     return {
         **header("metrics.py", s["terrain"]),
         "site": {"lat_deg": lat, "lon_deg": lon, "obs_height_m": inp.obs_height_m},
@@ -247,6 +255,7 @@ def evaluate_doc(lat: float, lon: float, start: str, end: str, calc_step_s: int,
         "inputs": {**inp.as_dict(), "weights": weights, "limits": limits},
         "horizon_source": horizon.source(inp.use_terrain), "terrain_available": horizon.terrain_available(),
         "terrain": _terrain_block(s, lat, lon, inp),
+        "regolith": {"sources": reg["sources"], "scored": False},
         "parameters": params,
         "uncertainty_model": {
             "position_uncertainty_m": inp.position_uncertainty_m, "horizon_uncertainty_deg": inp.horizon_uncertainty_deg,
@@ -284,6 +293,42 @@ offsets_to_latlon = eph.offset_points
 
 AREA_PARAMETERS = ("sunlit_frac", "longest_dark_h", "earth_visible_frac", "longest_no_earth_h", "both_frac",
                    "sun_energy_tracking_kwh_m2", "energy_margin_kwh", "battery_needed_wh", "slope_deg", "elevation_m")
+
+
+def grid_doc(step_deg: float, start: str, end: str, calc_step_s: int, inp: Inputs, weights: dict, limits: dict) -> dict:
+    """Score of every cell of a whole-Moon latitude/longitude grid, for the "Score" map layer.
+
+    Horizon: smooth sphere (a terrain skyline costs about 0.3 s per point on the global map, hours for a grid).
+    Slope and altitude still come from the LOLA maps when they are on disk, so the slope sub-score is included.
+    A clicked point is always evaluated with the full terrain by /api/evaluate.
+    """
+    if 180.0 / step_deg != int(180.0 / step_deg):
+        raise ValueError("step_deg must divide 180 (for example 2, 3, 4, 5, 6, 10)")
+    lats = np.arange(90.0 - step_deg / 2, -90.0, -step_deg)        # cell centres, north to south
+    lons = np.arange(-180.0 + step_deg / 2, 180.0, step_deg)
+    bv = _grid(start, end, calc_step_s)
+    smooth = dataclasses.replace(inp, use_terrain=False)
+    has_maps = horizon.terrain_available()
+    score, feasible = [], []
+    for lat in lats:
+        row_lat = np.full(lons.size, lat)
+        s = metrics.site_series(bv, row_lat, lons, smooth)
+        if has_maps:
+            s["slope_deg"], s["elevation_m"] = terrain.slope_deg(row_lat, lons)[0], terrain.elevation_m(row_lat, lons, use_5m=False)
+        ps = [metrics.summarize(s, i, slice(None), calc_step_s, smooth) for i in range(lons.size)]
+        score.append([_num(scoring.score(p, weights)["value"]) for p in ps])
+        feasible.append([scoring.feasibility(p, limits)["feasible"] for p in ps])
+    valid = [v for row in score for v in row if v is not None]
+    return {
+        **header("metrics.py", False),
+        "step_deg": step_deg, "lat_deg": lats.tolist(), "lon_deg": lons.tolist(),
+        "window": {"start_utc": bv.times_utc[0], "end_utc": eph.format_utc(eph.parse_utc(end)), "calc_step_s": calc_step_s},
+        "inputs": {**inp.as_dict(), "weights": weights, "limits": limits},
+        "horizon_source": horizon.SMOOTH, "slope_from_maps": has_maps,
+        "score": score, "feasible": feasible,
+        "requirements_violated": [[int(not f) for f in row] for row in feasible],
+        "score_range": [min(valid), max(valid)] if valid else None,
+    }
 
 
 def area_doc(lat: float, lon: float, radius_km: float, spacing_km: float, start: str, end: str,

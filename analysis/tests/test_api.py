@@ -115,6 +115,29 @@ def test_bad_requests_get_422(path, params):
     assert client.get(path, params=params).status_code == 422
 
 
+def test_grid_covers_the_whole_moon():
+    doc = get("/api/grid", start_utc=SITE["start_utc"], step_deg=30, mission_h=48, max_no_earth_h=1)
+    assert len(doc["lat_deg"]) == 6 and len(doc["lon_deg"]) == 12 and doc["horizon_source"] == "smooth-sphere"
+    assert len(doc["score"]) == 6 and all(len(r) == 12 for r in doc["score"])
+    # Far side (lon +-165): the Earth is never in view, so a blackout limit is broken; near side centre: not broken.
+    assert doc["requirements_violated"][2][0] == 1 and doc["requirements_violated"][2][5] == 0
+    assert client.get("/api/grid", params={"start_utc": SITE["start_utc"], "step_deg": 7}).status_code == 422
+
+
+def test_ephemeris_has_right_ascension_and_declination():
+    doc = get("/api/ephemeris", **SITE, mission_h=6)
+    assert len(doc["sun_ra_deg"]) == len(doc["time_utc"]) == len(doc["earth_dec_deg"])
+    assert 0 <= doc["sun_ra_deg"][0] < 360 and -90 <= doc["earth_dec_deg"][0] <= 90
+
+
+def test_evaluate_has_regolith_context_values():
+    doc = get("/api/evaluate", lat_deg=0.67416, lon_deg=23.47314, start_utc=SITE["start_utc"], mission_h=48, use_terrain=False)
+    p = doc["parameters"]
+    for k in ("surface_temp_max_k", "surface_temp_avg_k", "rock_abundance_frac", "h_parameter_m"):
+        assert k in p and set(p[k]) == {"value", "uncertainty"}
+    assert doc["regolith"]["scored"] is False
+
+
 def test_health_reports_terrain_and_maps():
     h = get("/api/health")
     assert h["terrain_available"] in (True, False) and "dem_80s_80m" in h["maps"]

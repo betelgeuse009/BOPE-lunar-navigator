@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
 import { isPreliminary, landingAt, loadAll, loadScene, periodAt, sceneIndexAt } from './data/load'
 import type { Scene } from './data/schemas'
-import { useApiHealth, useAreaSearch, useEvaluation, useLiveMatrix, useLiveScene, useSkyDistances } from './data/useLive'
+import { useApiHealth, useAreaSearch, useEvaluation, useLiveMatrix, useLiveScene, useScoreGrid, useScoreMap, useSkyDistances } from './data/useLive'
 import { DocsPage } from './docs/DocsPage'
 import { useDocTopic } from './docs/useDocTopic'
 import { Viewport } from './scene/Viewport'
+import { SurfaceView } from './surface/SurfaceView'
 import { STRIP_DAYS, landingDay, useApp } from './state/store'
 import { ComparePanel } from './ui/ComparePanel'
 import { InputPanel } from './ui/InputPanel'
@@ -21,7 +22,7 @@ export default function App() {
   const [scene, setScene] = useState<Scene | null>(null)
   const [leftOpen, setLeftOpen] = useState(true)
   const [rightOpen, setRightOpen] = useState(true)
-  const { metric, minuteUtc, mode, setMetric, setDateCount, setStaticDates } = useApp()
+  const { metric, minuteUtc, mode, point, surfaceOpen, setMetric, setDateCount, setStaticDates } = useApp()
   useApiHealth()
   const docTopic = useDocTopic()
 
@@ -61,6 +62,8 @@ export default function App() {
   const i = sun && landingUtc ? (sun === liveScene ? 0 : sceneIndexAt(sun, landingUtc)) : -1
   const subsolar = sun && i >= 0 ? { lat: sun.subsolar_lat_deg[i], lon: sun.subsolar_lon_deg[i] } : null
   const skyKm = useSkyDistances(landingUtc || undefined)
+  const scoreMap = useScoreMap(landingUtc || undefined)
+  const scoreGrid = useScoreGrid(landingUtc || undefined)
   const subearth = sun && i >= 0 ? { lat: sun.subearth_lat_deg[i], lon: sun.subearth_lon_deg[i] } : null
 
   // Layout: three isolated regions. Inputs (left) write the store, the viewport (centre) draws it,
@@ -73,10 +76,10 @@ export default function App() {
             Settings are locked because the analysis server is not running. Start it with <code>npm run api</code> and reload.
           </p>
         )}
-        {data && matrix && <InputPanel sites={data.sites.sites} matrix={matrix} landingDate={landingDate} siteIds={siteIds} />}
+        {data && matrix && <InputPanel sites={data.sites.sites} matrix={matrix} landingDate={landingDate} />}
       </Pane>
 
-      <Viewport sites={data?.sites.sites ?? null} matrix={matrix} area={area.data} subsolar={subsolar} subearth={subearth} skyKm={skyKm} updating={live.loading} />
+      <Viewport sites={data?.sites.sites ?? null} matrix={matrix} area={area.data} subsolar={subsolar} subearth={subearth} skyKm={skyKm} scoreMap={scoreMap} scoreGrid={scoreGrid} updating={live.loading} />
 
       <Pane side="right" title="Results" open={rightOpen} onToggle={() => setRightOpen(!rightOpen)}>
         {error && <p className="error" role="alert">Could not load the site data. {error}</p>}
@@ -89,17 +92,8 @@ export default function App() {
       </Pane>
 
       {data && matrix && <ComparePanel matrix={matrix} />}
+      {surfaceOpen && point && mode === 'live' && landingDate && <SurfaceView key={`${point.lat},${point.lon}`} dayUtc={landingDate} />}
       {docTopic && <DocsPage topic={docTopic} />}
     </div>
-  )
-}
-
-function Chapter({ n, id, title, lead, children }: { n: number; id: string; title: string; lead?: string; children: React.ReactNode }) {
-  return (
-    <section className="chapter" id={id} aria-labelledby={`${id}-h`}>
-      <h2 id={`${id}-h`}><span className="num">{n}</span>{title}</h2>
-      {lead && <p className="lead">{lead}</p>}
-      {children}
-    </section>
   )
 }

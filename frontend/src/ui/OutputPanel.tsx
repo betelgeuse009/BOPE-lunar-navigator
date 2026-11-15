@@ -3,7 +3,8 @@ import type { Matrix, Site } from '../data/schemas'
 import { useEphemeris, useWindows } from '../data/useLive'
 import { useApp } from '../state/store'
 import { PinButton } from './ComparePanel'
-import { fmtCoords, fmtM } from './format'
+import { fmtCoords, fmtDeg, fmtH_cm, fmtK, fmtM, fmtRock } from './format'
+import type { TopicId } from '../docs/topics'
 import { Help } from './Help'
 import { Block } from './Pane'
 import { EarthBlock, NearbyBlock, ScoreBlock, SunBlock, TerrainBlock } from './results/blocks'
@@ -11,6 +12,14 @@ import { TimePlot } from './results/TimePlot'
 import { SitePanel } from './SitePanel'
 
 type Request<T> = { data: T | null; loading: boolean; error: string | null }
+
+// One value under the coordinates, in the same format as the altitude: label with its help mark, then the value.
+function Fact({ label, help, e, k, fmt, missing = 'n/a' }: {
+  label: string; help: TopicId; e: Evaluation | null; k: string; fmt: (v: number) => string; missing?: string
+}) {
+  const v = e?.parameters[k]?.value
+  return <div><dt>{label} <Help topic={help} /></dt><dd>{!e ? '…' : v == null ? missing : fmt(v)}</dd></div>
+}
 const whenFmt = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'UTC' })
 
 // Right pane: results for the chosen place. It reads the store and the server's answers and sets nothing.
@@ -31,8 +40,16 @@ export function OutputPanel({ sites, matrix, ev, area, landingUtc }: {
             <button type="button" className="close" onClick={() => setPoint(null)} aria-label="Clear the chosen place">×</button>
           </div>
           <dl className="place-facts">
-            <div><dt>Elevation <Help topic="elevation" /></dt><dd>{e ? fmtM(e.parameters.elevation_m) : '…'}</dd></div>
+            <div><dt>Altitude <Help topic="elevation" /></dt><dd>{e ? fmtM(e.parameters.elevation_m) : '…'}</dd></div>
             <div><dt>Landing <Help topic="landing-time" /></dt><dd>{landingUtc ? `${whenFmt.format(new Date(landingUtc))} UTC` : 'n/a'}</dd></div>
+            <Fact label="Slope" help="slope" e={e} k="slope_deg" fmt={(v) => {
+              const u = e?.parameters.slope_deg?.uncertainty, b = e?.terrain?.slope_baseline_m
+              return `${fmtDeg(v)}${u != null && u >= 0.05 ? ` ± ${u.toFixed(1)}°` : ''}${b ? ` over ${Math.round(b)} m` : ''}`
+            }} />
+            <Fact label="Rock abundance" help="rock-abundance" e={e} k="rock_abundance_frac" fmt={fmtRock} missing="not mapped beyond 80°" />
+            <Fact label="Surface temp., max" help="surface-temperature" e={e} k="surface_temp_max_k" fmt={fmtK} />
+            <Fact label="Surface temp., average" help="surface-temperature" e={e} k="surface_temp_avg_k" fmt={fmtK} />
+            <Fact label="H-parameter (thermal inertia)" help="h-parameter" e={e} k="h_parameter_m" fmt={fmtH_cm} missing="not mapped beyond 70°" />
           </dl>
           <PinButton label={`Point ${fmtCoords(point.lat, point.lon)}`} lat={point.lat} lon={point.lon} />
           {ev.error && <p className="error-inline">{ev.error}</p>}

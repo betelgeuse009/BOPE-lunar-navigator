@@ -18,6 +18,14 @@ export function metricColor(v: number | null): string {
   return '#' + rgb.map((c) => c.toString(16).padStart(2, '0')).join('')
 }
 
+// Colours that use the whole palette: the values of one set (the sites on one date, the days of the calendar strip)
+// are stretched between the lowest and the highest of the set. `range` is what the legend prints.
+export function spread(values: (number | null)[]): { color: (v: number | null) => string; lo: number | null; hi: number | null } {
+  const ok = values.filter((v): v is number => v !== null)
+  const lo = ok.length ? Math.min(...ok) : null, hi = ok.length ? Math.max(...ok) : null
+  return { lo, hi, color: (v) => metricColor(v === null || lo === null || hi === null ? v : hi > lo ? (v - lo) / (hi - lo) : 1) }
+}
+
 // Area-search colours. 'absolute': the score itself (0..1, honest default while terrain is missing).
 // 'relative': stretched to the range found in this disc, to spot the best patch nearby.
 export type ScaleMode = 'absolute' | 'relative'

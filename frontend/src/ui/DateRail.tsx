@@ -1,7 +1,8 @@
 import { cellValue } from '../data/load'
 import type { Matrix } from '../data/schemas'
+import { usePointDays } from '../data/useLive'
 import { landingDay, useApp } from '../state/store'
-import { metricColor } from './colors'
+import { spread } from './colors'
 import { Help } from './Help'
 import { goodness } from './metrics'
 
@@ -11,7 +12,7 @@ const LIVE_RANGE = ['1850-01-01', '2149-09-30']
 const fmt = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' })
 
 // Landing day: a calendar to jump to any date, and a slider over the days that follow it. The slider's track is a
-// strip of days, each coloured by the best site's value that day.
+// strip of days, coloured by the chosen place's value on each day (neutral until a place is chosen).
 export function DateRail({ matrix }: { matrix: Matrix }) {
   const { dateIdx, metric, mode, staticDates, setDateIdx, setStripStart } = useApp()
   const day = useApp(landingDay)?.slice(0, 10) ?? ''
@@ -25,12 +26,12 @@ export function DateRail({ matrix }: { matrix: Matrix }) {
     if (i >= 0) setDateIdx(i)
   }
   const dates = matrix.landing_dates_utc
-  const best = dates.map((_, d) => {
-    const vals = matrix.site_ids
-      .map((id) => goodness(cellValue(matrix, id, metric, d), metric, matrix.mission_duration_h))
-      .filter((v): v is number => v !== null)
-    return vals.length ? Math.max(...vals) : null
-  })
+  const point = useApp((s) => s.point)
+  const days = usePointDays(point ? dates[0] : undefined).data
+  const best = dates.map((_, d) => (days && point
+    ? goodness(cellValue(days, days.site_ids[0], days.cells[metric] ? metric : 'score', d), metric, days.mission_duration_h)
+    : null))
+  const strip = spread(best) // the days of the strip use the whole palette
   return (
     <div className="rail">
       <div className="rail-head">
@@ -41,7 +42,7 @@ export function DateRail({ matrix }: { matrix: Matrix }) {
       <div className="rail-track">
         <div className="rail-cells" aria-hidden>
           {best.map((v, d) => (
-            <span key={d} className={d === dateIdx ? 'on' : ''} style={{ background: metricColor(v) }} />
+            <span key={d} className={d === dateIdx ? 'on' : ''} style={{ background: strip.color(v) }} />
           ))}
         </div>
         <input

@@ -176,12 +176,12 @@ def heights(p: np.ndarray, near: bool = True, used: set | None = None) -> np.nda
     return h
 
 
-def finest_resolution_m(p: np.ndarray) -> float:
-    """Pixel size of the finest DEM at one point (sets the ray-marching step)."""
+def finest_resolution_m(p: np.ndarray, near: bool = True) -> float:
+    """Pixel size of the finest DEM at one point (sets the ray-marching step). near=False ignores the 5 m map."""
     m = _maps()
     if p[2] < -0.5:
         x, y = PolarMap.xy(p)
-        for key in _polar_order(True):
+        for key in _polar_order(near):
             if m[key].inside(x, y):
                 return m[key].res
     return float(m["global"].res)
@@ -231,11 +231,11 @@ def march(site_p: np.ndarray, h0: float, obs_height_m: float, az_deg: np.ndarray
 
 
 @lru_cache(maxsize=8192)
-def _horizon(lat: float, lon: float, obs_height_m: float, az_step_deg: float, radial: float) -> Horizon:
+def _horizon(lat: float, lon: float, obs_height_m: float, az_step_deg: float, radial: float, use_5m: bool) -> Horizon:
     p = unit_vectors(np.clip(lat, -config.LAT_CLAMP_DEG, config.LAT_CLAMP_DEG), lon)   # east/north undefined at the pole
     with _LOCK:
-        h0 = float(heights(p[None, :])[0])
-        res_near = finest_resolution_m(p)
+        h0 = float(heights(p[None, :], near=use_5m)[0])
+        res_near = finest_resolution_m(p, near=use_5m)
         res_far = max(res_near, 80.0) if res_near < 80.0 else res_near
         s = _ray_distances(res_near, res_far, radial, MAX_RANGE_KM * 1000.0, NEAR_RANGE_M)
         used: set = set()
@@ -244,7 +244,7 @@ def _horizon(lat: float, lon: float, obs_height_m: float, az_step_deg: float, ra
             near = dist < NEAR_RANGE_M
             out = np.empty(pts.shape[:-1])
             if near.any():
-                out[:, near] = heights(pts[:, near], near=True, used=used)
+                out[:, near] = heights(pts[:, near], near=use_5m, used=used)
             if (~near).any():
                 out[:, ~near] = heights(pts[:, ~near], near=False, used=used)
             return out
@@ -256,9 +256,11 @@ def _horizon(lat: float, lon: float, obs_height_m: float, az_step_deg: float, ra
 
 
 def horizon(lat_deg: float, lon_deg: float, obs_height_m: float, fast: bool = False) -> Horizon:
-    """Terrain horizon of a site. `fast` uses 2 deg azimuth steps and coarser ray steps (for area searches)."""
+    """Terrain horizon of a site. `fast` (area searches, uncertainty ring) uses 2 deg azimuth steps, coarser ray steps
+    and no 5 m map: hundreds of points spread over tens of km would otherwise read the 3.3 GB map tile by tile."""
     az_step, radial = (2.0, 0.02) if fast else (0.5, 0.005)
-    return _horizon(round(float(lat_deg), 6), round(float(lon_deg), 6), round(float(obs_height_m), 3), az_step, radial)
+    return _horizon(round(float(lat_deg), 6), round(float(lon_deg), 6), round(float(obs_height_m), 3), az_step, radial,
+                    not fast)
 
 
 def horizon_at(hz: Horizon, az_deg: np.ndarray) -> np.ndarray:
@@ -268,10 +270,10 @@ def horizon_at(hz: Horizon, az_deg: np.ndarray) -> np.ndarray:
 
 # ---------------------------------------------------------------- elevation and slope at points
 
-def elevation_m(lat_deg, lon_deg) -> np.ndarray:
-    """Terrain height above the 1737.4 km sphere, from the finest DEM at each point."""
+def elevation_m(lat_deg, lon_deg, use_5m: bool = True) -> np.ndarray:
+    """Terrain height above the 1737.4 km sphere, from the finest DEM at each point (use_5m=False: 80 m and coarser)."""
     with _LOCK:
-        return heights(unit_vectors(np.atleast_1d(lat_deg), np.atleast_1d(lon_deg)))
+        return heights(unit_vectors(np.atleast_1d(lat_deg), np.atleast_1d(lon_deg)), near=use_5m)
 
 
 def dem_at(lat_deg: float, lon_deg: float) -> dict:

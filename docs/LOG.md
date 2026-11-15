@@ -431,3 +431,98 @@ Questions for FE: none.
 Note: Gabriele says to leave the missing-map case on your machine (T37) as it is for now.
 Next: still open from the summary: DSN availability, terrain grid for the 3D surface view, mast-height curve.
 Commits: see PR aero -> main
+
+## 2026-11-15 01:13 · AERO
+Done: Gabriele pulled main to see the latest navigator; the front end did not compile. Fixed on branch aero (PR coming):
+  1. The commit "spacexy frontend now" (6d930c9) was partial: it changed view.ts (SKY removed, real distances added),
+     Sky.tsx (earthKm/sunKm props, to scale) and App.tsx (passes skyKm), but not Viewport.tsx, which still imported SKY
+     and called <Sky> without earthKm/sunKm. tsc: 4 errors. The three-pane tip before it (87a2a17) compiled cleanly.
+     Fix in frontend/src/scene/Viewport.tsx (minimal, please check against your local copy):
+       - accepts skyKm and passes earthKm/sunKm to <Sky>, falling back to TYPICAL_EARTH_KM / TYPICAL_SUN_KM when null;
+       - camera far = FAR, so the Sun at ~86 000 Moon radii is inside the view;
+       - credit line: "real directions, sizes and distances (to scale)", with the server distances when live,
+         instead of the old SKY numbers ("not to scale").
+  2. The merge of fe/three-pane into main (4f9c142) kept the old Chapter() function from #26 in App.tsx (unused: TS6133).
+     Removed. It was the only difference between the merge result and the three-pane side.
+  Now: npm run build OK, vitest 77 passed, eslint clean, live API test (LIVE_API=1) 5/5.
+  NOT wired (looks like it stayed on your machine): map layers. scene/LayerOverlay.tsx, scene/layers.ts, data/layers.json,
+  public/layers/*.png and store.layer/setLayer exist, but nothing renders LayerOverlay or sets the layer, so no layer can
+  be shown yet. Same for ui/panorama/geometry.ts (only its test uses it). Please commit your local Viewport.tsx / picker;
+  if it conflicts with my Viewport fix, keep yours.
+  Also on the API side (found with your live test): /area at 50 km radius at the pole took 252 s cold / 21 s cached (the
+  5 m map read tile by tile for ~1300 points). Area searches and the uncertainty ring now skip the 5 m map:
+  15.6 s cold, 1.2 s cached. Single-site /evaluate and /horizon keep the 5 m map. DECISIONS.md has the details.
+Changed contract: no
+Needs from FE: commit the missing layer UI; a PR instead of a direct push to main next time, so a broken build shows up first.
+Questions for FE: none.
+Commits: see PR aero -> main
+
+## 2026-11-15 01:38 · AERO + FE (working together on Gabriele's PC)
+Done (front end, decided together in person):
+  - "Info on views": the long credit paragraph under the view is now one underlined link; hovering shows the text.
+  - Map layer picker under the view, for the 2D map and the globe: slope, elevation, long-term Sun / Earth visibility,
+    permanently shadowed regions, surface temperature (yearly maximum, yearly average; NEW source: Diviner PRP),
+    day/night at landing time (2D), score for your settings (2D, live). An (i) next to the picker shows how each layer's
+    values are measured or calculated, with the source. Legend with the layer's range.
+  - This also wires the layer pieces that were unconnected after the three-pane merge (LayerOverlay, store.layer).
+  - New: ui/Hint.tsx (hover card), 2D strips public/layers/*_strip.png, temperature images, scripts/layers.py extended
+    (and fixed for Windows: csv.field_size_limit).
+  - data/MAPS.md and analysis/config.py list the new dataset (temperature/dlre_prp_south.tab, 605 MB, only with --all).
+Verified: npm run build OK, vitest 77 passed, eslint clean; screenshots of every layer checked in a headless browser.
+Known: while the globe textures load, the Sun/Earth labels log "Cannot read properties of null (reading 'layers')"
+  (drei Html occlude with the Moon group not mounted yet). It stops once loaded; not fixed here.
+Changed contract: no
+Commits: see PR aero -> main
+
+## 2026-11-15 02:13 · AERO + FE (working together on Gabriele's PC)
+Done:
+  - Map layers cover the whole Moon (globe and 2D), finer south-pole data on top: altitude, slope (computed from LDEM_128
+    outside the pole), long-term Sun / Earth visibility (computed on a smooth sphere outside NASA's polar maps),
+    permanently shadowed regions (both poles), surface temperature maximum / average (Diviner GCP global + PRP pole),
+    day/night, score (new /api/grid for the whole Moon + /api/area at the pole). Each (i) states what is read and what is computed.
+  - Colour bars balanced, same palette: distribution-based scales for altitude, slope, temperature (three labels under the
+    bar); site markers, calendar strip and score layer stretched between their extremes, printed on the bar.
+  - "Altitude" for the surface height everywhere in the interface; "elevation" only for the Sun/Earth angle.
+  - API: right ascension and declination of the Sun and the Earth (from the Moon's centre, J2000, LT+S) in /api/ephemeris and
+    /api/scene; shown under Sun and Earth "At landing" with a help mark and a documentation page (ra-dec). Checked against
+    JPL Horizons. New endpoint /api/grid.
+  - New data in data/raw/maps: temperature/gcp (2.8 GB), psr/LPSR_65N|65S (164 MB). data/MAPS.md, PARAMETERS.md §7-8,
+    API.md, DECISIONS.md updated.
+Changed contract: additions only (optional RA/Dec fields in ephemeris and scene schemas; /api/grid).
+Commits: see PR aero -> main
+
+## 2026-11-15 02:49 · AERO + FE (working together on Gabriele's PC)
+Done: clicking a point now shows, under the altitude and in the same format: slope (± and baseline), rock abundance,
+  surface temperature maximum and average, H-parameter (thermal inertia), each with a help mark and documentation page.
+  API: /api/evaluate parameters gain surface_temp_max_k, surface_temp_avg_k, rock_abundance_frac, h_parameter_m (context,
+  not scored; regolith.sources). New module analysis/regolith.py, tests analysis/tests/test_regolith.py (81 pass).
+  New layers: Rock abundance (80°S–80°N) and Thermal inertia (H-parameter, 70°S–70°N), whole Moon, distribution-based colours.
+  New data (data/raw/maps/regolith, 3.5 GB, only with download_maps --all): Diviner rock abundance 128 px/deg, Hayne H map.
+Changed contract: additions only (four optional evaluate parameters).
+Commits: see PR aero -> main
+
+## 2026-11-15 03:07 · AERO + FE (working together on Gabriele's PC)
+Done: documentation for the map layers and an audit of all pages.
+  - 12 new pages: one per layer (category "Map layers"), "Views: 3D globe and 2D map", "Site colours", "Landing criteria".
+    The layer (i), "Info on views" and the site-colour (i) link to them (hover = short text, click = page).
+  - Landing criteria with sources (Apollo 1968 via NASA; Artemis III NTRS 20250009323; Nova-C arXiv:2204.00660) on every
+    relevant page; no invented thresholds (rock abundance, temperature, H-parameter: none published).
+  - Formulas added to 9 existing pages; citation check of all 45 pages passes. PARAMETERS.md §10 lists the criteria.
+Changed contract: no
+Commits: see PR aero -> main
+
+## 2026-11-15 03:50 · AERO + FE (working together on Gabriele's PC)
+Done: Surface view (street-level look from the chosen place) and time animation.
+  - "Surface" button next to 3D globe / 2D map; opens a full-window view: drag to look, wheel to zoom, Esc to close.
+    Sun and Earth move along their computed az/el over 30 days from the landing day, hidden by the real LOLA skyline
+    (Earthrise/Earthset, sunrise/sunset). Earth drawn with its real phase.
+  - HUD: readouts (az/el, part of the disc in view, Earth lit %, next rise/set countdown, "look at" buttons), compass
+    bottom-left, date + time-of-day sliders with play / speed / time step bottom-right, two elevation plots (Sun, Earth)
+    with the skyline in the body's direction and the periods in view shaded; click a plot to jump there.
+  - Mission setup: "Animate the landing time" (same controls) moves the navigator's landing time.
+  - Fix: date/time strips no longer coloured at start-up before a place is chosen.
+  - Docs: new pages "Time animation" and "Surface view" (what is real vs display only); landing-time page updated.
+  - New files: frontend/src/surface/*, ui/Animation.tsx, ui/animClock.ts, ui/MissionAnimation.tsx,
+    scripts/regolith_texture.py + public/textures/regolith_*.jpg (procedural, generated).
+Changed contract: no (uses existing /api/ephemeris and /api/horizon)
+Commits: see PR aero -> main

@@ -75,6 +75,18 @@ def test_countdowns_to_sunset_sunrise_earthset_earthrise():
     assert far["hours_to_first_earth_h"] is None                                          # never rises on the far side
 
 
+def test_right_ascension_and_declination_from_the_moon(bv):
+    """Seen from the Moon the Earth is opposite to where the Moon is seen from the Earth, and the Sun stays near the
+    ecliptic: |declination| <= 23.44 deg (obliquity) plus a little for the Moon's 5 deg orbit tilt and parallax."""
+    ra_s, dec_s, ra_e, dec_e = bv.radec_deg.T
+    assert ((ra_s >= 0) & (ra_s < 360) & (ra_e >= 0) & (ra_e < 360)).all()
+    assert np.abs(dec_s).max() < 23.6 and np.abs(dec_e).max() < 29.0
+    # November: the Sun is in the southern sky (declination about -14 to -22 deg), right ascension 14-16 h.
+    assert -23.0 < dec_s[0] < -13.0 and 210.0 < ra_s[0] < 250.0
+    # The Earth goes once around the sky in a month as seen from the Moon.
+    assert np.ptp(ra_e) > 300.0
+
+
 def test_runs_and_longest_run():
     mask = np.array([True, True, False, True, True, True, False])
     assert vis.runs(mask) == [(0, 2), (3, 6)]
@@ -115,9 +127,9 @@ def test_month_cache_gives_the_same_vectors_as_a_direct_computation():
     """Windows are cut out of cached calendar months; that must not change a single number."""
     start, end = "2026-11-28T06:00:00Z", "2027-01-03T12:00:00Z"            # crosses two month boundaries and a year
     cached = eph.body_vectors(start, end, 3600)
-    sun, earth, phase = eph._compute(eph.utc_grid(start, end, 3600))
+    sun, earth, phase, radec = eph._compute(eph.utc_grid(start, end, 3600))
     assert len(cached) == 36 * 24 + 6
     assert np.array_equal(cached.sun_km, sun) and np.array_equal(cached.earth_km, earth)
-    assert np.array_equal(cached.earth_phase_frac, phase)
+    assert np.array_equal(cached.earth_phase_frac, phase) and np.array_equal(cached.radec_deg, radec)
     odd = eph.body_vectors("2026-11-28T06:00:07Z", "2026-11-28T09:00:07Z", 3600)   # not on the midnight grid: direct path
     assert len(odd) == 3 and odd.times_utc[0] == "2026-11-28T06:00:07Z"

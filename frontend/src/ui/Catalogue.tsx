@@ -1,9 +1,7 @@
 import { useState } from 'react'
-import { cellValue } from '../data/load'
 import type { Matrix, Site } from '../data/schemas'
 import { useApp } from '../state/store'
-import { metricColor } from './colors'
-import { goodness } from './metrics'
+import { siteScale } from './metrics'
 import { landingType } from './sites'
 
 const ROBOTIC_PREVIEW = 8
@@ -40,14 +38,13 @@ function Group({ title, sites, matrix }: { title: string; sites: Site[]; matrix:
       <h3>{title}</h3>
       <ul className="site-list">
         {sites.map((s) => {
-          const v = goodness(cellValue(matrix, s.id, metric, dateIdx), metric, matrix.mission_duration_h)
           const chosen = s.id === selectedSite
           return (
             <li key={s.id}>
               <button type="button" className={`site-row${chosen ? ' chosen' : ''}`} aria-pressed={chosen}
                 onClick={() => choose(s)} onMouseEnter={() => setHovered(s.id)} onMouseLeave={() => setHovered(null)}
                 onFocus={() => setHovered(s.id)} onBlur={() => setHovered(null)}>
-                <i className="dot" style={{ background: metricColor(v) }} aria-hidden />
+                <i className="dot" style={{ background: siteScale(matrix, metric, dateIdx).color(s.id) }} aria-hidden />
                 <span className="site-name">{s.name}</span>
                 <span className="site-year">{s.mission_date?.slice(0, 4)}</span>
                 <span className="site-sub">

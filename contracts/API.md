@@ -71,6 +71,7 @@ Parameter definitions, formulas and sources: `docs/PARAMETERS.md`.
 | `GET /api/metrics` | site, model inputs, `calc_step_s` (60) | `metrics.schema.json` incl. Sun/Earth windows |
 | `GET /api/evaluate` | site, model inputs, weights, limits, `calc_step_s` (60) | all site parameters + requirements check + score (below) |
 | `GET /api/area` | site, model inputs, weights, limits, `radius_km` (5), `spacing_km` (radius/10), `calc_step_s` (600) | score map of a disc around the site (below) |
+| `GET /api/grid` | model inputs, weights, limits, `step_deg` (4, must divide 180), `calc_step_s` (600) | score of every cell of a whole-Moon lat/lon grid: `lat_deg` (rows, north to south), `lon_deg` (columns), `score[row][col]`, `feasible`, `requirements_violated`, `score_range`. **Smooth-sphere horizon** (a terrain skyline costs ~0.3 s per point on the global map), LOLA slope included. About 5 s |
 | `GET /api/matrix` | `site_ids` or `points=lat,lon;lat,lon`, `n_dates` (30), `date_step_h` (24), weights, `calc_step_s` (600) | `matrix.schema.json` + a `score` grid |
 
 `period_id` (default `custom`) can be passed to `/scene`, `/ephemeris`, `/metrics` to label the response.
@@ -82,7 +83,7 @@ Two things are computed once and then cached in the server's memory:
 - **Sun/Earth positions, per calendar month** and time step: about 2 s per month at 1 min. Any landing date inside an
   already-computed month is then free (a 14-day window touches one or two months).
 - **The skyline of a point**: about 1 s for a new point (0.1 s away from the pole); 0.01 s per point in `/area`
-  (coarser profile: 2° azimuth steps, within 0.1° of the fine one).
+  (coarser profile: 2° azimuth steps, no 5 m map; median 0.04° from the fine profile at the pole example).
 
 | Request | First time | Afterwards |
 |---|---|---|
@@ -90,6 +91,7 @@ Two things are computed once and then cached in the server's memory:
 | `/evaluate`, same point, new landing date in a computed month | – | 0.07 s |
 | `/area`, 317 points (5 km radius) | 2–7 s | 0.2 s |
 | `/area`, 1257 points (10 km, 0.5 km spacing) | 7 s | not measured |
+| `/area`, 1257 points at the pole, 50 km radius (2.5 km spacing) | 15.6 s (incl. map loading) | 1.2 s |
 | `/horizon` | 1.4 s | cached |
 | Very first request after the server starts | adds 2–3 s (loading the maps) | – |
 
@@ -223,6 +225,22 @@ Evaluates a square grid of points inside a circle around the clicked site. **Ind
 clockwise from north) and `horizon_elev_deg` (the elevation below which the sky is blocked), plus
 `dem: { product, resolution_m, max_range_km, layers }`. Draw it as the terrain silhouette in the panorama; a body is
 visible when its elevation is above the skyline at its azimuth (the API already applies this in `*_visible_frac`).
+
+## Regolith context values (`/api/evaluate`)
+
+`parameters` also carries, for context only (not scored, `regolith.scored = false`, sources in `regolith.sources`):
+`surface_temp_max_k`, `surface_temp_avg_k` (Diviner: measured on the whole Moon, thermal model south of 80°S),
+`rock_abundance_frac` (Bandfield et al. 2011, 80°S–80°N) and `h_parameter_m` (Hayne et al. 2017, 70°S–70°N; smaller H =
+higher thermal inertia). `null` outside the mapped band or when the files are missing. Method: `analysis/regolith.py`.
+
+## Right ascension and declination
+
+`/api/ephemeris` and `/api/scene` carry `sun_ra_deg`, `sun_dec_deg`, `earth_ra_deg`, `earth_dec_deg` (optional fields in the schemas):
+the direction from the **centre of the Moon** to the body in the J2000 (ICRF) axes, with the same LT+S correction as az/el:
+RA = atan2(y, x) mod 360°, Dec = asin(z / |r|), from `spkpos(body, et, "J2000", "LT+S", "MOON")`. They do not depend on the site
+(from the surface the Earth shifts by up to 0.26°, the Sun by < 0.001°). Check against JPL Horizons (observer `500@301`,
+astrometric RA/Dec, 3 dates, both bodies): with light time only the difference is ≤ 0.000001°; the served LT+S values differ
+from that astrometric position by up to 0.007° (stellar aberration, expected).
 
 ## Validation
 
