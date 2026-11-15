@@ -7,6 +7,8 @@ import { Help } from '../Help'
 import { describeViolation, limitLabel } from '../profiles'
 import { durationH, fmtDuration, repeatPeriod } from './periods'
 import { Row, Rows } from './Rows'
+import { Status } from '../Status'
+import { useWarn } from '../useWarn'
 import { REPEAT_DAYS } from '../../data/useLive'
 
 // The blocks of the Results pane, one per subject. Each only formats what the analysis server sent.
@@ -40,12 +42,14 @@ export function ScoreBlock({ ev }: { ev: Evaluation }) {
   const hasLimits = Object.keys(limitsQuery(settings)).length > 0
   const pos = ev.uncertainty_model?.position_uncertainty_m
   const comps = ev.score.components
+  const warn = useWarn(ev)
   return (
     <>
       <p className="score">
         <i style={{ background: metricColor(ev.score.value) }} />
         <strong>{ev.score.value?.toFixed(2) ?? NA}</strong>
         {ev.score.uncertainty != null && ev.score.uncertainty >= 0.005 ? <span className="unc">± {ev.score.uncertainty.toFixed(2)}</span> : null}
+        <Status v={warn('score')} />
         <Help topic="score" />
         {hasLimits
           ? <span className={ev.feasible ? 'ok' : 'bad'}>{!ev.feasible ? 'breaks a requirement' : ev.not_checked.length ? 'meets the checked requirements' : 'meets all requirements'}</span>
@@ -112,6 +116,7 @@ function Periods({ title, list, repeat, startUtc }: {
 
 export function SunBlock({ ev, eph, windows, repeat }: P) {
   const { v, u, has } = useValues(ev)
+  const warn = useWarn(ev)
   return (
     <>
       <Rows title="At landing">
@@ -124,9 +129,9 @@ export function SunBlock({ ev, eph, windows, repeat }: P) {
         <Row label="Declination" help="ra-dec">{num(first(eph?.sun_dec_deg), fmtDec)}</Row>
       </Rows>
       <Rows title="Over the stay">
-        <Row label="Sunlight" help="sunlight">{u('sunlit_frac', fmtPct, [0, 1])}</Row>
-        <Row label="Longest night" help="longest-night">{u('longest_dark_h', fmtH, [0, ev.window.duration_h])}</Row>
-        <Row label="First sunset" help="countdowns">{untilLoss(v('hours_to_first_dark_h'), 'dark at landing')}</Row>
+        <Row label="Sunlight" help="sunlight" status={warn('sunlit_frac')}>{u('sunlit_frac', fmtPct, [0, 1])}</Row>
+        <Row label="Longest night" help="longest-night" status={warn('longest_dark_h')}>{u('longest_dark_h', fmtH, [0, ev.window.duration_h])}</Row>
+        <Row label="First sunset" help="countdowns" status={warn('hours_to_first_dark_h')}>{untilLoss(v('hours_to_first_dark_h'), 'dark at landing')}</Row>
         {has('hours_to_first_sun_h') && <Row label="First sunrise" help="countdowns">{untilLoss(v('hours_to_first_sun_h'), 'sunlit at landing')}</Row>}
         <Row label="Mean elevation when lit" help="sun-elevation">{u('mean_sun_el_when_lit_deg', fmtDeg)}</Row>
         <Row label="Lowest elevation" help="sun-position">{num(v('sun_el_min_deg'), (x) => `${x.toFixed(2)}°`)}</Row>
@@ -142,6 +147,7 @@ export function SunBlock({ ev, eph, windows, repeat }: P) {
 
 export function EarthBlock({ ev, eph, windows, repeat }: P) {
   const { v, u, has } = useValues(ev)
+  const warn = useWarn(ev)
   return (
     <>
       <Rows title="At landing">
@@ -155,9 +161,9 @@ export function EarthBlock({ ev, eph, windows, repeat }: P) {
         <Row label="Declination" help="ra-dec">{num(first(eph?.earth_dec_deg), fmtDec)}</Row>
       </Rows>
       <Rows title="Over the stay">
-        <Row label="Earth in view" help="earth-in-view">{u('earth_visible_frac', fmtPct, [0, 1])}</Row>
-        <Row label="Longest blackout" help="longest-blackout">{u('longest_no_earth_h', fmtH, [0, ev.window.duration_h])}</Row>
-        <Row label="First Earthset" help="countdowns">{untilLoss(v('hours_to_first_earth_loss_h'), 'no Earth at landing')}</Row>
+        <Row label="Earth in view" help="earth-in-view" status={warn('earth_visible_frac')}>{u('earth_visible_frac', fmtPct, [0, 1])}</Row>
+        <Row label="Longest blackout" help="longest-blackout" status={warn('longest_no_earth_h')}>{u('longest_no_earth_h', fmtH, [0, ev.window.duration_h])}</Row>
+        <Row label="First Earthset" help="countdowns" status={warn('hours_to_first_earth_loss_h')}>{untilLoss(v('hours_to_first_earth_loss_h'), 'no Earth at landing')}</Row>
         {has('hours_to_first_earth_h') && <Row label="First Earthrise" help="countdowns">{untilLoss(v('hours_to_first_earth_h'), 'in view at landing')}</Row>}
         <Row label="Mean elevation when in view" help="earth-position">{u('mean_earth_el_when_visible_deg', fmtDeg)}</Row>
         <Row label="Lowest elevation" help="earth-position">{num(v('earth_el_min_deg'), (x) => `${x.toFixed(2)}°`)}</Row>
@@ -174,11 +180,12 @@ const HORIZON: Record<string, string> = { 'lola-terrain': 'LOLA terrain', 'smoot
 
 export function TerrainBlock({ ev }: { ev: Evaluation }) {
   const { u } = useValues(ev)
+  const warn = useWarn(ev)
   const t = ev.terrain
   return (
     <>
       <Rows>
-        <Row label={`Slope${t?.slope_baseline_m ? ` over ${Math.round(t.slope_baseline_m)} m` : ''}`} help="slope">{u('slope_deg', fmtDeg, [0, 90])}</Row>
+        <Row label={`Slope${t?.slope_baseline_m ? ` over ${Math.round(t.slope_baseline_m)} m` : ''}`} help="slope" status={warn('slope_deg')}>{u('slope_deg', fmtDeg, [0, 90])}</Row>
         <Row label="Altitude" help="elevation">{fmtM(ev.parameters.elevation_m)}</Row>
         <Row label="Horizon used" help="terrain-horizon">{HORIZON[ev.horizon_source] ?? ev.horizon_source}</Row>
         {t?.dem_product && <Row label="Altitude map" help="elevation">{t.dem_product}{t.dem_resolution_m ? `, ${t.dem_resolution_m} m` : ''}</Row>}

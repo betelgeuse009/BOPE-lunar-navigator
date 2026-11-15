@@ -6,6 +6,7 @@ import { useApp } from '../state/store'
 import { areaColor } from '../ui/colors'
 import { siteScale } from '../ui/metrics'
 import { freeArea, isSea, MIN_FEATURE_PX, placeLabels, type FeatureName, type ScreenArea } from './labels'
+import { useScreenPoints } from './screenPoints'
 import { LAYER_STRIP_DEG, type Layer } from './layers'
 
 const BASE = import.meta.env.BASE_URL
@@ -16,9 +17,10 @@ const WORLD: Box = { x: -180, y: -90, w: 360, h: 180 }
 // The whole Moon as a flat map: longitude across (-180 to 180, 0 in the middle), latitude up (simple cylindrical,
 // so areas stretch toward the poles). Same imagery, markers and clicks as the globe. Drag to move, wheel to zoom.
 // Map coordinates: x = longitude, y = -latitude, in degrees.
-export function Map2D({ sites, matrix, area, subsolar, subearth, resetSignal, layer, scoreMap, scoreGlobal, scoreRange, names }: {
+export function Map2D({ sites, matrix, area, subsolar, subearth, resetSignal, layer, scoreMap, scoreGlobal, scoreRange, names, keepVisible }: {
   sites: Site[] | null; matrix: Matrix | null; area: Area | null; subsolar: LatLon | null; subearth: LatLon | null; resetSignal: number
   layer: Layer | null; scoreMap: Area | null; scoreGlobal: string | null; scoreRange: [number, number] | null; names: FeatureName[] | null
+  keepVisible: LatLon[]
 }) {
   const { dateIdx, metric, mode, point, scaleMode, hoveredSite, selectedSite, setHovered, setSelected, setPoint } = useApp()
   const svg = useRef<SVGSVGElement>(null)
@@ -45,6 +47,13 @@ export function Map2D({ sites, matrix, area, subsolar, subearth, resetSignal, la
     const m = svg.current!.getScreenCTM()!.inverse()
     return { x: m.a * cx + m.c * cy + m.e, y: m.b * cx + m.d * cy + m.f }
   }
+  // Screen positions of the places the floating cards must leave visible (same projection as the labels).
+  const setPts = useScreenPoints((s) => s.setPts)
+  useEffect(() => {
+    if (!px.w) return
+    const s = Math.min(px.w / box.w, px.h / box.h), ox = (px.w - box.w * s) / 2, oy = (px.h - box.h * s) / 2
+    setPts(keepVisible.map((p) => ({ x: (p.lon - box.x) * s + ox, y: (-p.lat - box.y) * s + oy })))
+  }, [keepVisible, box, px, setPts])
   const k = box.w / 360 // marker sizes stay the same on screen at any zoom
   // Grid spacing of the nearby search in degrees of latitude (1 degree = 30.3 km on the 1737.4 km sphere).
   const dotR = area ? (area.radius_km / 20 / 30.32) * 0.45 : 0

@@ -6,6 +6,9 @@ import { MAX_PINS, useApp, type Mode, type Pin, landingDay } from '../state/stor
 import { ROWS, bestColumns, formatCell, type Cell } from './compare'
 import { domain } from './metrics'
 import { describeViolation, limitLabel } from './profiles'
+import { Status, StatusLegend } from './Status'
+import { assess } from './warnings'
+import { Help } from './Help'
 
 const timeFmt = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'UTC' })
 const HORIZON: Record<string, string> = { 'lola-terrain': 'LOLA terrain', 'smooth-sphere': 'smooth sphere, no terrain' }
@@ -47,13 +50,14 @@ export function ComparePanel({ matrix }: { matrix: Matrix }) {
   return (
     <section className={`compare${evs.loading ? ' stale' : ''}`} aria-busy={evs.loading} aria-label="Comparison">
       <div className="panel-head">
-        <h2>Compare</h2>
+        <h2>Compare <Help topic="compare" /></h2>
         <button type="button" className="close" onClick={() => setCompareOpen(false)} aria-label="Close">×</button>
       </div>
       <p className="note">
         Stay of {settings.missionDays} days from each column's landing time. Best value per row is <span className="best-key">marked</span>.
         {mode !== 'live' && ' Offline: precomputed values with the default settings.'}
       </p>
+      <StatusLegend />
       {evs.error && <p className="error-inline">{evs.error}</p>}
       {evs.loading && <p className="note updating">{evs.data ? 'Updating…' : 'Computing…'}</p>}
       <div className="compare-scroll">
@@ -77,7 +81,17 @@ export function ComparePanel({ matrix }: { matrix: Matrix }) {
               return (
                 <tr key={r.field}>
                   <th scope="row" className={domain(r.field)}>{r.label}</th>
-                  {cols.map((c, i) => <td key={pins[i].id} className={best.has(i) ? 'best' : ''}>{formatCell(r, c[r.field], evs.data?.[pins[i].id]?.uncertainty_model?.components?.[r.field]?.range)}</td>)}
+                  {cols.map((c, i) => {
+                    // Same warning levels as the Results pane (ui/warnings.ts), with this column's "at risk" list.
+                    const v = assess(r.field, c[r.field] ? c[r.field].value : undefined,
+                      { limits: settings.limits, atRisk: evs.data?.[pins[i].id]?.requirements_at_risk, profile: settings.profile })
+                    return (
+                      <td key={pins[i].id} className={[best.has(i) ? 'best' : '', v ? `level-${v.level}` : ''].join(' ').trim() || undefined}>
+                        {formatCell(r, c[r.field], evs.data?.[pins[i].id]?.uncertainty_model?.components?.[r.field]?.range)}
+                        <Status v={v} />
+                      </td>
+                    )
+                  })}
                 </tr>
               )
             })}

@@ -8,17 +8,23 @@ import type { TopicId } from '../docs/topics'
 import { Help } from './Help'
 import { Block } from './Pane'
 import { EarthBlock, NearbyBlock, ScoreBlock, SunBlock, TerrainBlock } from './results/blocks'
+import { useWarn } from './useWarn'
+import { Status, StatusLegend } from './Status'
+import { Countdown } from './results/Countdown'
+import { MoonVsEarth } from './results/MoonVsEarth'
+import { WhyBlock } from './results/Why'
+import type { Verdict } from './warnings'
 import { TimePlot } from './results/TimePlot'
 import { SitePanel } from './SitePanel'
 
 type Request<T> = { data: T | null; loading: boolean; error: string | null }
 
 // One value under the coordinates, in the same format as the altitude: label with its help mark, then the value.
-function Fact({ label, help, e, k, fmt, missing = 'n/a' }: {
-  label: string; help: TopicId; e: Evaluation | null; k: string; fmt: (v: number) => string; missing?: string
+function Fact({ label, help, e, k, fmt, missing = 'n/a', status }: {
+  label: string; help: TopicId; e: Evaluation | null; k: string; fmt: (v: number) => string; missing?: string; status?: Verdict | null
 }) {
   const v = e?.parameters[k]?.value
-  return <div><dt>{label} <Help topic={help} /></dt><dd>{!e ? '…' : v == null ? missing : fmt(v)}</dd></div>
+  return <div className={status ? `level-${status.level}` : undefined}><dt>{label} <Help topic={help} /></dt><dd>{!e ? '…' : v == null ? missing : fmt(v)}<Status v={status} /></dd></div>
 }
 const whenFmt = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'UTC' })
 
@@ -32,6 +38,7 @@ export function OutputPanel({ sites, matrix, ev, area, landingUtc }: {
   const windows = useWindows(landingUtc)
   const repeat = useRepeatWindows(landingUtc)
   const e = ev.data
+  const warn = useWarn(e)
   return (
     <>
       {point ? (
@@ -46,9 +53,9 @@ export function OutputPanel({ sites, matrix, ev, area, landingUtc }: {
             <Fact label="Slope" help="slope" e={e} k="slope_deg" fmt={(v) => {
               const u = e?.parameters.slope_deg?.uncertainty, b = e?.terrain?.slope_baseline_m
               return `${fmtDeg(v)}${u != null && u >= 0.05 ? ` ± ${u.toFixed(1)}°` : ''}${b ? ` over ${Math.round(b)} m` : ''}`
-            }} />
-            <Fact label="Rock abundance" help="rock-abundance" e={e} k="rock_abundance_frac" fmt={fmtRock} missing="not mapped beyond 80°" />
-            <Fact label="Surface temp., max" help="surface-temperature" e={e} k="surface_temp_max_k" fmt={fmtK} />
+            }} status={warn('slope_deg')} />
+            <Fact label="Rock abundance" help="rock-abundance" e={e} k="rock_abundance_frac" fmt={fmtRock} missing="not mapped beyond 80°" status={warn('rock_abundance_frac')} />
+            <Fact label="Surface temp., max" help="surface-temperature" e={e} k="surface_temp_max_k" fmt={fmtK} status={warn('surface_temp_max_k')} />
             <Fact label="Surface temp., average" help="surface-temperature" e={e} k="surface_temp_avg_k" fmt={fmtK} />
             <Fact label="H-parameter (thermal inertia)" help="h-parameter" e={e} k="h_parameter_m" fmt={fmtH_cm} missing="not mapped beyond 70°" />
           </dl>
@@ -61,10 +68,14 @@ export function OutputPanel({ sites, matrix, ev, area, landingUtc }: {
       )}
       {point && e && (
         <div className={ev.loading ? 'stale' : undefined}>
+          <StatusLegend />
+          <Countdown ev={e} windows={windows.data} />
           <Block title="Score and requirements" help="score"><ScoreBlock ev={e} /></Block>
           <Block title="Sun" help="sunlight" open={false}><SunBlock ev={e} eph={eph.data} windows={windows.data} repeat={repeat.data} /></Block>
           <Block title="Earth" help="earth-in-view" open={false}><EarthBlock ev={e} eph={eph.data} windows={windows.data} repeat={repeat.data} /></Block>
           <Block title="Terrain" help="slope" open={false}><TerrainBlock ev={e} /></Block>
+          <Block title="Why it changes" help="sensitivity" open={false} lazy><WhyBlock ev={e} eph={eph.data} /></Block>
+          <Block title="Moon vs Earth" help="moon-vs-earth" open={false} lazy><MoonVsEarth ev={e} eph={eph.data} /></Block>
           {radiusKm > 0 && <Block title={`Within ${radiusKm} km`} help="nearby-search"><NearbyBlock area={area.data} loading={area.loading} error={area.error} /></Block>}
           <Block title="Plot over time" help="time-series" open={false}><TimePlot data={eph.data} loading={eph.loading} error={eph.error} /></Block>
         </div>

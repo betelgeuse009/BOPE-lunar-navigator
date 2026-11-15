@@ -72,6 +72,8 @@ export const REFS = {
     text: 'IAU Working Group for Planetary System Nomenclature and USGS Astrogeology Science Center, Gazetteer of Planetary Nomenclature: Moon, centre points (MOON_nomenclature_center_pts), downloaded 2026-11-15.',
     url: 'https://planetarynames.wr.usgs.gov/',
   },
+  moonFact: { text: 'Williams, D. R., "Moon Fact Sheet", NASA Goddard Space Flight Center, NSSDCA, last updated 11 Jan 2024.', url: 'https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html' },
+  earthFact: { text: 'Williams, D. R., "Earth Fact Sheet", NASA Goddard Space Flight Center, NSSDCA, last updated 15 Nov 2024.', url: 'https://nssdc.gsfc.nasa.gov/planetary/factsheet/earthfact.html' },
   meeus1998: { text: 'Meeus, J. (1998), Astronomical Algorithms, 2nd ed., Willmann-Bell, Richmond (mean lengths of the synodic, anomalistic and draconic months).' },
 } satisfies Record<string, { text: string; url?: string }>
 export type RefId = keyof typeof REFS
@@ -106,6 +108,45 @@ const DEFS = {
       { h: 'Landing criteria', p: ['Apollo chose the landing time so that the Sun was 7° to 20° behind the lander during the approach, which left about one launch day per month for each site [4]. Artemis III: approach lighting is beneficial, and at the south pole the peak lighting conditions are periodic and shift 2 to 3 weeks earlier each year [5].'] },
     ],
     refs: ['parameters', 'api', 'de440', 'apollo1968', 'nasaReq'], seeAlso: ['surface-stay', 'ephemeris', 'time-series'],
+  },
+  search: {
+    title: 'Search and A/B comparison', category: 'Mission setup',
+    summary: 'The bar at the top of the viewer finds a known landing site, a named feature of the Moon or typed coordinates, and goes there. "A/B" adds a second field to compare two places side by side.',
+    sections: [
+      { h: 'What it finds', table: {
+        head: ['Kind', 'Mark', 'Source'],
+        rows: [
+          ['Typed coordinates', '⌖', 'latitude first: "-89.45, -137.31", "89.45S 137.31W" or "89.45° S, 137.31° W"; same convention as the Place boxes (page "Place: coordinates")'],
+          ['Known landing sites', '◆', 'the 31 sites of the catalogue, coordinates from NSSDCA and LROC [1]'],
+          ['Named features', '○', '2 023 craters, maria, mountains, valleys and other features adopted by the IAU, at their centre point [2]'],
+        ],
+      } },
+      { h: 'How', p: [
+        'Upper and lower case and accents are ignored ("schrodinger" finds Schrödinger). Names that start with the text come before names that only contain it; features are listed largest first. Arrow keys move in the list, Enter chooses, Escape closes it.',
+        'Choosing a result does the same as clicking that place on the Moon: the analysis server evaluates it and the view turns to it. Offline only the known sites can be chosen.',
+      ] },
+      { h: 'A/B comparison', p: [
+        '"A/B" shows two fields, A and B. Choose a place in each, then "Compare": both are added to the comparison at the landing date and time on the rails (page "Comparison"), and the Compare panel opens with the columns "A · …" and "B · …". Choosing again replaces the previous A and B columns; other columns stay.',
+      ] },
+      { h: 'Limitations', p: ['A feature is placed at its centre point: for a large crater this can be on the floor, far from the rim where a lander would go.', 'At most four columns fit in the comparison.'] },
+    ],
+    refs: ['sites', 'gazetteer'], seeAlso: ['coordinates', 'labels', 'known-sites', 'compare'],
+  },
+  compare: {
+    title: 'Comparison', category: 'Results',
+    summary: 'Up to four places side by side, each at the landing date and time it was added with, so both "which place" and "which date" can be compared.',
+    sections: [
+      { h: 'Columns', p: [
+        'A column is added with "+ Compare at this date" under a place, or with the A/B search (columns "A · …" and "B · …"). Each column keeps its own landing date and time; the stay, mast height, weights and requirements are the current ones of Mission setup, so changing them recomputes every column.',
+        'With the analysis server each column is a full evaluation with uncertainties (the same as the Results pane). Offline only known sites can be compared, with the precomputed values (landing at 00:00 UTC, default settings).',
+      ] },
+      { h: 'Reading', p: [
+        'The best value of each row is marked when at least two columns differ; rows without an agreed direction (for example the altitude) are not ranked.',
+        'The badges follow the warning rules of the Results pane (page "Warnings"): red for a broken requirement, orange for at risk, not checked or outside a default band, green otherwise.',
+      ] },
+      { h: 'Limitations', p: ['Four columns at most. A column computed offline and one computed live are not comparable: the offline values use the default settings.'] },
+    ],
+    refs: ['api', 'parameters'], seeAlso: ['search', 'warnings', 'score'],
   },
   coordinates: {
     title: 'Place: coordinates', category: 'Mission setup',
@@ -380,9 +421,13 @@ const DEFS = {
           ['not during the stay', 'never lost inside the mission window'],
         ],
       } },
+      { h: '"Time left in view" banner', p: [
+        'At the top of the Results pane the same values are written as sentences ("Sunset in 3 d 4 h", "Dark at landing, sunrise in 30 h", "Sun up for the whole stay") with the UTC time of the event. Under them the stay is drawn from landing (left) to its end (right), one bar for the Sun and one for the Earth, filled where the body is in view (the periods of the page "Periods in view"); thin lines mark whole days.',
+        'The badge after each sentence follows the warning rules (page "Warnings"): orange when the Sun or the Earth is lost within 24 h of landing or is not in view at landing (our default band), unless a requirement says otherwise.',
+      ] },
       { h: 'Landing criteria', p: ['No published threshold. For operations: the first sunset bounds the time on solar power after landing; landing in darkness (a first sunrise later than 0 h) means starting on batteries.'] },
     ],
-    refs: ['parameters'], seeAlso: ['sunlight', 'earth-in-view'],
+    refs: ['parameters'], seeAlso: ['sunlight', 'earth-in-view', 'visibility-windows', 'warnings'],
   },
   'sun-elevation': {
     title: 'Mean Sun elevation when lit', category: 'Results',
@@ -874,6 +919,84 @@ const DEFS = {
       ] },
     ],
     refs: ['gazetteer', 'layersCode'], seeAlso: ['views', 'coordinates'],
+  },
+  warnings: {
+    title: 'Warnings: fine, check, fails', category: 'Results',
+    summary: 'The badge after a value in the Results pane and in the comparison: ✓ fine, ! check, ✕ fails a requirement you set. Hover a badge for the reason.',
+    sections: [
+      { h: 'Levels', table: {
+        head: ['Badge', 'Meaning'],
+        rows: [
+          ['✕ red', 'The value breaks a minimum requirement you switched on. Only a requirement can give red.'],
+          ['! orange', 'At risk: the requirement is met at this exact point but broken somewhere within the landing accuracy (100 m) or the skyline accuracy (0.1°), as reported by the analysis server; or the requirement cannot be checked (no value); or, with no requirement on that value, the value is outside its default band below.'],
+          ['✓ green', 'The value meets your requirement, or is inside its default band.'],
+          ['none', 'No requirement and no default band for that value (for example the altitude): nothing to judge.'],
+        ],
+      } },
+      { h: 'Default bands', p: ['Shown before any requirement is set, so the values that usually matter stand out. A default band gives at most orange, never red. A requirement on the same value replaces its band. Where a published value exists it is used; the others are our own choice and are labelled so.'], table: {
+        head: ['Value', 'Orange when', 'Origin'],
+        rows: [
+          ['Slope', 'above 10°', 'Artemis III landing limit over 100 m [1]'],
+          ['Earth in view', 'below 25 % of the stay', 'Artemis III excludes areas below 25 % Earth visibility [1] (NASA applies it to the long-term maps)'],
+          ['Longest night (crewed missions only)', 'above 0 h', 'Artemis III: surface lit for the whole stay [1]'],
+          ['Sunlight', 'below 50 % of the stay', 'our choice'],
+          ['First sunset after landing', 'within 24 h, or dark at landing', 'our choice'],
+          ['First Earthset after landing', 'within 24 h, or no Earth at landing', 'our choice'],
+          ['Longest blackout', 'above 72 h', 'our choice'],
+          ['Rock abundance', 'above 1 %', 'our choice: rockier than 98 % of the Moon (whole-Moon map statistics)'],
+          ['Maximum surface temperature', 'above 395 K', 'our choice: hotter than 98 % of the Moon (whole-Moon map statistics)'],
+          ['Score', 'below 0.5', 'our choice'],
+        ],
+      } },
+      { h: 'Limitations', p: ['The bands are reading aids, not mission requirements: a real mission sets its own limits under Minimum requirements. The Artemis III values were written for a crewed south-pole landing.'] },
+    ],
+    refs: ['nasaReq', 'parameters'], seeAlso: ['requirements', 'verdict', 'uncertainty', 'landing-criteria'],
+  },
+  sensitivity: {
+    title: 'Why it changes', category: 'Results',
+    summary: 'Why a small change of place or landing date can change the result a lot: what the result does one day or one hour earlier or later and a few hundred metres away, and what in the sky and the terrain causes it.',
+    sections: [
+      { h: 'The physics in one paragraph', p: [
+        'The Moon\'s spin axis is tilted only about 1.5° to the ecliptic, so near the poles the Sun stays within a few degrees of the horizon all year and circles it once per lunar day of 29.5 Earth days [1][2]. A ridge one or two degrees high, or a crater rim a few hundred metres away, then decides whether the Sun is seen. The Earth hardly moves in the sky of a given place: it only swings by several degrees with the librations over about a month, so near the poles and the limb a small rise of terrain decides whether it is in view [1]. Away from the poles both bodies rise high and small changes matter much less.',
+      ] },
+      { h: 'Reasons', p: [
+        'From the server\'s Sun and Earth positions every 10 minutes over the stay and the terrain skyline (360° in 0.5° steps, from the mast height). "Hidden by terrain": a time step with the centre of the disc above the flat horizon ($h > 0$) but less than half of the disc above the skyline. The sector is the smallest compass arc that holds every such step; the skyline height given is the highest point of the skyline in that arc along the body\'s path.',
+        'The sentence about a low Sun appears when the Sun never climbs above 10° during the stay, the one about a low Earth when the Earth stays within 10° of the horizon. The 10° is a wording choice, not a published value.',
+      ] },
+      { h: 'Landing date and time', p: [
+        'Score for a landing one day earlier and later (same time of day), from the same request as the date strip, and one hour earlier and later, from the time-of-day strip (every 10 minutes). "n/a" at the ends of a strip. Over the 30 days: the lowest and highest score of the date strip.',
+      ] },
+      { h: 'Place', p: [
+        'Moving by the landing accuracy: for each value, the largest change found by the server on a ring of 8 points at the landing accuracy (100 m by default) around the place: the position part of the uncertainty (page "Uncertainty").',
+        'Anywhere within 2 km: the lowest and highest score on a grid of points every 250 m within 2 km (/api/area, faster skyline with 2° azimuth steps), and the best of them.',
+      ] },
+      { h: 'Panorama', p: ['The skyline seen from the mast as a grey silhouette over 360° of azimuth (north at both ends), with the Sun and Earth positions every 10 minutes (or less often for long stays) over the stay: bright when at least half of the disc is in view, faint when hidden. The elevation axis is stretched to show degrees near the horizon.'] },
+      { h: 'Limitations', p: ['The terrain is the LOLA skyline out to 200 km; boulders and anything smaller than the map pixels are not in it. Without the terrain maps the skyline is a smooth sphere and nothing is "hidden by terrain".'] },
+    ],
+    refs: ['meeus1998', 'pgda69', 'api', 'parameters'], seeAlso: ['terrain-horizon', 'uncertainty', 'nearby-search', 'landing-time'],
+  },
+  'moon-vs-earth': {
+    title: 'Moon vs Earth', category: 'Results',
+    summary: 'The chosen place next to everyday values on Earth, as pairs of bars, to show how different the conditions are.',
+    sections: [
+      { h: 'Values', table: {
+        head: ['Row', 'Moon', 'Earth', 'Source'],
+        rows: [
+          ['Day and night, one full cycle', 'synodic period 29.53 days', '24 h', 'Moon [1], Earth [2]'],
+          ['Longest night of your stay', 'computed for the place and the stay (page "Longest night")', 'about 12 h: half of a 24 h day at the equator, ignoring refraction', 'Earth: our arithmetic from [2]'],
+          ['Ground temperature swing in a day', '95 to 390 K at the equator', '283 to 293 K (diurnal range of the global average)', 'Moon [1], Earth [2]'],
+          ['Highest Sun during your stay', 'computed for the place and the stay', 'up to 90°: at noon on the equator at an equinox', 'geometry'],
+          ['Air pressure at the ground', '$3 \\times 10^{-15}$ bar (night)', '1.014 bar', 'Moon [1], Earth [2]'],
+          ['Gravity', '1.62 m/s²', '9.80 m/s²', 'Moon [1] (Earth value as given there)'],
+          ['Size in the sky', 'the Earth seen from the place, $2\\rho_\\oplus$ from the server at landing', 'the Moon seen from Earth: $2 \\arctan(1737.4 / 384\\,400) = 0.52^\\circ$', 'mean radius and distance [1]'],
+        ],
+      } },
+      { h: 'Reading the bars', p: ['Each row is drawn on a linear scale: the longer of the two values fills the row, the other is in proportion, so a tiny bar means a tiny value (air pressure on the Moon is too small to draw). The number on the right is the ratio Moon / Earth.'] },
+      { h: 'Radio delay', p: ['Light time to the Earth from the place at landing: distance / speed of light ($c = 299\\,792.458$ km/s, exact), once one way and twice for there and back. The distance is the server\'s, from the JPL ephemeris.'] },
+      { h: 'What it means', p: ['No air: the sky is black in full daylight, shadows are hard and nothing carries heat away, so the ground swings by hundreds of kelvin between day and night. The Moon\'s axis is tilted only about 1.5° to the ecliptic [3], so there are almost no seasons and near the poles the Sun skims the horizon all year.'] },
+      { h: 'Limitations', p: ['The Earth values are global or equatorial references, not a particular place on Earth. The Moon\'s temperature swing is the equatorial value; this place\'s own maximum and average temperatures are under its coordinates.'] },
+    ],
+    refs: ['moonFact', 'earthFact', 'meeus1998', 'api'], seeAlso: ['sensitivity', 'surface-temperature', 'longest-night', 'earth-position'],
   },
   'site-colours': {
     title: 'Site colours', category: 'Methods',

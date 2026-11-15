@@ -17,6 +17,7 @@
   --chosen: #ffffff;
   --ok: #4fbf9a;
   --warn: #f08a4b;
+  --bad: #ff5d5d;
   --font: 'Archivo Variable', system-ui, sans-serif;
   --gutter: clamp(16px, 3vw, 40px);
   --measure: 62ch;
@@ -109,7 +110,7 @@ body {
 /* ---------- Viewport bar: name, live status, compare ---------- */
 .stage-top {
   position: absolute; z-index: 2; top: 0; left: 0; right: 0; pointer-events: none;
-  display: flex; align-items: center; gap: 16px; padding: 14px var(--gutter) 40px;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; padding: 14px var(--gutter) 40px;
   background: linear-gradient(rgba(0, 0, 0, 0.85) 40%, transparent); font-size: 15px;
 }
 .stage-top > * { pointer-events: auto; }
@@ -236,9 +237,9 @@ fieldset.requirements { margin-top: 0; }
 .score .unc { font-size: 15px; color: var(--text-2); }
 .score .ok, .score .bad, .score .nolimits { margin-left: auto; font-size: 15px; font-weight: 500; }
 .score .ok { color: var(--ok); }
-.score .bad { color: var(--warn); }
+.score .bad { color: var(--bad); }
 .score .nolimits { color: var(--text-2); font-weight: 400; }
-.violations { margin: 6px 0 0; padding-left: 18px; color: var(--warn); }
+.violations { margin: 6px 0 0; padding-left: 18px; color: var(--bad); }
 .pane .at-risk { margin: 8px 0 0; color: var(--warn); }
 .breakdown { width: 100%; margin-top: 18px; border-collapse: collapse; font-size: 15px; }
 .breakdown caption { text-align: left; font-weight: 600; padding-bottom: 6px; }
@@ -269,7 +270,7 @@ fieldset.requirements { margin-top: 0; }
 .compare td.best { font-weight: 700; box-shadow: inset 3px 0 0 var(--ok); }
 .best-key { font-weight: 700; border-left: 3px solid var(--ok); padding-left: 4px; }
 .compare td.ok { color: var(--ok); }
-.compare td.bad { color: var(--warn); }
+.compare td.bad { color: var(--bad); }
 .stale .compare-scroll { opacity: 0.4; }
 
 /* ---------- Narrow screens: the Moon on top (sticky), the panes stacked below ---------- */
@@ -404,7 +405,7 @@ fieldset.requirements { margin-top: 0; }
 
 /* ---------- Mission card: shown while a known site is pointed at ---------- */
 .mission-card {
-  position: absolute; z-index: 3; top: 64px; left: 16px; width: min(340px, calc(100% - 32px)); pointer-events: none;
+  position: absolute; z-index: 3; top: 64px; left: 16px; /* default; ui/MissionCard.tsx moves it away from the points */ width: min(340px, calc(100% - 32px)); pointer-events: none;
   color: var(--text); background: var(--surface-raised); border: 1px solid #3a3d44; border-radius: 3px; overflow: hidden;
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.7); font-size: 14px; line-height: 1.45;
 }
@@ -606,3 +607,103 @@ fieldset.requirements { margin-top: 0; }
   border: 1px solid var(--night-text-2); border-radius: 3px;
 }
 .labels-toggle button[aria-pressed='true'] { color: #000; background: var(--night-text); border-color: var(--night-text); }
+
+/* ---------- Warning badges (ui/warnings.ts, ui/Status.tsx) ---------- */
+.status {
+  display: inline-grid; place-items: center; width: 17px; height: 17px; margin-left: 8px; vertical-align: -2px;
+  border-radius: 50%; font-size: 11px; font-weight: 700; line-height: 1; color: #000; cursor: help; flex: none;
+}
+.status-ok { background: var(--ok); }
+.status-warn { background: var(--warn); }
+.status-bad { background: var(--bad); border-radius: 3px; }
+.rows > .level-bad dd { color: var(--bad); }
+.rows > .level-warn dd { color: var(--warn); }
+.status-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 4px; margin: 4px 0 8px; font-size: 13px; color: var(--text-2); }
+.status-legend .status { margin-left: 10px; }
+.status-legend .status:first-child { margin-left: 0; }
+.place-facts .level-bad dd { color: var(--bad); }
+.place-facts .level-warn dd { color: var(--warn); }
+.compare td.level-bad { color: var(--bad); }
+.compare td.level-warn { color: var(--warn); }
+
+/* ---------- Countdown banner (ui/results/Countdown.tsx) ---------- */
+.countdown { margin: 4px 0 16px; padding: 12px 14px; background: var(--surface-raised); border: 1px solid var(--rule); border-radius: 3px; }
+.countdown .rows-title { margin-top: 0; }
+.countdown-line { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; margin: 6px 0; font-size: 18px; }
+.countdown-line strong { font-weight: 600; }
+.countdown-line small { font-size: 13px; color: var(--text-2); }
+.countdown-line .cd-icon { width: 18px; text-align: center; }
+.countdown-line.sun .cd-icon { color: var(--sun); }
+.countdown-line.earth .cd-icon { color: var(--earth); }
+.countdown-line .status { align-self: center; }
+.stay-bars { margin: 10px 0 0; }
+.stay-bars svg { display: block; width: 100%; height: 34px; }
+.stay-bars .track { fill: #24262c; }
+.stay-bars .sun rect:not(.track) { fill: var(--sun); }
+.stay-bars .earth rect:not(.track) { fill: var(--earth); }
+.stay-bars .day { stroke: #000; stroke-width: 0.25; vector-effect: non-scaling-stroke; }
+.stay-bars figcaption { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; color: var(--text-2); }
+.stay-bars .key i { display: inline-block; width: 9px; height: 9px; margin: 0 4px 0 8px; border-radius: 2px; vertical-align: -1px; }
+.stay-bars .key i.sun { background: var(--sun); }
+.stay-bars .key i.earth { background: var(--earth); }
+
+/* ---------- Search bar + A/B (ui/SearchBar.tsx) ---------- */
+.search { flex: 1 1 100%; order: 10; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; max-width: 760px; }
+.search-field { position: relative; flex: 1 1 260px; display: flex; align-items: center; }
+.search-field input {
+  width: 100%; padding: 8px 12px; font: 400 15px var(--font); color: var(--text);
+  background: rgba(22, 23, 27, 0.92); border: 1px solid #5b5f66; border-radius: 20px;
+}
+.search-field input:focus { outline: 2px solid var(--chosen); outline-offset: 1px; }
+.search-ab .search-field input { padding-left: 34px; }
+.search-tag { position: absolute; left: 8px; display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; font-size: 12px; font-weight: 700; color: #000; }
+.tag-A { background: var(--chosen); }
+.tag-B { background: var(--earth); }
+.search-ab-toggle, .search-go {
+  padding: 6px 12px; font: 500 14px var(--font); cursor: pointer; color: var(--night-text);
+  background: rgba(0, 0, 0, 0.6); border: 1px solid #5b5f66; border-radius: 3px;
+}
+.search-ab-toggle[aria-pressed='true'], .search-go:not(:disabled) { color: #000; background: var(--night-text); border-color: var(--night-text); }
+.search-go:disabled { opacity: 0.5; cursor: default; }
+.search-list {
+  position: absolute; z-index: 5; top: calc(100% + 4px); left: 0; right: 0; margin: 0; padding: 4px 0; list-style: none;
+  background: var(--surface-raised); border: 1px solid #3a3d44; border-radius: 6px; box-shadow: 0 16px 40px rgba(0, 0, 0, 0.7);
+}
+.search-list li { display: flex; gap: 10px; align-items: baseline; padding: 6px 12px; cursor: pointer; }
+.search-list li[aria-selected='true'] { background: #26282e; }
+.search-list strong { display: block; font-weight: 500; }
+.search-list small { display: block; font-size: 12.5px; color: var(--text-2); }
+.search-kind { width: 14px; text-align: center; color: var(--text-2); }
+.kind-site { color: var(--chosen); }
+.search-note { flex: 1 1 100%; margin: 0; font-size: 13px; color: var(--warn); }
+
+/* ---------- Why it changes (ui/results/Why.tsx) ---------- */
+.why-reasons { margin: 0 0 8px; padding-left: 18px; }
+.why-reasons li { margin: 6px 0; line-height: 1.45; }
+.panorama { margin: 16px 0 0; }
+.panorama svg { display: block; width: 100%; height: 150px; background: #050608; border: 1px solid var(--rule); }
+.panorama .terrain { fill: #3a3c43; }
+.panorama .flat { stroke: #6b6e78; stroke-width: 1; stroke-dasharray: 3 3; vector-effect: non-scaling-stroke; }
+.panorama circle.sun { fill: var(--sun); }
+.panorama circle.earth { fill: var(--earth); }
+.panorama circle.hidden { opacity: 0.35; }
+.panorama figcaption { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-2); }
+.panorama .note { margin: 4px 0 0; font-size: 12.5px; }
+.panorama .k-sun { color: var(--sun); }
+.panorama .k-earth { color: var(--earth); }
+
+/* ---------- Moon vs Earth (ui/results/MoonVsEarth.tsx) ---------- */
+.vs-key { display: flex; align-items: center; gap: 6px; margin: 0 0 8px; font-size: 13px; color: var(--text-2); }
+.vs-key i { width: 10px; height: 10px; border-radius: 2px; margin-left: 6px; }
+.vs-key i.m { background: #d9d9e0; margin-left: 0; }
+.vs-key i.e { background: var(--earth); }
+.vs { list-style: none; margin: 0; padding: 0; }
+.vs li { display: grid; grid-template-columns: 1fr auto; gap: 3px 10px; padding: 10px 0; border-bottom: 1px solid var(--rule); }
+.vs-label { font-size: 14px; }
+.vs-ratio { font-weight: 700; font-size: 14px; }
+.vs-bar { grid-column: 1 / -1; position: relative; height: 18px; background: #16171b; border-radius: 2px; }
+.vs-bar i { position: absolute; left: 0; top: 0; bottom: 0; min-width: 2px; border-radius: 2px; }
+.vs-bar.m i { background: #d9d9e0; }
+.vs-bar.e i { background: var(--earth); }
+.vs-bar b { position: relative; display: block; padding: 0 6px; font-size: 12.5px; font-weight: 600; line-height: 18px; color: #fff; text-shadow: 0 0 3px #000, 0 0 2px #000; }
+.vs li small { grid-column: 1 / -1; font-size: 12px; color: var(--text-2); }

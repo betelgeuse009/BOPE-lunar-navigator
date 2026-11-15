@@ -44,3 +44,4 @@ Status: todo · doing · review · done. Update the row when status changes; add
 | T38 | Feedback batch (FE): lat/lon boxes, animation rollover, Sun/Earth period lengths + repeat period, Labels switch, exact colour bar ends with ±, regolith factors in score/requirements, navigator audit (`fe/feedback-batch`) | FE | review | |
 | T39 | Re-run `frontend/scripts/layers.py` with the Diviner maps (temperature, rock, H get exact colour bar ends) and run `analysis/tests` with the regolith maps | AERO | todo | T38 |
 | T40 | Open validation items in `docs/validation/navigator-audit.md`: Earth phase vs Horizons, mast height vs Gläser et al. 2014, whole-Moon visibility vs AVGVISIB overlap, irradiance, Diviner temperature accuracy | AERO | todo | T38 |
+| T41 | Intuitiveness batch (FE): warning badges + default bands, countdown banner, mission card placement, search bar + A/B compare, "Why it changes", "Moon vs Earth" (`fe/ux-warnings`) | FE | review | T38 |
