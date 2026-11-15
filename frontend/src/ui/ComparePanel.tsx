@@ -8,6 +8,7 @@ import { domain } from './metrics'
 import { describeViolation, limitLabel } from './profiles'
 import { Status, StatusLegend } from './Status'
 import { assess } from './warnings'
+import { Help } from './Help'
 
 const timeFmt = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'UTC' })
 const HORIZON: Record<string, string> = { 'lola-terrain': 'LOLA terrain', 'smooth-sphere': 'smooth sphere, no terrain' }
@@ -49,7 +50,7 @@ export function ComparePanel({ matrix }: { matrix: Matrix }) {
   return (
     <section className={`compare${evs.loading ? ' stale' : ''}`} aria-busy={evs.loading} aria-label="Comparison">
       <div className="panel-head">
-        <h2>Compare</h2>
+        <h2>Compare <Help topic="compare" /></h2>
         <button type="button" className="close" onClick={() => setCompareOpen(false)} aria-label="Close">×</button>
       </div>
       <p className="note">

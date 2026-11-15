@@ -8,6 +8,7 @@ import { useApp } from '../state/store'
 import { metricColor } from '../ui/colors'
 import { formatValue, metricMeta, siteScale } from '../ui/metrics'
 import { MissionCard } from '../ui/MissionCard'
+import { SearchBar } from '../ui/SearchBar'
 import { AreaDots, PointMarkers } from './AreaLayer'
 import { CameraFocus } from './CameraFocus'
 import { CameraReset } from './CameraReset'
@@ -131,6 +132,7 @@ export function Viewport({ sites, matrix, area, subsolar, subearth, skyKm, score
             Compare {pins.length > 0 ? pins.length : ''}
           </button>
         )}
+        <SearchBar sites={sites} />
       </header>
 
       <button type="button" className="view-reset" onClick={() => setReset(reset + 1)}

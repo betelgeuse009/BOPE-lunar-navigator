@@ -107,6 +107,45 @@ const DEFS = {
     ],
     refs: ['parameters', 'api', 'de440', 'apollo1968', 'nasaReq'], seeAlso: ['surface-stay', 'ephemeris', 'time-series'],
   },
+  search: {
+    title: 'Search and A/B comparison', category: 'Mission setup',
+    summary: 'The bar at the top of the viewer finds a known landing site, a named feature of the Moon or typed coordinates, and goes there. "A/B" adds a second field to compare two places side by side.',
+    sections: [
+      { h: 'What it finds', table: {
+        head: ['Kind', 'Mark', 'Source'],
+        rows: [
+          ['Typed coordinates', '⌖', 'latitude first: "-89.45, -137.31", "89.45S 137.31W" or "89.45° S, 137.31° W"; same convention as the Place boxes (page "Place: coordinates")'],
+          ['Known landing sites', '◆', 'the 31 sites of the catalogue, coordinates from NSSDCA and LROC [1]'],
+          ['Named features', '○', '2 023 craters, maria, mountains, valleys and other features adopted by the IAU, at their centre point [2]'],
+        ],
+      } },
+      { h: 'How', p: [
+        'Upper and lower case and accents are ignored ("schrodinger" finds Schrödinger). Names that start with the text come before names that only contain it; features are listed largest first. Arrow keys move in the list, Enter chooses, Escape closes it.',
+        'Choosing a result does the same as clicking that place on the Moon: the analysis server evaluates it and the view turns to it. Offline only the known sites can be chosen.',
+      ] },
+      { h: 'A/B comparison', p: [
+        '"A/B" shows two fields, A and B. Choose a place in each, then "Compare": both are added to the comparison at the landing date and time on the rails (page "Comparison"), and the Compare panel opens with the columns "A · …" and "B · …". Choosing again replaces the previous A and B columns; other columns stay.',
+      ] },
+      { h: 'Limitations', p: ['A feature is placed at its centre point: for a large crater this can be on the floor, far from the rim where a lander would go.', 'At most four columns fit in the comparison.'] },
+    ],
+    refs: ['sites', 'gazetteer'], seeAlso: ['coordinates', 'labels', 'known-sites', 'compare'],
+  },
+  compare: {
+    title: 'Comparison', category: 'Results',
+    summary: 'Up to four places side by side, each at the landing date and time it was added with, so both "which place" and "which date" can be compared.',
+    sections: [
+      { h: 'Columns', p: [
+        'A column is added with "+ Compare at this date" under a place, or with the A/B search (columns "A · …" and "B · …"). Each column keeps its own landing date and time; the stay, mast height, weights and requirements are the current ones of Mission setup, so changing them recomputes every column.',
+        'With the analysis server each column is a full evaluation with uncertainties (the same as the Results pane). Offline only known sites can be compared, with the precomputed values (landing at 00:00 UTC, default settings).',
+      ] },
+      { h: 'Reading', p: [
+        'The best value of each row is marked when at least two columns differ; rows without an agreed direction (for example the altitude) are not ranked.',
+        'The badges follow the warning rules of the Results pane (page "Warnings"): red for a broken requirement, orange for at risk, not checked or outside a default band, green otherwise.',
+      ] },
+      { h: 'Limitations', p: ['Four columns at most. A column computed offline and one computed live are not comparable: the offline values use the default settings.'] },
+    ],
+    refs: ['api', 'parameters'], seeAlso: ['search', 'warnings', 'score'],
+  },
   coordinates: {
     title: 'Place: coordinates', category: 'Mission setup',
     summary: 'Type the latitude and longitude of the place to evaluate, instead of clicking on the Moon. The boxes show the coordinates of the place chosen last.',
