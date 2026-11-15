@@ -1,12 +1,12 @@
 import { OrbitControls } from '@react-three/drei'
 import { Canvas } from '@react-three/fiber'
-import { Suspense, useRef, useState } from 'react'
+import { Suspense, useMemo, useRef, useState } from 'react'
 import type { Group } from 'three'
-import type { Area } from '../data/api'
+import type { Area, ScoreGrid } from '../data/api'
 import type { Matrix, Site } from '../data/schemas'
 import { useApp } from '../state/store'
 import { metricColor } from '../ui/colors'
-import { metricMeta } from '../ui/metrics'
+import { formatValue, metricMeta, siteScale } from '../ui/metrics'
 import { MissionCard } from '../ui/MissionCard'
 import { AreaDots, PointMarkers } from './AreaLayer'
 import { CameraFocus } from './CameraFocus'
@@ -16,6 +16,7 @@ import { vec3ToLatLon } from './geo'
 import { LayerOverlay } from './LayerOverlay'
 import { LAYERS, UNAVAILABLE, layerById, type LayerId } from './layers'
 import { Map2D } from './Map2D'
+import { scoreGridImage } from './scoreImage'
 import { Lights, Moon } from './Moon'
 import { SiteMarkers } from './SiteMarkers'
 import { Sky } from './Sky'
@@ -23,27 +24,37 @@ import { FAR, HOME, TYPICAL_EARTH_KM, TYPICAL_SUN_KM } from './view'
 import { SouthCap } from './SouthCap'
 
 // Centre of the workbench: the Moon, what is drawn on it, and the controls that belong to the view.
-export function Viewport({ sites, matrix, area, subsolar, subearth, skyKm, scoreMap, updating }: {
+const BASE = import.meta.env.BASE_URL
+
+export function Viewport({ sites, matrix, area, subsolar, subearth, skyKm, scoreMap, scoreGrid, updating }: {
   sites: Site[] | null; matrix: Matrix | null; area: Area | null
   subsolar: { lat: number; lon: number } | null; subearth: { lat: number; lon: number } | null
   skyKm: { earthKm: number; sunKm: number } | null
-  scoreMap: { data: Area | null; loading: boolean; error: string | null }; updating: boolean
+  scoreMap: { data: Area | null; loading: boolean; error: string | null }
+  scoreGrid: { data: ScoreGrid | null; loading: boolean; error: string | null }; updating: boolean
 }) {
-  const { metric, mode, point, scaleMode, pins, compareOpen, layer: layerId, setMetric, setSelected, setPoint, setCompareOpen, setLayer } = useApp()
+  const { metric, mode, point, scaleMode, pins, compareOpen, dateIdx, layer: layerId, setMetric, setSelected, setPoint, setCompareOpen, setLayer } = useApp()
   const [view, setView] = useState<'3d' | '2d'>('3d')
   const [reset, setReset] = useState(0) // each press of the reset button
   const moon = useRef<Group>(null)
   const layer = layerById(layerId)
   // What the chosen layer cannot show right now, said next to the picker instead of failing silently.
   const layerNote = !layer ? null
-    : layer.kind === 'score' ? (mode !== 'live' ? 'Needs the live analysis server.' : view === '3d' ? 'Shown on the 2D map.'
-      : scoreMap.error ? `Could not compute: ${scoreMap.error}` : scoreMap.loading ? 'Computing…' : null)
+    : layer.kind === 'score' ? (mode !== 'live' ? 'Needs the live analysis server.'
+      : scoreGrid.error ?? scoreMap.error ? `Could not compute: ${scoreGrid.error ?? scoreMap.error}`
+      : scoreGrid.loading ? 'Computing the whole Moon…' : scoreMap.loading && view === '2d' ? 'Computing the south pole in detail…' : null)
     : layer.kind === 'daynight' ? (view === '3d' ? 'On the globe the lighting already shows it; the line is drawn on the 2D map.' : !subsolar ? 'No Sun position for this date.' : null)
-    : !layer.global ? 'South polar region only.' : null
+    : null
+  // Score layer: both parts share one colour range, the lowest and highest score found on the whole Moon.
+  const scoreRange = scoreGrid.data?.score_range ?? null
+  const scoreGlobal = useMemo(() => (layer?.kind === 'score' && scoreGrid.data && scoreRange ? scoreGridImage(scoreGrid.data, scoreRange) : null),
+    [layer, scoreGrid.data, scoreRange])
+  const layerLegend = layer?.kind === 'score' ? (scoreRange ? [scoreRange[0].toFixed(2), scoreRange[1].toFixed(2)] : null) : layer?.legend ?? null
+  const sitesScale = matrix ? siteScale(matrix, metric, dateIdx) : null
   return (
     <div className="stage">
       {view === '2d' && <Map2D sites={sites} matrix={matrix} area={area} subsolar={subsolar} subearth={subearth} resetSignal={reset}
-        layer={layer} scoreMap={scoreMap.data} />}
+        layer={layer} scoreMap={scoreMap.data} scoreGlobal={scoreGlobal} scoreRange={scoreRange} />}
       {view === '3d' && <Canvas camera={{ position: HOME, fov: 35, near: 0.01, far: FAR }} onPointerMissed={() => setSelected(null)}>
         <color attach="background" args={['#000000']} />
         <Lights subsolar={subsolar} />
@@ -61,7 +72,12 @@ export function Viewport({ sites, matrix, area, subsolar, subearth, skyKm, score
             <SouthCap />
           </group>
         </Suspense>
-        {layer?.cap && <Suspense fallback={null}><LayerOverlay layer={{ ...layer, cap: layer.cap }} /></Suspense>}
+        {layer?.kind === 'image' && (
+          <Suspense fallback={null}>
+            <LayerOverlay globalUrl={layer.global && BASE + layer.global} capUrl={layer.cap && BASE + layer.cap} />
+          </Suspense>
+        )}
+        {layer?.kind === 'score' && scoreGlobal && <Suspense fallback={null}><LayerOverlay globalUrl={scoreGlobal} /></Suspense>}
         {sites && matrix && <SiteMarkers sites={sites} matrix={matrix} />}
         {area && <AreaDots area={area} mode={scaleMode} />}
         {point && <PointMarkers point={point} best={area && !area.center_is_best ? area.best : null} />}
@@ -108,9 +124,14 @@ export function Viewport({ sites, matrix, area, subsolar, subearth, skyKm, score
               </select>
             </label>
             <div className="legend">
-              <span>{metricMeta(metric).higherIsBetter ? 'Less' : 'More'}</span>
+              <span title="Worst site on this date">{sitesScale ? formatValue(sitesScale.worst, metric) : metricMeta(metric).higherIsBetter ? 'Less' : 'More'}</span>
               <span className="ramp" style={{ background: `linear-gradient(90deg, ${[0, 0.33, 0.66, 1].map(metricColor).join(',')})` }} />
-              <span>{metricMeta(metric).higherIsBetter ? 'More' : 'Less'}</span>
+              <span title="Best site on this date">{sitesScale ? formatValue(sitesScale.best, metric) : metricMeta(metric).higherIsBetter ? 'More' : 'Less'}</span>
+              <Hint mark label="i" title="Site colours">
+                Each site is coloured by the chosen quantity on the landing date. The colours are stretched between the worst and the best
+                site of that date (the two values printed at the ends of the bar), so differences between sites stay visible even when
+                all the values are close. The palette does not change; only its ends move with the date and the settings.
+              </Hint>
               <span className="nodata"><i style={{ background: metricColor(null) }} />No data</span>
             </div>
           </div>
@@ -125,18 +146,17 @@ export function Viewport({ sites, matrix, area, subsolar, subearth, skyKm, score
             </select>
           </label>
           {layer && <Hint mark label="i" title={layer.label}>{layer.how}</Hint>}
-          {layer?.legend && (
-            <div className="legend">
-              <span>{layer.legend[0]}</span>
+          {layerLegend && (
+            <div className="legend legend-ticks">
               <span className="ramp" style={{ background: `linear-gradient(90deg, ${[0, 0.33, 0.66, 1].map(metricColor).join(',')})` }} />
-              <span>{layer.legend[1]}</span>
+              <span className="ticks">{layerLegend.map((l) => <span key={l}>{l}</span>)}</span>
             </div>
           )}
           {layerNote && <span className="layer-note">{layerNote}</span>}
         </div>
         <p className="credit">
           <Hint label="Info on views" title={view === '3d' ? 'About the 3D view' : 'About the 2D map'}>
-            Moon imagery: NASA's Scientific Visualization Studio, CGI Moon Kit; south pole: LROC WAC mosaic and LOLA 80 m elevation.
+            Moon imagery: NASA's Scientific Visualization Studio, CGI Moon Kit; south pole: LROC WAC mosaic and LOLA 80 m altitude map.
             {view === '3d' ? ' Relief exaggerated four times. ' : ' Flat map: areas stretch toward the poles, so the polar layers appear as a wide strip at the bottom. '}
             {subsolar
               ? `Sunlight from the Sun's position at landing time (sub-solar point ${subsolar.lat.toFixed(1)}°, ${subsolar.lon.toFixed(1)}°).`

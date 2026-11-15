@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { STRIP_DAYS, useApp, type Pin } from '../state/store'
-import { Area, Ephemeris, Evaluation, Windows, apiAvailable, apiGet, areaSpacingKm, limitsQuery, settingsQuery } from './api'
+import { Area, Ephemeris, Evaluation, ScoreGrid, Windows, apiAvailable, apiGet, areaSpacingKm, limitsQuery, settingsQuery } from './api'
 import { createLatestRunner } from './latest'
 import { landingAt, parseFile } from './load'
 import { Matrix, Scene } from './schemas'
-import { SCORE_MAP } from '../scene/layers'
+import { SCORE_GRID_DEG, SCORE_MAP } from '../scene/layers'
 import { STRIP_STEP_MIN } from '../ui/timeStrip'
 
 function useDebounced<T>(value: T, ms: number): T {
@@ -126,6 +126,16 @@ export function useScoreMap(startUtc: string | undefined): Result<Area> {
         radius_km: String(SCORE_MAP.radiusKm), spacing_km: String(SCORE_MAP.spacingKm) }
     : null
   return useApiRequest(params && JSON.stringify(params), (p) => apiGet('area', p, Area))
+}
+
+// The whole-Moon part of the same layer: one score per grid cell (smooth-sphere horizon, LOLA slope).
+export function useScoreGrid(startUtc: string | undefined): Result<ScoreGrid> {
+  const { mode, settings, layer } = useApp()
+  const s = useDebounced(settings, 300)
+  const params = mode === 'live' && layer === 'score' && startUtc
+    ? { ...settingsQuery(s), ...limitsQuery(s), start_utc: startUtc, step_deg: String(SCORE_GRID_DEG) }
+    : null
+  return useApiRequest(params && JSON.stringify(params), (p) => apiGet('grid', p, ScoreGrid))
 }
 
 // Where the Sun is overhead at the landing time, for the lighting of the globe on any date (live mode).

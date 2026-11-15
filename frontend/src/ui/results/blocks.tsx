@@ -12,6 +12,12 @@ type P = { ev: Evaluation; eph: Ephemeris | null; windows: Windows | null }
 const NA = 'n/a'
 const first = (s: number[] | undefined) => s?.[0]
 const num = (v: number | null | undefined, f: (x: number) => string) => (v == null ? NA : f(v))
+// Right ascension in hours, minutes, seconds (and degrees); declination in signed degrees.
+const fmtRa = (d: number) => {
+  const s = Math.round((d / 15) * 3600), h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60)
+  return `${String(h).padStart(2, '0')}h ${String(m).padStart(2, '0')}m ${String(s % 60).padStart(2, '0')}s (${d.toFixed(3)}°)`
+}
+const fmtDec = (d: number) => `${d >= 0 ? '+' : '−'}${Math.abs(d).toFixed(3)}°`
 const whenFmt = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'UTC' })
 
 function useValues(ev: Evaluation) {
@@ -95,6 +101,8 @@ export function SunBlock({ ev, eph, windows }: P) {
         <Row label="Visible part of the disc" help="sunlight">{num(first(eph?.sun_visible_frac), fmtPct)}</Row>
         <Row label="Distance" help="sun-position">{num(first(eph?.sun_dist_km), (x) => `${(x / 1e6).toFixed(3)} million km`)}</Row>
         <Row label="Angular radius" help="sun-position">{num(first(eph?.sun_radius_deg), (x) => `${x.toFixed(4)}°`)}</Row>
+        <Row label="Right ascension" help="ra-dec">{num(first(eph?.sun_ra_deg), fmtRa)}</Row>
+        <Row label="Declination" help="ra-dec">{num(first(eph?.sun_dec_deg), fmtDec)}</Row>
       </Rows>
       <Rows title="Over the stay">
         <Row label="Sunlight" help="sunlight">{u('sunlit_frac', fmtPct, [0, 1])}</Row>
@@ -124,6 +132,8 @@ export function EarthBlock({ ev, eph, windows }: P) {
         <Row label="Distance" help="earth-position">{num(first(eph?.earth_dist_km), (x) => `${Math.round(x).toLocaleString('en-GB')} km`)}</Row>
         <Row label="Angular radius" help="earth-position">{num(first(eph?.earth_radius_deg), (x) => `${x.toFixed(4)}°`)}</Row>
         <Row label="Illuminated part (phase)" help="earth-position">{num(first(eph?.earth_phase_frac), fmtPct)}</Row>
+        <Row label="Right ascension" help="ra-dec">{num(first(eph?.earth_ra_deg), fmtRa)}</Row>
+        <Row label="Declination" help="ra-dec">{num(first(eph?.earth_dec_deg), fmtDec)}</Row>
       </Rows>
       <Rows title="Over the stay">
         <Row label="Earth in view" help="earth-in-view">{u('earth_visible_frac', fmtPct, [0, 1])}</Row>
@@ -150,9 +160,9 @@ export function TerrainBlock({ ev }: { ev: Evaluation }) {
     <>
       <Rows>
         <Row label={`Slope${t?.slope_baseline_m ? ` over ${Math.round(t.slope_baseline_m)} m` : ''}`} help="slope">{u('slope_deg', fmtDeg, [0, 90])}</Row>
-        <Row label="Elevation" help="elevation">{fmtM(ev.parameters.elevation_m)}</Row>
+        <Row label="Altitude" help="elevation">{fmtM(ev.parameters.elevation_m)}</Row>
         <Row label="Horizon used" help="terrain-horizon">{HORIZON[ev.horizon_source] ?? ev.horizon_source}</Row>
-        {t?.dem_product && <Row label="Elevation map" help="elevation">{t.dem_product}{t.dem_resolution_m ? `, ${t.dem_resolution_m} m` : ''}</Row>}
+        {t?.dem_product && <Row label="Altitude map" help="elevation">{t.dem_product}{t.dem_resolution_m ? `, ${t.dem_resolution_m} m` : ''}</Row>}
         {t?.slope_source && <Row label="Slope source" help="slope">{t.slope_source}</Row>}
         {t?.height_error_m != null && <Row label="Map height error" help="elevation">{t.height_error_m.toFixed(2)} m</Row>}
       </Rows>

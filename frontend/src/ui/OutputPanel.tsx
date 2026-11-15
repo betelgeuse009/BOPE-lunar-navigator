@@ -31,7 +31,7 @@ export function OutputPanel({ sites, matrix, ev, area, landingUtc }: {
             <button type="button" className="close" onClick={() => setPoint(null)} aria-label="Clear the chosen place">×</button>
           </div>
           <dl className="place-facts">
-            <div><dt>Elevation <Help topic="elevation" /></dt><dd>{e ? fmtM(e.parameters.elevation_m) : '…'}</dd></div>
+            <div><dt>Altitude <Help topic="elevation" /></dt><dd>{e ? fmtM(e.parameters.elevation_m) : '…'}</dd></div>
             <div><dt>Landing <Help topic="landing-time" /></dt><dd>{landingUtc ? `${whenFmt.format(new Date(landingUtc))} UTC` : 'n/a'}</dd></div>
           </dl>
           <PinButton label={`Point ${fmtCoords(point.lat, point.lon)}`} lat={point.lat} lon={point.lon} />

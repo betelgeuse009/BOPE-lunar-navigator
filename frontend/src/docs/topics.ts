@@ -24,8 +24,8 @@ export const REFS = {
     url: 'https://www.nasa.gov/news-release/nasa-identifies-candidate-regions-for-landing-next-americans-on-moon/',
   },
   kopp2011: { text: 'Kopp, G. and Lean, J. L. (2011), "A new, lower value of total solar irradiance", Geophys. Res. Lett. 38, L01706.' },
-  pgda90: { text: 'Barker et al., LOLA south-pole elevation, slope and height-error maps, NASA PGDA product 90.', url: 'https://pgda.gsfc.nasa.gov/products/90' },
-  pgda81: { text: 'LOLA 5 m south-pole elevation map, NASA PGDA product 81.', url: 'https://pgda.gsfc.nasa.gov/products/81' },
+  pgda90: { text: 'Barker et al., LOLA south-pole altitude (elevation model), slope and height-error maps, NASA PGDA product 90.', url: 'https://pgda.gsfc.nasa.gov/products/90' },
+  pgda81: { text: 'LOLA 5 m south-pole altitude map, NASA PGDA product 81.', url: 'https://pgda.gsfc.nasa.gov/products/81' },
   pgda69: {
     // Journal details added by the front end from memory; AERO to confirm (LOG).
     text: 'Mazarico, E. et al. (2011), "Illumination conditions of the lunar polar regions using LOLA topography", Icarus 211, 1066-1081; maps: NASA PGDA product 69.',
@@ -327,18 +327,18 @@ const DEFS = {
   },
   slope: {
     title: 'Landing slope', category: 'Results',
-    summary: 'Surface slope at the place from LOLA elevation data, in degrees. A regional indicator of landing safety, measured over 80 m or more.',
+    summary: 'Surface slope at the place from LOLA altitude data, in degrees. A regional indicator of landing safety, measured over 80 m or more.',
     sections: [
       { h: 'Definition', table: {
         head: ['Region', 'Source', 'Baseline'],
         rows: [
           ['South of 80° S', 'official LOLA slope map [2]', '80 m'],
-          ['60° S to 80° S', 'computed from the LOLA elevation map by central differences [2]', '240 m'],
-          ['Rest of the Moon', 'computed from the global LOLA elevation map by central differences [3]', '237 m'],
+          ['60° S to 80° S', 'computed from the LOLA altitude map by central differences [2]', '240 m'],
+          ['Rest of the Moon', 'computed from the global LOLA altitude map by central differences [3]', '237 m'],
         ],
       } },
       { h: 'Use', p: ['Sub-score: $s_5 = \\max\\left( 0,\\ 1 - \\theta / 20^\\circ \\right)$ for a slope $\\theta$. Limit: "Max landing slope". The baseline in use is shown next to the value.'] },
-      { h: 'Validation', p: ['Slope computed from the 80 m elevation map reproduces the official 80 m slope map: median absolute difference 0.10° to 0.17°, correlation 0.996 to 0.999 in four 16 km windows [4].'] },
+      { h: 'Validation', p: ['Slope computed from the 80 m altitude map reproduces the official 80 m slope map: median absolute difference 0.10° to 0.17°, correlation 0.996 to 0.999 in four 16 km windows [4].'] },
       { h: 'Limitations', p: [
         'Slope depends on the distance it is measured over. No lunar map resolves boulders or the metre-scale slopes a footpad sees, so this is not a landing-safety certificate.',
         'Slopes from the coarser maps come out smoother than from the 80 m map.',
@@ -349,10 +349,10 @@ const DEFS = {
     refs: ['parameters', 'pgda90', 'lolaGdr', 'maps'], seeAlso: ['elevation', 'mission-type', 'score'],
   },
   elevation: {
-    title: 'Elevation', category: 'Results',
-    summary: 'Height of the surface above the 1737.4 km reference sphere, from LOLA laser altimetry, in metres.',
+    title: 'Altitude', category: 'Results',
+    summary: 'Altitude of the surface: height above the 1737.4 km reference sphere, from LOLA laser altimetry, in metres.',
     sections: [
-      { h: 'Definition', p: ['Height above a sphere of radius 1737.4 km, read by bilinear interpolation from the finest LOLA elevation map that covers the point: 5 m pixels south of 86.7° S, 80 m to 80° S, 240 m to 60° S, 237 m elsewhere.'] },
+      { h: 'Definition', p: ['Height above a sphere of radius 1737.4 km, read by bilinear interpolation from the finest LOLA altitude map that covers the point: 5 m pixels south of 86.7° S, 80 m to 80° S, 240 m to 60° S, 237 m elsewhere.'] },
       { h: 'Use', p: ['Shown for context. It also sets where the observer stands when the skyline is computed. It is not scored.'] },
       { h: 'Uncertainty', p: ['South of 80° S the ± comes from the LOLA height-error map (0.03 to 1.1 m). Elsewhere no height error is published with the maps, so none is shown.'] },
     ],
@@ -369,6 +369,23 @@ const DEFS = {
       ] },
     ],
     refs: ['pgda69', 'valAvgvisib'], seeAlso: ['sunlight', 'earth-in-view'],
+  },
+  'ra-dec': {
+    title: 'Right ascension and declination', category: 'Results',
+    summary: 'Where the Sun or the Earth is on the celestial sphere as seen from the centre of the Moon at the landing time: two angles in the fixed J2000 axes, independent of the landing place.',
+    sections: [
+      { h: 'Definition', p: [
+        'The analysis server takes the vector from the centre of the Moon to the centre of the body from the JPL DE440 ephemeris, corrected for light time and stellar aberration (the same correction as the azimuth and elevation), and expresses it in the J2000 axes, which are the axes of the International Celestial Reference Frame: $x$ toward the vernal equinox of J2000, $z$ toward the celestial north pole [1][2].',
+        'With the vector $\\mathbf{r} = (x, y, z)$, right ascension $\\alpha$ is the angle around the celestial equator and declination $\\delta$ the angle above it:',
+      ], eq: '\\alpha = \\operatorname{atan2}(y,\\ x) \\bmod 360^\\circ, \\qquad \\delta = \\arcsin\\!\\left( \\frac{z}{\\lvert \\mathbf{r} \\rvert} \\right)' },
+      { h: 'Reading the values', p: [
+        'Right ascension is shown in hours, minutes and seconds ($24\\,\\text{h} = 360^\\circ$) and in degrees; declination in degrees, positive north of the celestial equator.',
+        'The two angles are selenocentric: they are the same for every place on the Moon. Seen from a place on the surface the Earth can be shifted by up to $0.26^\\circ$ (parallax of one lunar radius); the Sun by less than $0.001^\\circ$. The azimuth and elevation in the rows above do include the place.',
+        'Unlike azimuth and elevation, these angles do not turn with the Moon: they say in front of which stars the body is. Seen from the Moon the Earth goes once around the sky in about 27.3 days, the Sun in a year.',
+      ] },
+      { h: 'Validation', p: ['With the light-time correction alone the values agree with the astrometric right ascension and declination of JPL Horizons (observer at the centre of the Moon) to $0.000\\,001^\\circ$ for both bodies at three dates in November and December 2026. The stellar aberration included in the values shown moves them by up to $0.007^\\circ$ from that astrometric position, as expected [3].'] },
+    ],
+    refs: ['de440', 'spice', 'api'], seeAlso: ['sun-position', 'earth-position', 'ephemeris'],
   },
   'sun-position': {
     title: 'Sun position', category: 'Results',
@@ -388,7 +405,6 @@ const DEFS = {
           ['Lowest, highest elevation', 'extremes of $h$ over the mission window'],
         ],
       } },
-      { h: 'Limitations', p: ['Right ascension and declination are not provided by the analysis server, so they are not shown.'] },
     ],
     refs: ['contract', 'de440', 'spice', 'valHorizons'], seeAlso: ['ephemeris', 'sunlight', 'sun-elevation', 'time-series'],
   },
@@ -416,7 +432,6 @@ const DEFS = {
           ['Lowest, highest elevation', 'extremes of $h$ over the mission window'],
         ],
       } },
-      { h: 'Limitations', p: ['Right ascension and declination are not provided by the analysis server, so they are not shown.'] },
     ],
     refs: ['contract', 'de440', 'spice', 'valHorizons'], seeAlso: ['ephemeris', 'earth-in-view', 'time-series'],
   },
@@ -491,7 +506,7 @@ const DEFS = {
     sections: [
       { h: 'Description', p: [
         'The record shows the site you point at or chose in the list. Its numbers come from the precomputed site-by-date table for the chosen landing date; with the analysis server running the table is recomputed with your settings.',
-        'Slope and elevation are the LOLA values at the cited coordinate. The link at the bottom opens the source of the coordinate.',
+        'Slope and altitude are the LOLA values at the cited coordinate. The link at the bottom opens the source of the coordinate.',
       ] },
       { h: 'How it differs from "Can we land there?"', p: ['"Can we land there?" is the full evaluation of the chosen place, with uncertainties and the requirements check. The site record is the short catalogue entry.'] },
     ],
@@ -523,9 +538,9 @@ const DEFS = {
   },
   'terrain-horizon': {
     title: 'Terrain horizon', category: 'Methods',
-    summary: 'The skyline seen from a place, traced over LOLA elevation maps out to 200 km. It decides when the Sun and the Earth are hidden.',
+    summary: 'The skyline seen from a place, traced over LOLA altitude maps out to 200 km. It decides when the Sun and the Earth are hidden.',
     sections: [
-      { h: 'Method', p: ['From the observer (mast height above the surface) the terrain is ray-marched in every direction over the LOLA elevation maps out to 200 km; the highest elevation angle found in each direction is the skyline. Target accuracy: 0.1°.'] },
+      { h: 'Method', p: ['From the observer (mast height above the surface) the terrain is ray-marched in every direction over the LOLA altitude maps out to 200 km; the highest elevation angle found in each direction is the skyline. Target accuracy: 0.1°.'] },
       { h: 'Maps used', table: {
         head: ['', 'South of 86.7° S', '80 to 86.7° S', '60 to 80° S', 'Rest of the Moon'],
         rows: [
@@ -558,7 +573,7 @@ const DEFS = {
       { h: 'At risk', p: ['A minimum requirement that is met at the exact point but broken somewhere within the uncertainty is reported as "at risk".'] },
       { h: 'Limitations', p: [
         'Both defaults are choices of the analysis team, not requirements.',
-        'Elevation adds the LOLA height error in quadrature.',
+        'Altitude adds the LOLA height error in quadrature.',
         'Not included: errors in the Sun and Earth directions (below 0.0001°), map artefacts beyond the height-error map, and the flat-skyline approximation across the disc width.',
       ] },
     ],

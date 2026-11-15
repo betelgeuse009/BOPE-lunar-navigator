@@ -2,29 +2,31 @@ import { useTexture } from '@react-three/drei'
 import { useMemo } from 'react'
 import { SRGBColorSpace } from 'three'
 import { capGeometry } from './capGeometry'
-import { LAYER_CAP_DEG, type Layer } from './layers'
+import { LAYER_CAP_DEG } from './layers'
 
-const BASE = import.meta.env.BASE_URL
-
-// The chosen map layer drawn just above the Moon's surface: over the whole globe when the layer is global,
-// and over the south polar cap. Unlit, so its colours read the same in day and night.
-export function LayerOverlay({ layer }: { layer: Layer & { cap: string } }) {
-  const urls = [layer.cap, ...(layer.global ? [layer.global] : [])].map((f) => BASE + f)
-  const [cap, global] = useTexture(urls)
-  cap.colorSpace = SRGBColorSpace
-  if (global) global.colorSpace = SRGBColorSpace
-  const geometry = useMemo(() => capGeometry(1.0009, LAYER_CAP_DEG), [])
+// The chosen map layer drawn just above the Moon's surface: a whole-Moon image and, where finer data exists, the
+// south polar cap on top of it. Unlit, so its colours read the same in day and night. Both are image addresses
+// (a file under public/, or a data: address for a layer drawn live).
+export function LayerOverlay({ globalUrl, capUrl }: { globalUrl?: string; capUrl?: string }) {
+  const urls = [globalUrl, capUrl].filter((u): u is string => !!u)
+  const textures = useTexture(urls)
+  textures.forEach((t) => { t.colorSpace = SRGBColorSpace })
+  const global = globalUrl ? textures[0] : null
+  const cap = capUrl ? textures[textures.length - 1] : null
+  const geometry = useMemo(() => capGeometry(1.003, LAYER_CAP_DEG), [])
   return (
     <>
       {global && (
         <mesh raycast={() => null}>
-          <sphereGeometry args={[1.0007, 128, 64]} />
+          <sphereGeometry args={[1.002, 256, 128]} />
           <meshBasicMaterial map={global} transparent depthWrite={false} toneMapped={false} />
         </mesh>
       )}
-      <mesh geometry={geometry} raycast={() => null}>
-        <meshBasicMaterial map={cap} transparent depthWrite={false} toneMapped={false} />
-      </mesh>
+      {cap && (
+        <mesh geometry={geometry} raycast={() => null}>
+          <meshBasicMaterial map={cap} transparent depthWrite={false} toneMapped={false} />
+        </mesh>
+      )}
     </>
   )
 }

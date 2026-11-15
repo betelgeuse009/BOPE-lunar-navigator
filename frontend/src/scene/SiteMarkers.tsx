@@ -1,16 +1,14 @@
-import { cellValue } from '../data/load'
 import type { Matrix, Site } from '../data/schemas'
 import { useApp } from '../state/store'
-import { metricColor } from '../ui/colors'
-import { goodness } from '../ui/metrics'
+import { siteScale } from '../ui/metrics'
 import { latLonToVec3 } from './geo'
 
 export function SiteMarkers({ sites, matrix }: { sites: Site[]; matrix: Matrix }) {
   const { dateIdx, metric, hoveredSite, selectedSite, mode, setHovered, setSelected, setPoint } = useApp()
+  const scale = siteScale(matrix, metric, dateIdx)
   return (
     <group>
       {sites.map((s) => {
-        const v = goodness(cellValue(matrix, s.id, metric, dateIdx), metric, matrix.mission_duration_h)
         const active = s.id === hoveredSite || s.id === selectedSite
         const pos = latLonToVec3(s.lat_deg, s.lon_deg, 1.004)
         return (
@@ -27,7 +25,7 @@ export function SiteMarkers({ sites, matrix }: { sites: Site[]; matrix: Matrix }
             }}
           >
             <sphereGeometry args={[0.009, 16, 12]} />
-            <meshBasicMaterial color={metricColor(v)} toneMapped={false} />
+            <meshBasicMaterial color={scale.color(s.id)} toneMapped={false} />
           </mesh>
         )
       })}

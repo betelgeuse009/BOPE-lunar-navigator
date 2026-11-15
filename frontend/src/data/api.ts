@@ -101,6 +101,7 @@ export const Ephemeris = z.object({
   earth_az_deg: nums, earth_el_deg: nums, earth_visible_frac: nums,
   sun_dist_km: nums.optional(), earth_dist_km: nums.optional(),
   sun_radius_deg: nums.optional(), earth_radius_deg: nums.optional(), earth_phase_frac: nums.optional(),
+  sun_ra_deg: nums.optional(), sun_dec_deg: nums.optional(), earth_ra_deg: nums.optional(), earth_dec_deg: nums.optional(),
 })
 export type Ephemeris = z.infer<typeof Ephemeris>
 
@@ -108,6 +109,13 @@ export type Ephemeris = z.infer<typeof Ephemeris>
 const win = z.object({ start_utc: z.string(), end_utc: z.string() })
 export const Windows = z.object({ contract_version: z.string(), sun_windows: z.array(win), earth_windows: z.array(win) })
 export type Windows = z.infer<typeof Windows>
+
+// /api/grid: the score of every cell of a whole-Moon grid (rows north to south, columns west to east).
+export const ScoreGrid = z.object({
+  step_deg: z.number(), lat_deg: nums, lon_deg: nums,
+  score: z.array(z.array(z.number().nullable())), score_range: z.tuple([z.number(), z.number()]).nullable(),
+})
+export type ScoreGrid = z.infer<typeof ScoreGrid>
 
 export async function apiAvailable(signal?: AbortSignal): Promise<boolean> {
   if (!API_BASE) return false

@@ -457,3 +457,8 @@ fieldset.requirements { margin-top: 0; }
 .layer-row .metric select { max-width: 300px; }
 .layer-note { color: #9a9ca1; font-size: 13px; }
 .map-night { fill: rgba(0, 0, 0, 0.62); stroke: #f2e08a; stroke-width: 1.2; vector-effect: non-scaling-stroke; pointer-events: none; }
+
+/* Layer legend: the colour bar with its labels spread evenly under it (2 = ends, 3 = low / middle / high). */
+.legend-ticks { display: grid; gap: 3px; }
+.legend-ticks .ramp { width: 420px; max-width: 100%; }
+.legend-ticks .ticks { display: flex; justify-content: space-between; gap: 12px; width: 420px; max-width: 100%; font-size: 12.5px; white-space: nowrap; }

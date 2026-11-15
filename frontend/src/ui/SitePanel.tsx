@@ -41,7 +41,7 @@ export function SitePanel({ sites, matrix }: { sites: Site[]; matrix: Matrix }) 
         {site.slope_deg != null && (
           <div><dt>Slope (LOLA{site.slope_baseline_m ? `, over ${Math.round(site.slope_baseline_m)} m` : ''}) <Help topic="slope" /></dt><dd>{site.slope_deg.toFixed(1)}°</dd></div>
         )}
-        {site.elevation_m != null && <div><dt>Elevation (LOLA) <Help topic="elevation" /></dt><dd>{site.elevation_m.toFixed(0)} m</dd></div>}
+        {site.elevation_m != null && <div><dt>Altitude (LOLA) <Help topic="elevation" /></dt><dd>{site.elevation_m.toFixed(0)} m</dd></div>}
       </dl>
       <p className="note">
         Coordinates from {site.coord_source}

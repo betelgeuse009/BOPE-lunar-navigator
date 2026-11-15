@@ -1,7 +1,7 @@
 import { cellValue } from '../data/load'
 import type { Matrix } from '../data/schemas'
 import { landingDay, useApp } from '../state/store'
-import { metricColor } from './colors'
+import { spread } from './colors'
 import { Help } from './Help'
 import { goodness } from './metrics'
 
@@ -31,6 +31,7 @@ export function DateRail({ matrix }: { matrix: Matrix }) {
       .filter((v): v is number => v !== null)
     return vals.length ? Math.max(...vals) : null
   })
+  const strip = spread(best) // the days of the strip use the whole palette
   return (
     <div className="rail">
       <div className="rail-head">
@@ -41,7 +42,7 @@ export function DateRail({ matrix }: { matrix: Matrix }) {
       <div className="rail-track">
         <div className="rail-cells" aria-hidden>
           {best.map((v, d) => (
-            <span key={d} className={d === dateIdx ? 'on' : ''} style={{ background: metricColor(v) }} />
+            <span key={d} className={d === dateIdx ? 'on' : ''} style={{ background: strip.color(v) }} />
           ))}
         </div>
         <input
