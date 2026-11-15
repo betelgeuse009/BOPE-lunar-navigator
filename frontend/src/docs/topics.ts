@@ -126,7 +126,7 @@ const DEFS = {
         'Choosing a result does the same as clicking that place on the Moon: the analysis server evaluates it and the view turns to it. Offline only the known sites can be chosen.',
       ] },
       { h: 'A/B comparison', p: [
-        '"A/B" shows two fields, A and B. Choose a place in each, then "Compare": both are added to the comparison at the landing date and time on the rails (page "Comparison"), and the Compare panel opens with the columns "A · …" and "B · …". Choosing again replaces the previous A and B columns; other columns stay.',
+        '"A/B" shows two fields, A and B. Choose a place in each (from the list, with Enter, or just type it and leave the field: the best match is taken). As soon as both are chosen they are added to the comparison at the landing date and time on the rails (page "Comparison"), and the Compare panel opens with the columns "A · …" and "B · …". Choosing again replaces the previous A and B columns; other columns stay.',
       ] },
       { h: 'Limitations', p: ['A feature is placed at its centre point: for a large crater this can be on the floor, far from the rim where a lander would go.', 'At most four columns fit in the comparison.'] },
     ],

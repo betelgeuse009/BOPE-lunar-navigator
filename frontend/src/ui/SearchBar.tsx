@@ -6,10 +6,10 @@ import { Help } from './Help'
 import { search, type Hit } from './search'
 
 // Top of the viewer, like a map app: search a known landing site, a named feature (IAU) or coordinates and go there.
-// "A/B" adds a second field: choose two places and compare them side by side (the Compare panel, at the landing
-// date and time on the rails).
+// "A/B" adds a second field: as soon as both places are chosen they are compared side by side (the Compare panel, at
+// the landing date and time on the rails). A field picks its best match when you leave it without choosing from the list.
 export function SearchBar({ sites }: { sites: Site[] | null }) {
-  const { mode, dateIdx, minuteUtc, pins, setPoint, setSelected, addPin, removePin, setCompareOpen } = useApp()
+  const { mode, dateIdx, minuteUtc, setPoint, setSelected, addPin, removePin, setCompareOpen } = useApp()
   const dateUtc = useApp(landingDay)
   const [used, setUsed] = useState(false) // the feature names (80 kB) load on first use
   const names = useNames(used)
@@ -25,10 +25,11 @@ export function SearchBar({ sites }: { sites: Site[] | null }) {
     if (live) setPoint({ lat: h.lat, lon: h.lon })
     else if (!h.siteId) setNote('Places other than the known sites need the analysis server.')
   }
-  const compare = () => {
+  // Called with the two places directly (the state of this render may not have them yet).
+  const compare = (a: Hit | null, b: Hit | null) => {
     if (!a || !b || !dateUtc) return
     if (!live && !(a.siteId && b.siteId)) return setNote('Offline only the known sites can be compared.')
-    pins.filter((p) => /^[AB] · /.test(p.label)).forEach((p) => removePin(p.id))
+    useApp.getState().pins.filter((p) => /^[AB] · /.test(p.label)).forEach((p) => removePin(p.id))
     const left = useApp.getState().pins.length
     if (left > MAX_PINS - 2) return setNote(`The comparison is full (${MAX_PINS}): remove a column first.`)
     const m = live ? minuteUtc : 0
@@ -43,9 +44,10 @@ export function SearchBar({ sites }: { sites: Site[] | null }) {
   return (
     <div className={`search${ab ? ' search-ab' : ''}`} onFocus={() => setUsed(true)}>
       <SearchField tag={ab ? 'A' : null} sites={sites} names={names}
-        onPick={(h) => { if (ab) setA(h); go(h) }} />
-      {ab && <SearchField tag="B" sites={sites} names={names} onPick={(h) => { setB(h); go(h) }} />}
-      {ab && <button type="button" className="search-go" disabled={!a || !b} onClick={compare}>Compare</button>}
+        onPick={(h) => { go(h); if (ab) { setA(h); compare(h, b) } }} onClear={() => setA(null)} />
+      {ab && <SearchField tag="B" sites={sites} names={names}
+        onPick={(h) => { go(h); setB(h); compare(a, h) }} onClear={() => setB(null)} />}
+      {ab && (!a || !b) && <p className="search-hint">Choose {!a && !b ? 'A and B' : !a ? 'A' : 'B'}: the comparison opens by itself.</p>}
       <button type="button" className="search-ab-toggle" aria-pressed={ab} onClick={() => { setAb(!ab); setNote(null) }}
         title="Compare two places: A and B">A/B</button>
       <Help topic="search" />
@@ -54,15 +56,23 @@ export function SearchBar({ sites }: { sites: Site[] | null }) {
   )
 }
 
-function SearchField({ tag, sites, names, onPick }: {
-  tag: 'A' | 'B' | null; sites: Site[] | null; names: ReturnType<typeof useNames>; onPick: (h: Hit) => void
+function SearchField({ tag, sites, names, onPick, onClear }: {
+  tag: 'A' | 'B' | null; sites: Site[] | null; names: ReturnType<typeof useNames>; onPick: (h: Hit) => void; onClear?: () => void
 }) {
   const id = useId()
   const [q, setQ] = useState('')
+  const [picked, setPicked] = useState<string | null>(null) // label of the place chosen in this field
   const [open, setOpen] = useState(false)
   const [active, setActive] = useState(0)
   const hits = open ? search(q, sites ?? [], names) : []
-  const pick = (h: Hit) => { onPick(h); setQ(h.label); setOpen(false) }
+  const pick = (h: Hit) => { onPick(h); setQ(h.label); setPicked(h.label); setOpen(false) }
+  // A/B fields: leaving the field with typed text that was not chosen from the list picks the best match.
+  const leave = () => window.setTimeout(() => {
+    setOpen(false)
+    if (!tag || !q.trim() || q === picked) return
+    const best = search(q, sites ?? [], names)[0]
+    if (best) pick(best)
+  }, 150)
   const key = (e: KeyboardEvent) => {
     if (e.key === 'ArrowDown') { e.preventDefault(); setOpen(true); setActive((i) => Math.min(i + 1, hits.length - 1)) }
     else if (e.key === 'ArrowUp') { e.preventDefault(); setActive((i) => Math.max(i - 1, 0)) }
@@ -76,8 +86,11 @@ function SearchField({ tag, sites, names, onPick }: {
         aria-activedescendant={hits.length ? `${id}-${active}` : undefined}
         aria-label={tag ? `Place ${tag}: search a site, a crater or coordinates` : 'Search a site, a crater or coordinates'}
         placeholder={tag ? `Place ${tag}: site, crater or lat, lon` : 'Search a site, a crater or lat, lon'}
-        value={q} onChange={(e) => { setQ(e.target.value); setOpen(true); setActive(0) }} onKeyDown={key}
-        onBlur={() => window.setTimeout(() => setOpen(false), 150)} onFocus={() => q && setOpen(true)} />
+        value={q} onKeyDown={key} onBlur={leave} onFocus={() => q && setOpen(true)}
+        onChange={(e) => {
+          setQ(e.target.value); setOpen(true); setActive(0)
+          if (!e.target.value.trim()) { setPicked(null); onClear?.() }
+        }} />
       {hits.length > 0 && (
         <ul id={`${id}-list`} role="listbox" className="search-list">
           {hits.map((h, i) => (
