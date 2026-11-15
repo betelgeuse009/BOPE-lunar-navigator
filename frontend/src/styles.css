@@ -440,3 +440,20 @@ fieldset.requirements { margin-top: 0; }
 .map-reticle { stroke-width: 1.6; vector-effect: non-scaling-stroke; pointer-events: none; }
 .map-reticle * { vector-effect: non-scaling-stroke; }
 .map-reticle .back { fill: rgba(0, 0, 0, 0.45); stroke: none; }
+
+/* ---------- Hints: an underlined word or an (i) mark that shows an explanation on hover ---------- */
+.hint { display: inline-block; pointer-events: auto; }
+.hint-link {
+  font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: help;
+  text-decoration: underline; text-underline-offset: 3px;
+}
+.hint-link:hover, .hint-link:focus-visible { color: var(--night-text); }
+.hint-mark {
+  display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; padding: 0;
+  font: italic 600 12px/1 Georgia, serif; color: var(--night-text-2); background: none; border: 1px solid #5b5f66; cursor: help;
+}
+.hint-mark:hover, .hint-mark:focus-visible { color: var(--night); background: var(--night-text); border-color: var(--night-text); }
+.layer-row { margin-top: 10px; }
+.layer-row .metric select { max-width: 300px; }
+.layer-note { color: #9a9ca1; font-size: 13px; }
+.map-night { fill: rgba(0, 0, 0, 0.62); stroke: #f2e08a; stroke-width: 1.2; vector-effect: non-scaling-stroke; pointer-events: none; }

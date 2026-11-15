@@ -1,10 +1,11 @@
-import { useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import type { Area } from '../data/api'
 import { cellValue } from '../data/load'
 import type { Matrix, Site } from '../data/schemas'
 import { useApp } from '../state/store'
 import { areaColor, metricColor } from '../ui/colors'
 import { goodness } from '../ui/metrics'
+import { LAYER_STRIP_DEG, SCORE_MAP, type Layer } from './layers'
 
 const BASE = import.meta.env.BASE_URL
 type LatLon = { lat: number; lon: number }
@@ -14,8 +15,9 @@ const WORLD: Box = { x: -180, y: -90, w: 360, h: 180 }
 // The whole Moon as a flat map: longitude across (-180 to 180, 0 in the middle), latitude up (simple cylindrical,
 // so areas stretch toward the poles). Same imagery, markers and clicks as the globe. Drag to move, wheel to zoom.
 // Map coordinates: x = longitude, y = -latitude, in degrees.
-export function Map2D({ sites, matrix, area, subsolar, subearth, resetSignal }: {
+export function Map2D({ sites, matrix, area, subsolar, subearth, resetSignal, layer, scoreMap }: {
   sites: Site[] | null; matrix: Matrix | null; area: Area | null; subsolar: LatLon | null; subearth: LatLon | null; resetSignal: number
+  layer: Layer | null; scoreMap: Area | null
 }) {
   const { dateIdx, metric, mode, point, scaleMode, hoveredSite, selectedSite, setHovered, setSelected, setPoint } = useApp()
   const svg = useRef<SVGSVGElement>(null)
@@ -37,6 +39,8 @@ export function Map2D({ sites, matrix, area, subsolar, subearth, resetSignal }: 
   const k = box.w / 360 // marker sizes stay the same on screen at any zoom
   // Grid spacing of the nearby search in degrees of latitude (1 degree = 30.3 km on the 1737.4 km sphere).
   const dotR = area ? (area.radius_km / 20 / 30.32) * 0.45 : 0
+  const scoreImage = useMemo(() => (layer?.kind === 'score' && scoreMap ? scoreStrip(scoreMap, scaleMode) : null), [layer, scoreMap, scaleMode])
+  const strip = { x: -180, y: 90 - LAYER_STRIP_DEG, width: 360, height: LAYER_STRIP_DEG, preserveAspectRatio: 'none' }
 
   return (
     <svg ref={svg} className="map2d" viewBox={`${box.x} ${box.y} ${box.w} ${box.h}`} role="img" aria-label="Map of the Moon"
@@ -62,6 +66,10 @@ export function Map2D({ sites, matrix, area, subsolar, subearth, resetSignal }: 
         setSelected(null)
       }}>
       <image href={`${BASE}textures/moon_color.jpg`} x={-180} y={-90} width={360} height={180} preserveAspectRatio="none" />
+      {layer?.global && <image href={BASE + layer.global} x={-180} y={-90} width={360} height={180} preserveAspectRatio="none" />}
+      {layer?.strip && <image href={BASE + layer.strip} {...strip} />}
+      {scoreImage && <image href={scoreImage} {...strip} style={{ imageRendering: 'pixelated' }} opacity={0.85} />}
+      {layer?.kind === 'daynight' && subsolar && <path className="map-night" d={nightPath(subsolar)} />}
       <g className="map-grid">
         {[-150, -120, -90, -60, -30, 0, 30, 60, 90, 120, 150].map((v) => <line key={`x${v}`} x1={v} x2={v} y1={-90} y2={90} />)}
         {[-60, -30, 0, 30, 60].map((v) => <line key={`y${v}`} y1={v} y2={v} x1={-180} x2={180} />)}
@@ -91,6 +99,46 @@ export function Map2D({ sites, matrix, area, subsolar, subearth, resetSignal }: 
       {point && <Reticle lat={point.lat} lon={point.lon} k={k} color="#ffffff" />}
     </svg>
   )
+}
+
+// The night side at the landing time on a smooth sphere: the Sun is on the horizon where
+// tan(lat) = -cos(lon - lonSun) / tan(latSun); the dark side is closed through the pole the Sun does not reach.
+function nightPath(sun: LatLon): string {
+  const rad = Math.PI / 180
+  const latS = Math.abs(sun.lat) < 0.01 ? 0.01 * (sun.lat < 0 ? -1 : 1) : sun.lat
+  const pts: string[] = []
+  for (let lon = -180; lon <= 180; lon += 1) {
+    const lat = Math.atan(-Math.cos((lon - sun.lon) * rad) / Math.tan(latS * rad)) / rad
+    pts.push(`${lon} ${(-lat).toFixed(3)}`)
+  }
+  const darkPoleY = latS > 0 ? 90 : -90 // y = -latitude: the south pole is dark when the Sun is north of the equator
+  return `M${pts.join('L')}L180 ${darkPoleY}L-180 ${darkPoleY}Z`
+}
+
+// The server's score disc around the south pole redrawn as a flat strip (0.5 deg of longitude by 0.25 deg of latitude
+// per pixel). The server's grid is square in km around the pole: north = toward longitude 0, east = toward 90 E.
+function scoreStrip(a: Area, mode: Parameters<typeof areaColor>[2]): string {
+  const sp = SCORE_MAP.spacingKm, w = 720, h = LAYER_STRIP_DEG * 4
+  const byCell = new Map<string, number | null>()
+  a.points.lat_deg.forEach((lat, i) => {
+    const d = (90 + lat) * 30.32, lon = (a.points.lon_deg[i] * Math.PI) / 180
+    byCell.set(`${Math.round((d * Math.sin(lon)) / sp)},${Math.round((d * Math.cos(lon)) / sp)}`, a.points.score[i])
+  })
+  const canvas = document.createElement('canvas')
+  canvas.width = w; canvas.height = h
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return ''
+  for (let r = 0; r < h; r++) {
+    const d = (LAYER_STRIP_DEG * (1 - (r + 0.5) / h)) * 30.32 // km from the pole (30.32 km per degree)
+    for (let c = 0; c < w; c++) {
+      const lon = ((-180 + (360 * (c + 0.5)) / w) * Math.PI) / 180
+      const s = byCell.get(`${Math.round((d * Math.sin(lon)) / sp)},${Math.round((d * Math.cos(lon)) / sp)}`)
+      if (s == null) continue
+      ctx.fillStyle = areaColor(s, a.score_range, mode)
+      ctx.fillRect(c, r, 1, 1)
+    }
+  }
+  return canvas.toDataURL()
 }
 
 // The point of the Moon that has the Sun, or the Earth, straight overhead at the landing time.

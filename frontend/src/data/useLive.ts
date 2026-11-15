@@ -4,6 +4,7 @@ import { Area, Ephemeris, Evaluation, Windows, apiAvailable, apiGet, areaSpacing
 import { createLatestRunner } from './latest'
 import { landingAt, parseFile } from './load'
 import { Matrix, Scene } from './schemas'
+import { SCORE_MAP } from '../scene/layers'
 import { STRIP_STEP_MIN } from '../ui/timeStrip'
 
 function useDebounced<T>(value: T, ms: number): T {
@@ -111,6 +112,18 @@ export function useAreaSearch(startUtc: string | undefined): Result<Area> {
   const params = mode === 'live' && point && startUtc && r > 0
     ? { ...settingsQuery(s), ...limitsQuery(s), lat_deg: point.lat.toFixed(4), lon_deg: point.lon.toFixed(4), start_utc: startUtc,
         radius_km: String(r), spacing_km: areaSpacingKm(r).toFixed(3) }
+    : null
+  return useApiRequest(params && JSON.stringify(params), (p) => apiGet('area', p, Area))
+}
+
+// The "Score for your settings" map layer: the same nearby search, centred on the south pole and wide enough to
+// reach 80 S. Asked only while that layer is chosen.
+export function useScoreMap(startUtc: string | undefined): Result<Area> {
+  const { mode, settings, layer } = useApp()
+  const s = useDebounced(settings, 300)
+  const params = mode === 'live' && layer === 'score' && startUtc
+    ? { ...settingsQuery(s), ...limitsQuery(s), lat_deg: '-90', lon_deg: '0', start_utc: startUtc,
+        radius_km: String(SCORE_MAP.radiusKm), spacing_km: String(SCORE_MAP.spacingKm) }
     : null
   return useApiRequest(params && JSON.stringify(params), (p) => apiGet('area', p, Area))
 }

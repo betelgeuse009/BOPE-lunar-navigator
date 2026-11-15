@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { isPreliminary, landingAt, loadAll, loadScene, periodAt, sceneIndexAt } from './data/load'
 import type { Scene } from './data/schemas'
-import { useApiHealth, useAreaSearch, useEvaluation, useLiveMatrix, useLiveScene, useSkyDistances } from './data/useLive'
+import { useApiHealth, useAreaSearch, useEvaluation, useLiveMatrix, useLiveScene, useScoreMap, useSkyDistances } from './data/useLive'
 import { DocsPage } from './docs/DocsPage'
 import { useDocTopic } from './docs/useDocTopic'
 import { Viewport } from './scene/Viewport'
@@ -61,6 +61,7 @@ export default function App() {
   const i = sun && landingUtc ? (sun === liveScene ? 0 : sceneIndexAt(sun, landingUtc)) : -1
   const subsolar = sun && i >= 0 ? { lat: sun.subsolar_lat_deg[i], lon: sun.subsolar_lon_deg[i] } : null
   const skyKm = useSkyDistances(landingUtc || undefined)
+  const scoreMap = useScoreMap(landingUtc || undefined)
   const subearth = sun && i >= 0 ? { lat: sun.subearth_lat_deg[i], lon: sun.subearth_lon_deg[i] } : null
 
   // Layout: three isolated regions. Inputs (left) write the store, the viewport (centre) draws it,
@@ -76,7 +77,7 @@ export default function App() {
         {data && matrix && <InputPanel sites={data.sites.sites} matrix={matrix} landingDate={landingDate} siteIds={siteIds} />}
       </Pane>
 
-      <Viewport sites={data?.sites.sites ?? null} matrix={matrix} area={area.data} subsolar={subsolar} subearth={subearth} skyKm={skyKm} updating={live.loading} />
+      <Viewport sites={data?.sites.sites ?? null} matrix={matrix} area={area.data} subsolar={subsolar} subearth={subearth} skyKm={skyKm} scoreMap={scoreMap} updating={live.loading} />
 
       <Pane side="right" title="Results" open={rightOpen} onToggle={() => setRightOpen(!rightOpen)}>
         {error && <p className="error" role="alert">Could not load the site data. {error}</p>}

@@ -11,7 +11,10 @@ import { MissionCard } from '../ui/MissionCard'
 import { AreaDots, PointMarkers } from './AreaLayer'
 import { CameraFocus } from './CameraFocus'
 import { CameraReset } from './CameraReset'
+import { Hint } from '../ui/Hint'
 import { vec3ToLatLon } from './geo'
+import { LayerOverlay } from './LayerOverlay'
+import { LAYERS, UNAVAILABLE, layerById, type LayerId } from './layers'
 import { Map2D } from './Map2D'
 import { Lights, Moon } from './Moon'
 import { SiteMarkers } from './SiteMarkers'
@@ -20,18 +23,27 @@ import { FAR, HOME, TYPICAL_EARTH_KM, TYPICAL_SUN_KM } from './view'
 import { SouthCap } from './SouthCap'
 
 // Centre of the workbench: the Moon, what is drawn on it, and the controls that belong to the view.
-export function Viewport({ sites, matrix, area, subsolar, subearth, skyKm, updating }: {
+export function Viewport({ sites, matrix, area, subsolar, subearth, skyKm, scoreMap, updating }: {
   sites: Site[] | null; matrix: Matrix | null; area: Area | null
   subsolar: { lat: number; lon: number } | null; subearth: { lat: number; lon: number } | null
-  skyKm: { earthKm: number; sunKm: number } | null; updating: boolean
+  skyKm: { earthKm: number; sunKm: number } | null
+  scoreMap: { data: Area | null; loading: boolean; error: string | null }; updating: boolean
 }) {
-  const { metric, mode, point, scaleMode, pins, compareOpen, setMetric, setSelected, setPoint, setCompareOpen } = useApp()
+  const { metric, mode, point, scaleMode, pins, compareOpen, layer: layerId, setMetric, setSelected, setPoint, setCompareOpen, setLayer } = useApp()
   const [view, setView] = useState<'3d' | '2d'>('3d')
   const [reset, setReset] = useState(0) // each press of the reset button
   const moon = useRef<Group>(null)
+  const layer = layerById(layerId)
+  // What the chosen layer cannot show right now, said next to the picker instead of failing silently.
+  const layerNote = !layer ? null
+    : layer.kind === 'score' ? (mode !== 'live' ? 'Needs the live analysis server.' : view === '3d' ? 'Shown on the 2D map.'
+      : scoreMap.error ? `Could not compute: ${scoreMap.error}` : scoreMap.loading ? 'Computing…' : null)
+    : layer.kind === 'daynight' ? (view === '3d' ? 'On the globe the lighting already shows it; the line is drawn on the 2D map.' : !subsolar ? 'No Sun position for this date.' : null)
+    : !layer.global ? 'South polar region only.' : null
   return (
     <div className="stage">
-      {view === '2d' && <Map2D sites={sites} matrix={matrix} area={area} subsolar={subsolar} subearth={subearth} resetSignal={reset} />}
+      {view === '2d' && <Map2D sites={sites} matrix={matrix} area={area} subsolar={subsolar} subearth={subearth} resetSignal={reset}
+        layer={layer} scoreMap={scoreMap.data} />}
       {view === '3d' && <Canvas camera={{ position: HOME, fov: 35, near: 0.01, far: FAR }} onPointerMissed={() => setSelected(null)}>
         <color attach="background" args={['#000000']} />
         <Lights subsolar={subsolar} />
@@ -49,6 +61,7 @@ export function Viewport({ sites, matrix, area, subsolar, subearth, skyKm, updat
             <SouthCap />
           </group>
         </Suspense>
+        {layer?.cap && <Suspense fallback={null}><LayerOverlay layer={{ ...layer, cap: layer.cap }} /></Suspense>}
         {sites && matrix && <SiteMarkers sites={sites} matrix={matrix} />}
         {area && <AreaDots area={area} mode={scaleMode} />}
         {point && <PointMarkers point={point} best={area && !area.center_is_best ? area.best : null} />}
@@ -102,21 +115,42 @@ export function Viewport({ sites, matrix, area, subsolar, subearth, skyKm, updat
             </div>
           </div>
         )}
-        <p className="credit">
-          Moon imagery: NASA's Scientific Visualization Studio, CGI Moon Kit; south pole: LROC WAC mosaic and LOLA 80 m elevation.
-          {view === '3d' ? ' Relief exaggerated four times. ' : ' Flat map: areas stretch toward the poles. '}
-          {subsolar
-            ? `Sunlight from the Sun's position at landing time (sub-solar point ${subsolar.lat.toFixed(1)}°, ${subsolar.lon.toFixed(1)}°).`
-            : 'Lighting is illustrative: no Sun position data for this date.'}
-          {view === '3d' && (subsolar || subearth) && (
-            <>
-              {' '}Sun and Earth: real directions, sizes and distances at landing time (to scale), so they look small from the Moon.
-              {skyKm
-                ? ` Distances from the analysis server: Earth ${Math.round(skyKm.earthKm).toLocaleString('en-GB')} km, Sun ${(skyKm.sunKm / 1e6).toFixed(1)} million km.`
-                : ' Without the analysis server the average distances are used (Earth 384 400 km, Sun 1 AU).'}
-              {' '}Stars are decorative. Earth and Sun textures: Solar System Scope, CC BY 4.0.
-            </>
+        <div className="legend-row layer-row">
+          <label className="metric">
+            <span>Map layer</span>
+            <select value={layerId ?? ''} onChange={(e) => setLayer((e.target.value || null) as LayerId | null)}>
+              <option value="">None</option>
+              {LAYERS.map((l) => <option key={l.id} value={l.id}>{l.label}</option>)}
+              {UNAVAILABLE.map((u) => <option key={u} disabled>{u}</option>)}
+            </select>
+          </label>
+          {layer && <Hint mark label="i" title={layer.label}>{layer.how}</Hint>}
+          {layer?.legend && (
+            <div className="legend">
+              <span>{layer.legend[0]}</span>
+              <span className="ramp" style={{ background: `linear-gradient(90deg, ${[0, 0.33, 0.66, 1].map(metricColor).join(',')})` }} />
+              <span>{layer.legend[1]}</span>
+            </div>
           )}
+          {layerNote && <span className="layer-note">{layerNote}</span>}
+        </div>
+        <p className="credit">
+          <Hint label="Info on views" title={view === '3d' ? 'About the 3D view' : 'About the 2D map'}>
+            Moon imagery: NASA's Scientific Visualization Studio, CGI Moon Kit; south pole: LROC WAC mosaic and LOLA 80 m elevation.
+            {view === '3d' ? ' Relief exaggerated four times. ' : ' Flat map: areas stretch toward the poles, so the polar layers appear as a wide strip at the bottom. '}
+            {subsolar
+              ? `Sunlight from the Sun's position at landing time (sub-solar point ${subsolar.lat.toFixed(1)}°, ${subsolar.lon.toFixed(1)}°).`
+              : 'Lighting is illustrative: no Sun position data for this date.'}
+            {view === '3d' && (subsolar || subearth) && (
+              <>
+                {' '}Sun and Earth: real directions, sizes and distances at landing time (to scale), so they look small from the Moon.
+                {skyKm
+                  ? ` Distances from the analysis server: Earth ${Math.round(skyKm.earthKm).toLocaleString('en-GB')} km, Sun ${(skyKm.sunKm / 1e6).toFixed(1)} million km.`
+                  : ' Without the analysis server the average distances are used (Earth 384 400 km, Sun 1 AU).'}
+                {' '}Stars are decorative. Earth and Sun textures: Solar System Scope, CC BY 4.0.
+              </>
+            )}
+          </Hint>
         </p>
       </div>
     </div>
