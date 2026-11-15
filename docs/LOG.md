@@ -456,3 +456,20 @@ Changed contract: no
 Needs from FE: commit the missing layer UI; a PR instead of a direct push to main next time, so a broken build shows up first.
 Questions for FE: none.
 Commits: see PR aero -> main
+
+## 2026-11-15 01:38 · AERO + FE (working together on Gabriele's PC)
+Done (front end, decided together in person):
+  - "Info on views": the long credit paragraph under the view is now one underlined link; hovering shows the text.
+  - Map layer picker under the view, for the 2D map and the globe: slope, elevation, long-term Sun / Earth visibility,
+    permanently shadowed regions, surface temperature (yearly maximum, yearly average; NEW source: Diviner PRP),
+    day/night at landing time (2D), score for your settings (2D, live). An (i) next to the picker shows how each layer's
+    values are measured or calculated, with the source. Legend with the layer's range.
+  - This also wires the layer pieces that were unconnected after the three-pane merge (LayerOverlay, store.layer).
+  - New: ui/Hint.tsx (hover card), 2D strips public/layers/*_strip.png, temperature images, scripts/layers.py extended
+    (and fixed for Windows: csv.field_size_limit).
+  - data/MAPS.md and analysis/config.py list the new dataset (temperature/dlre_prp_south.tab, 605 MB, only with --all).
+Verified: npm run build OK, vitest 77 passed, eslint clean; screenshots of every layer checked in a headless browser.
+Known: while the globe textures load, the Sun/Earth labels log "Cannot read properties of null (reading 'layers')"
+  (drei Html occlude with the Moon group not mounted yet). It stops once loaded; not fixed here.
+Changed contract: no
+Commits: see PR aero -> main

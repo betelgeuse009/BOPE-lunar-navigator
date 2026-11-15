@@ -144,3 +144,15 @@ Short dated entries: decision, why, alternatives rejected. This becomes the "met
   evaluations and `/api/horizon` keep the 5 m near field. Result: 15.6 s first time (including map loading), 1.2 s after.
 - Cost: at the pole example the coarse skyline differs from the fine one by 0.04° median, 0.8° at most (near relief).
   Acceptable for an area colour map; the clicked point itself is always evaluated with the fine profile.
+
+## 2026-11-15 · Map layers on the 2D map and the globe; surface temperature from Diviner
+- Layers (picker under the view, with an (i) that states the source or the calculation of each): slope, elevation,
+  long-term Sun and Earth visibility, permanently shadowed regions, surface temperature (yearly maximum, yearly average),
+  day/night at landing time, score for the user's settings. Polar image layers are drawn on the globe cap and, on the
+  flat map, as a strip from 80 S to the pole (`frontend/scripts/layers.py`).
+- Temperature source (new): Diviner Polar Resource Product, PDS LRO-L-DLRE-5-PRP-V2.0 (Paige et al., UCLA): yearly average
+  (2 cm deep) and yearly maximum surface temperature per terrain triangle, calculated by the Diviner team's thermal model.
+  A display layer only: it is a yearly figure, not the temperature on the landing date, and the analysis does not use it.
+- Day/night line: smooth sphere, from the sub-solar point; terrain shadows are not in this layer (the metrics have them).
+- Score map: one `/api/area` request centred on the south pole (300 km radius, 15 km spacing): 12 s first time, 0.9 s after.
+- Not available: Artemis III candidate regions (no coordinates published); shown disabled in the picker with the reason.
