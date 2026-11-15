@@ -572,3 +572,12 @@ Needs from AERO: nothing new. Optional: check the default bands we call "our cho
 Questions for AERO: the "Why it changes" 2 km /api/area call runs once per place when the block is open: OK for the
   server load?
 Commits: 1e28cff..HEAD on fe/ux-warnings
+
+## 2026-11-15 14:10 · AERO
+Done: pulled PR #30 (aero = main). On Windows the app was a blank page: src/ui/results had countdown.ts + Countdown.tsx and
+  why.ts + Why.tsx, names that differ only in case. Windows file names ignore case, so './results/Countdown' loaded the
+  logic file. Renamed the logic files to countdownText.ts and whyReasons.ts (imports updated); tsc, eslint and
+  273 tests pass, the app runs here. Please avoid file names that differ only in case (we demo from Gabriele's Windows PC).
+Changed contract: no
+Answer: the 2 km /api/area call once per place is fine for the server.
+Commits: see PR aero -> main

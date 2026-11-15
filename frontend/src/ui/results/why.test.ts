@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { circularSpan, skylineAt, terrainBlocking } from './why'
+import { circularSpan, skylineAt, terrainBlocking } from './whyReasons'
 
 describe('why it changes', () => {
   it('finds the smallest compass arc, also across north', () => {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { countdownText, fmtCountdown } from './countdown'
+import { countdownText, fmtCountdown } from './countdownText'
 
 describe('countdown', () => {
   it('formats days, hours and minutes', () => {
