@@ -172,3 +172,12 @@ Short dated entries: decision, why, alternatives rejected. This becomes the "met
 - RA/Dec of the Sun and the Earth from the Moon's centre added to `/api/ephemeris` and `/api/scene` (J2000, LT+S);
   LT-only values match JPL Horizons astrometric RA/Dec to 1e-6 deg.
 - New endpoint `/api/grid` (whole-Moon score grid).
+
+## 2026-11-15 · Regolith context: surface temperature, rock abundance, H-parameter
+- Shown under the altitude for a clicked point and as whole-Moon layers, from Diviner products (Williams et al. 2017,
+  Paige et al., Bandfield et al. 2011, Hayne et al. 2017). Context only: not part of the score or the requirements,
+  because there is no sourced threshold for them yet.
+- H-parameter shown as the measure of thermal inertia: Hayne et al. mapped H, not a single thermal inertia (it would
+  depend on temperature); the documentation explains the relation.
+- Coverage is the products' own: rock abundance 80°S–80°N, H 70°S–70°N; poleward nothing is drawn and "not mapped" is shown.
+- The layers and the clicked values use the same reader (`analysis/regolith.py`), so they agree.

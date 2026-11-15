@@ -490,3 +490,13 @@ Done:
     API.md, DECISIONS.md updated.
 Changed contract: additions only (optional RA/Dec fields in ephemeris and scene schemas; /api/grid).
 Commits: see PR aero -> main
+
+## 2026-11-15 02:49 · AERO + FE (working together on Gabriele's PC)
+Done: clicking a point now shows, under the altitude and in the same format: slope (± and baseline), rock abundance,
+  surface temperature maximum and average, H-parameter (thermal inertia), each with a help mark and documentation page.
+  API: /api/evaluate parameters gain surface_temp_max_k, surface_temp_avg_k, rock_abundance_frac, h_parameter_m (context,
+  not scored; regolith.sources). New module analysis/regolith.py, tests analysis/tests/test_regolith.py (81 pass).
+  New layers: Rock abundance (80°S–80°N) and Thermal inertia (H-parameter, 70°S–70°N), whole Moon, distribution-based colours.
+  New data (data/raw/maps/regolith, 3.5 GB, only with download_maps --all): Diviner rock abundance 128 px/deg, Hayne H map.
+Changed contract: additions only (four optional evaluate parameters).
+Commits: see PR aero -> main

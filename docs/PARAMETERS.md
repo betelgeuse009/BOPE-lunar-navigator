@@ -153,3 +153,15 @@ Colour scales (same palette everywhere): altitude, slope and temperature are col
 spread evenly over the 2nd, 25th, 50th, 75th and 98th area-weighted percentile of the whole-Moon map, so each colour
 covers a quarter of the surface. Visibility is linear 0–100 %. Site markers, the calendar strip and the score layer are
 stretched between the lowest and highest value of the set shown; the two ends are printed next to the bar.
+
+## 9. Regolith context values (`analysis/regolith.py`, not scored)
+
+| Parameter | Unit | Source and method | Coverage |
+|---|---|---|---|
+| `surface_temp_max_k` | K | Diviner GCP (Williams et al. 2017): highest bolometric brightness temperature over local time in the 0.5° bin; south of 80°S Diviner PRP yearly maximum (thermal model), nearest triangle within 2 km | whole Moon |
+| `surface_temp_avg_k` | K | Diviner GCP: mean over the day, local-time gaps ≤ 4 h filled by linear interpolation; south of 80°S PRP yearly average 2 cm deep | whole Moon (blank where gaps > 4 h) |
+| `rock_abundance_frac` | 0..1 | Bandfield et al. 2011: areal fraction of rocks > ~1 m from night-time temperatures; 128 px/deg map averaged to 32 px/deg (0.95 km) | 80°S–80°N |
+| `h_parameter_m` | m | Hayne et al. 2017: ρ(z) = ρd − (ρd − ρs)·exp(−z/H), fitted to Diviner channel 7; averaged to 32 px/deg. Smaller H = denser near-surface regolith = higher thermal inertia | 70°S–70°N |
+
+Checks: equator maximum ~396 K (Williams et al. report ~390 K); global median H 7.05 cm (Hayne et al.: ~7 cm); Tycho floor
+rock abundance 13.8 % vs Apollo 11 mare 0.6 % (`analysis/tests/test_regolith.py`).
