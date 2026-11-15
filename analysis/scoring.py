@@ -17,6 +17,7 @@ LIMITS = {
     "min_energy_margin_kwh": ("energy_margin_kwh", True),
     "max_rock_abundance_frac": ("rock_abundance_frac", False),
     "max_surface_temp_k": ("surface_temp_max_k", False),
+    "max_h_parameter_m": ("h_parameter_m", False),
 }
 
 

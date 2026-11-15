@@ -68,6 +68,7 @@ A site is **feasible** when it meets every limit the user has set:
 | `min_energy_margin_kwh` | `energy_margin_kwh` ≥ limit |
 | `max_rock_abundance_frac` | `rock_abundance_frac` ≤ limit (not checked beyond 80°, where the map has no value) |
 | `max_surface_temp_k` | `surface_temp_max_k` ≤ limit |
+| `max_h_parameter_m` | `h_parameter_m` ≤ limit (not checked beyond 70°, where the map has no value; no published landing threshold) |
 
 The API returns the verdict twice: `feasible` (true/false) and **`requirements_violated`** (0/1: 1 = at least one limit
 is not respected), plus the list of `violations`.

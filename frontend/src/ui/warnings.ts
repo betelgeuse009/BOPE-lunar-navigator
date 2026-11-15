@@ -21,6 +21,7 @@ export const LIMIT_FIELD: Record<LimitKey, { field: string; atLeast: boolean }> 
   max_no_earth_h: { field: 'longest_no_earth_h', atLeast: false },
   max_rock_abundance_frac: { field: 'rock_abundance_frac', atLeast: false },
   max_surface_temp_k: { field: 'surface_temp_max_k', atLeast: false },
+  max_h_parameter_m: { field: 'h_parameter_m', atLeast: false },
 }
 
 // Default bands: amber when `warnIf` holds. `ref` = published source; without it the value is our choice.
@@ -40,7 +41,8 @@ export const BANDS: Band[] = [
 ]
 
 const fmtLimit = (k: LimitKey, v: number) =>
-  k.endsWith('_frac') ? `${+(v * 100).toFixed(2)} %` : k.endsWith('_deg') ? `${v}°` : k.endsWith('_k') ? `${v} K` : `${v} h`
+  k.endsWith('_frac') ? `${+(v * 100).toFixed(2)} %` : k.endsWith('_deg') ? `${v}°` : k.endsWith('_k') ? `${v} K`
+    : k.endsWith('_m') ? `${+(v * 100).toFixed(1)} cm` : `${v} h`
 
 // `value`: the parameter's value; null = the API's null (no data, or "never" for the countdowns).
 export function assess(field: string, value: number | null | undefined, ctx: WarnContext): Verdict | null {

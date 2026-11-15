@@ -2,7 +2,7 @@ import type { Evaluation, Windows } from '../../data/api'
 import { Help } from '../Help'
 import { Status } from '../Status'
 import { useWarn } from '../useWarn'
-import { countdownText } from './countdown'
+import { countdownText } from './countdownText'
 
 const whenFmt = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'UTC' })
 const H = 3_600_000
