@@ -405,7 +405,7 @@ fieldset.requirements { margin-top: 0; }
 
 /* ---------- Mission card: shown while a known site is pointed at ---------- */
 .mission-card {
-  position: absolute; z-index: 3; top: 64px; left: 16px; width: min(340px, calc(100% - 32px)); pointer-events: none;
+  position: absolute; z-index: 3; top: 64px; left: 16px; /* default; ui/MissionCard.tsx moves it away from the points */ width: min(340px, calc(100% - 32px)); pointer-events: none;
   color: var(--text); background: var(--surface-raised); border: 1px solid #3a3d44; border-radius: 3px; overflow: hidden;
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.7); font-size: 14px; line-height: 1.45;
 }

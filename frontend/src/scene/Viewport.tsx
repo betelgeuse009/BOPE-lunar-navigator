@@ -23,6 +23,7 @@ import { SiteMarkers } from './SiteMarkers'
 import { Sky } from './Sky'
 import { FAR, HOME, TYPICAL_EARTH_KM, TYPICAL_SUN_KM } from './view'
 import { SouthCap } from './SouthCap'
+import { TrackScreenPoints } from './TrackScreenPoints'
 import { useNames } from './useNames'
 
 // Centre of the workbench: the Moon, what is drawn on it, and the controls that belong to the view.
@@ -56,10 +57,16 @@ export function Viewport({ sites, matrix, area, subsolar, subearth, skyKm, score
     [layer, scoreGrid.data, scoreRange])
   const layerLegend = layer?.kind === 'score' ? (scoreRange ? [scoreRange[0].toFixed(2), scoreRange[1].toFixed(2)] : null) : layer?.legend ?? null
   const sitesScale = matrix ? siteScale(matrix, metric, dateIdx) : null
+  // Places the floating cards must leave visible: the hovered known site and the chosen point.
+  const hoveredSite = useApp((s) => s.hoveredSite)
+  const keepVisible = useMemo(() => {
+    const h = sites?.find((s) => s.id === hoveredSite)
+    return [...(h ? [{ lat: h.lat_deg, lon: h.lon_deg }] : []), ...(point ? [point] : [])]
+  }, [sites, hoveredSite, point])
   return (
     <div className="stage">
       {view === '2d' && <Map2D sites={sites} matrix={matrix} area={area} subsolar={subsolar} subearth={subearth} resetSignal={reset}
-        layer={layer} scoreMap={scoreMap.data} scoreGlobal={scoreGlobal} scoreRange={scoreRange} names={names} />}
+        layer={layer} scoreMap={scoreMap.data} scoreGlobal={scoreGlobal} scoreRange={scoreRange} names={names} keepVisible={keepVisible} />}
       {view === '3d' && <Canvas camera={{ position: HOME, fov: 35, near: 0.01, far: FAR }} onPointerMissed={() => setSelected(null)}>
         <color attach="background" args={['#000000']} />
         <Lights subsolar={subsolar} />
@@ -94,6 +101,7 @@ export function Viewport({ sites, matrix, area, subsolar, subearth, skyKm, score
         <CameraFocus point={point} />
         <CameraReset signal={reset} />
         {names && <GlobeLabels names={names} overlay={labelLayer} />}
+        <TrackScreenPoints targets={keepVisible} />
       </Canvas>}
       {view === '3d' && names && <div className="label-layer" ref={labelLayer} aria-hidden />}
 
