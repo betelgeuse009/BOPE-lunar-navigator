@@ -500,3 +500,13 @@ Done: clicking a point now shows, under the altitude and in the same format: slo
   New data (data/raw/maps/regolith, 3.5 GB, only with download_maps --all): Diviner rock abundance 128 px/deg, Hayne H map.
 Changed contract: additions only (four optional evaluate parameters).
 Commits: see PR aero -> main
+
+## 2026-11-15 03:07 · AERO + FE (working together on Gabriele's PC)
+Done: documentation for the map layers and an audit of all pages.
+  - 12 new pages: one per layer (category "Map layers"), "Views: 3D globe and 2D map", "Site colours", "Landing criteria".
+    The layer (i), "Info on views" and the site-colour (i) link to them (hover = short text, click = page).
+  - Landing criteria with sources (Apollo 1968 via NASA; Artemis III NTRS 20250009323; Nova-C arXiv:2204.00660) on every
+    relevant page; no invented thresholds (rock abundance, temperature, H-parameter: none published).
+  - Formulas added to 9 existing pages; citation check of all 45 pages passes. PARAMETERS.md §10 lists the criteria.
+Changed contract: no
+Commits: see PR aero -> main

@@ -181,3 +181,13 @@ Short dated entries: decision, why, alternatives rejected. This becomes the "met
   depend on temperature); the documentation explains the relation.
 - Coverage is the products' own: rock abundance 80°S–80°N, H 70°S–70°N; poleward nothing is drawn and "not mapped" is shown.
 - The layers and the clicked values use the same reader (`analysis/regolith.py`), so they agree.
+
+## 2026-11-15 · Documentation: every layer and view has a page with formulas, sources and landing criteria
+- The (i) of each map layer, "Info on views" and the site-colour (i) now open documentation pages (new category "Map layers",
+  plus "Views", "Site colours", "Landing criteria"). Each layer page states the data, the formula used to make the image,
+  the colour scale and the published landing criteria that apply.
+- Criteria are taken only from verified sources: Apollo Site Selection Board criteria (NASA, Uri 2018), NASA Key Artemis III
+  Landing Requirements (NTRS 20250009323), Nova-C design criteria (Getchius et al. 2022). Where no source gives a number
+  (rock abundance, temperature, H-parameter) the page says so.
+- Audit of all 45 pages: every citation points to an existing reference; formulas added where missing (longest night,
+  longest blackout, both in view, countdowns, mean Sun elevation, altitude, NASA visibility, rock abundance, temperature).

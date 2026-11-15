@@ -165,3 +165,23 @@ stretched between the lowest and highest value of the set shown; the two ends ar
 
 Checks: equator maximum ~396 K (Williams et al. report ~390 K); global median H 7.05 cm (Hayne et al.: ~7 cm); Tycho floor
 rock abundance 13.8 % vs Apollo 11 mare 0.6 % (`analysis/tests/test_regolith.py`).
+
+## 10. Landing criteria with a published source (used in the documentation pages)
+
+| Criterion | Value | Source |
+|---|---|---|
+| General slope of the landing area | < 2° | Apollo Site Selection Board 1968, in J. Uri, "50 Years Ago: Lunar Landing Sites Selected", NASA JSC, 2018 |
+| Sun angle during the approach | 7°–20° behind the LM | same |
+| Approach path | no large hills, tall cliffs or deep craters | same |
+| Smoothness | relatively few craters | same |
+| Location | within 6° of the south pole | NASA, "Key Artemis III Landing Requirements", NTRS 20250009323 (2025) |
+| Landing slope | < 10° over 100 m | same |
+| EVA slope | < 20° over 2 km | same |
+| Communication | direct with Earth, no relay; areas with Earth visibility < 25 % excluded | same |
+| Surface lighting | lit for the whole stay; areas with solar visibility < 5 % excluded | same |
+| Approach lighting | beneficial | same |
+| Landing accuracy | within 100 m of the target | same |
+| Touchdown | slope < 10°, no hazards > 30 cm | Getchius et al. 2022, "Hazard Detection And Avoidance For The Nova-C Lander", arXiv:2204.00660 |
+
+No published numeric landing limit was found for rock abundance, surface temperature or the H-parameter; they stay
+context values. The front end shows these criteria on each layer page and on the page "Landing criteria".
