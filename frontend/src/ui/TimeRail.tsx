@@ -7,10 +7,10 @@ import { Help } from './Help'
 
 // Landing time of day, 1 min steps. The strip behind it is sampled every 10 min (cheap: one /api/matrix call per day)
 // and coloured relative to that day. Live mode only: the offline files exist for 00:00 UTC landings.
-export function TimeRail({ dateUtc, siteIds }: { dateUtc: string; siteIds: string[] }) {
-  const { minuteUtc, setMinuteUtc, mode, metric } = useApp()
+export function TimeRail({ dateUtc }: { dateUtc: string }) {
+  const { minuteUtc, setMinuteUtc, mode, metric, point } = useApp()
   const live = mode === 'live'
-  const strip = useDayStrip(dateUtc, siteIds)
+  const strip = useDayStrip(dateUtc)
   const day = strip.data
   const field = day && metric in day.cells ? metric : 'score'
   // Per 10-min slot: the best place's goodness (for the colour) and its value in real units (for the label).
@@ -53,7 +53,7 @@ export function TimeRail({ dateUtc, siteIds }: { dateUtc: string; siteIds: strin
         <span>
           {rel.min !== null
             ? `Worst ${formatValue(worstV, field)}, best ${formatValue(bestV, field)}`
-            : live && !strip.error ? 'Computing the day…' : ''}
+            : !point ? 'Choose a place to colour the times of day' : live && !strip.error ? 'Computing the day…' : ''}
         </span>
         <span>23:59</span>
       </div>

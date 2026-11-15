@@ -79,8 +79,8 @@ const DEFS = {
         'A past date gives the sky of that day, for example of an Apollo landing, over the terrain as the LOLA maps record it today.',
       ] },
       { h: 'The two strips', p: [
-        'Landing date: 30 days starting at the day chosen in the calendar, one cell per day. Each cell shows the value of the best known site for a mission landing on that day, for the quantity chosen under "Colour sites by".',
-        'Landing time: one value every 10 minutes of the chosen day, for the chosen place (or the best known site if none is chosen). Its colours are stretched between the worst and the best value of that day, which are printed under the strip, so small differences within a day stay visible.',
+        'Landing date: 30 days starting at the day chosen in the calendar, one cell per day. Once a place is chosen on the Moon, each cell shows its value for a mission landing on that day at the chosen time, for the quantity chosen under "Colour sites by". Before a place is chosen the strip has no colours.',
+        'Landing time: one value every 10 minutes of the chosen day, for the chosen place (no colours before a place is chosen). Its colours are stretched between the worst and the best value of that day, which are printed under the strip, so small differences within a day stay visible.',
       ] },
       { h: 'Limitations', p: [
         'Without the analysis server only the precomputed files are available: they are computed for landings at 00:00 UTC with the default settings, and the time of day cannot be changed.',
@@ -838,6 +838,53 @@ const DEFS = {
       { h: 'How to use them', p: ['Set the limits under "Minimum requirements" (or choose the crewed preset) to check them for a clicked place; the layers show where they can be met. A criterion stated over a baseline (100 m, 2 km) should be compared with a slope measured over a similar distance.'] },
     ],
     refs: ['apollo1968', 'nasaReq', 'novaC'], seeAlso: ['requirements', 'mission-type', 'slope'],
+  },
+  animation: {
+    title: 'Time animation', category: 'Mission setup',
+    summary: 'Plays the time forward: at every tick the time moves on by one time step. Used for the landing time (Mission setup) and for the clock of the surface view.',
+    sections: [
+      { h: 'Controls', p: [
+        'Speed: ticks per second, 1 to 30. Time step: how much mission time each tick adds, in minutes (presets from 1 min to 1 day). Mission time per second of animation:',
+      ], eq: '\\dot t = n_{\\text{ticks/s}} \\times \\Delta t' },
+      { h: 'Mission setup', p: [
+        'Moves the landing time of the whole navigator: the time of day, rolling into the next days of the date strip, and stops at the last day of the strip. The lighting of the globe, the results and the strips follow. Every new landing time is a new request to the analysis server, so a short step at high speed can run ahead of the answers; the results then show the newest time the server has finished.',
+        'Without the analysis server only whole days exist (the precomputed files are at 00:00 UTC), so the step is at least one day.',
+      ] },
+      { h: 'Surface view', p: ['Moves the clock of the surface view only, within its 30-day window; the landing time of the navigator does not change. Positions between two computed samples (every 10 min) are interpolated linearly for display.'] },
+      { h: 'Limitations', p: ['The tick rate is the browser timer: a busy computer can tick slower than asked. Nothing computed depends on it.'] },
+    ],
+    refs: ['api'], seeAlso: ['landing-time', 'surface-view'],
+  },
+  'surface-view': {
+    title: 'Surface view', category: 'Methods',
+    summary: 'The sky and the terrain as seen by an observer standing at the chosen place, like a street-level view: turn and tilt the view, and watch the Sun and the Earth rise and set over the real skyline.',
+    sections: [
+      { h: 'What is computed and what is drawn', table: {
+        head: ['Element', 'Source', 'Real or display only'],
+        rows: [
+          ['Sun and Earth direction (azimuth, elevation)', 'Analysis server, /api/ephemeris, JPL DE440 via SPICE [1][2], every 10 min for 30 days from 00:00 UTC of the landing day', 'Real; linear interpolation between samples'],
+          ['Sun and Earth size', 'Angular radius from the server (real distance)', 'Real'],
+          ['Earth phase (lit part)', 'Drawn from the Sun direction; the lit fraction printed is the server value', 'Real direction; the Earth texture does not rotate'],
+          ['Skyline', 'Analysis server, /api/horizon: LOLA terrain ray-marched to 200 km, 720 azimuths, at the observer height of Mission setup [3]', 'Real'],
+          ['"In view", rises and sets', 'Visible part of the disc from the server; in view = at least half of the disc above the skyline', 'Real'],
+          ['Ground texture', 'Procedural regolith (scripts/regolith_texture.py)', 'Display only, not this place'],
+          ['Stars', 'Random points', 'Display only, not a catalogue'],
+          ['Brightness of the ground', 'Directional light from the Sun, scaled by the visible part of the solar disc, plus a weak earthshine from the Earth, scaled by its lit fraction, and a faint light everywhere so the ground stays visible at night', 'Display only'],
+        ],
+      } },
+      { h: 'Geometry', p: [
+        'Azimuth $A$ is measured clockwise from north, elevation $h$ up from the local horizontal plane. In the scene ($x$ east, $y$ up, $z$ south) a direction is:',
+      ], eq: '\\hat d = (\\cos h \\sin A,\\ \\sin h,\\ -\\cos h \\cos A)' },
+      { h: 'Scale', p: [
+        'Only directions and angular sizes are real. The skyline is drawn as a wall at a fixed distance, raised to the skyline elevation of every azimuth; the Sun and the Earth are drawn beyond it with a radius $r = D \\tan\\rho$, so their apparent radius $\\rho$ is the real one. A body below the skyline is hidden by the wall, as it is from the place.',
+      ] },
+      { h: 'The two plots', p: ['Elevation of the Sun and of the Earth over the 30 days, with the skyline elevation in the body\'s direction (dashed). Shaded: the periods in view. Where the solid line crosses the dashed one the body rises or sets behind the terrain. Click a plot to move the clock there.'] },
+      { h: 'Limitations', p: [
+        'Needs the analysis server. The skyline is the one of the place itself; nearby boulders and small craters below the map resolution are not in it.',
+        'The skyline is taken as flat across the width of the Sun\'s and the Earth\'s disc.',
+      ] },
+    ],
+    refs: ['de440', 'spice', 'pgda90', 'api'], seeAlso: ['terrain-horizon', 'sun-position', 'earth-position', 'countdowns', 'animation'],
   },
 } satisfies Record<string, TopicDef>
 

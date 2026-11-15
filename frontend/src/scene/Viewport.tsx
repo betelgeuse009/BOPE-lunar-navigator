@@ -33,7 +33,7 @@ export function Viewport({ sites, matrix, area, subsolar, subearth, skyKm, score
   scoreMap: { data: Area | null; loading: boolean; error: string | null }
   scoreGrid: { data: ScoreGrid | null; loading: boolean; error: string | null }; updating: boolean
 }) {
-  const { metric, mode, point, scaleMode, pins, compareOpen, dateIdx, layer: layerId, setMetric, setSelected, setPoint, setCompareOpen, setLayer } = useApp()
+  const { metric, mode, point, scaleMode, pins, compareOpen, dateIdx, layer: layerId, surfaceOpen, setMetric, setSelected, setPoint, setCompareOpen, setLayer, setSurfaceOpen } = useApp()
   const [view, setView] = useState<'3d' | '2d'>('3d')
   const [reset, setReset] = useState(0) // each press of the reset button
   const moon = useRef<Group>(null)
@@ -96,6 +96,16 @@ export function Viewport({ sites, matrix, area, subsolar, subearth, skyKm, score
           <button type="button" role="radio" aria-checked={view === '3d'} onClick={() => setView('3d')}>3D globe</button>
           <button type="button" role="radio" aria-checked={view === '2d'} onClick={() => setView('2d')}>2D map</button>
         </div>
+        <button type="button" className="surface-toggle" disabled={!point || mode !== 'live'} aria-pressed={surfaceOpen}
+          onClick={() => setSurfaceOpen(true)} aria-label="Surface view: stand at the chosen place"
+          title={mode !== 'live' ? 'The surface view needs the analysis server.' : !point ? 'Choose a place on the Moon first.' : 'Stand at the chosen place and look at the sky'}>
+          <svg viewBox="0 0 24 24" aria-hidden>
+            <circle cx="17" cy="6" r="2.4" className="fill" />
+            <path d="M1.5 19.5 7 12.5l3.5 4 3-3 9 6" />
+            <path d="M1.5 22.5h21" />
+          </svg>
+          Surface
+        </button>
         <p className={`mode mode-${mode}`} title={mode === 'live' ? 'Connected to the analysis server: click anywhere on the Moon.' : undefined}>
           {mode === 'live' ? (updating ? 'Live, updating' : 'Live') : mode === 'static' ? 'Offline' : 'Connecting'}
         </p>

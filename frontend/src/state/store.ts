@@ -31,6 +31,8 @@ type AppState = {
   compareOpen: boolean
   layer: LayerId | null     // map layer drawn over the Moon
   setLayer: (l: LayerId | null) => void
+  surfaceOpen: boolean      // the surface view of the chosen place is open
+  setSurfaceOpen: (open: boolean) => void
   setDateIdx: (i: number) => void
   setDateCount: (n: number) => void
   setStaticDates: (d: string[]) => void
@@ -69,6 +71,8 @@ export const useApp = create<AppState>((set) => ({
   compareOpen: false,
   layer: null,
   setLayer: (layer) => set({ layer }),
+  surfaceOpen: false,
+  setSurfaceOpen: (surfaceOpen) => set({ surfaceOpen }),
   setDateIdx: (i) => set((s) => ({ dateIdx: clamp(i, s.dateCount) })),
   setDateCount: (n) => set((s) => ({ dateCount: n, dateIdx: clamp(s.dateIdx, n) })),
   setStaticDates: (staticDates) => set({ staticDates }),

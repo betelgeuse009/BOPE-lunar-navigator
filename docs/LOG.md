@@ -510,3 +510,19 @@ Done: documentation for the map layers and an audit of all pages.
   - Formulas added to 9 existing pages; citation check of all 45 pages passes. PARAMETERS.md §10 lists the criteria.
 Changed contract: no
 Commits: see PR aero -> main
+
+## 2026-11-15 03:50 · AERO + FE (working together on Gabriele's PC)
+Done: Surface view (street-level look from the chosen place) and time animation.
+  - "Surface" button next to 3D globe / 2D map; opens a full-window view: drag to look, wheel to zoom, Esc to close.
+    Sun and Earth move along their computed az/el over 30 days from the landing day, hidden by the real LOLA skyline
+    (Earthrise/Earthset, sunrise/sunset). Earth drawn with its real phase.
+  - HUD: readouts (az/el, part of the disc in view, Earth lit %, next rise/set countdown, "look at" buttons), compass
+    bottom-left, date + time-of-day sliders with play / speed / time step bottom-right, two elevation plots (Sun, Earth)
+    with the skyline in the body's direction and the periods in view shaded; click a plot to jump there.
+  - Mission setup: "Animate the landing time" (same controls) moves the navigator's landing time.
+  - Fix: date/time strips no longer coloured at start-up before a place is chosen.
+  - Docs: new pages "Time animation" and "Surface view" (what is real vs display only); landing-time page updated.
+  - New files: frontend/src/surface/*, ui/Animation.tsx, ui/animClock.ts, ui/MissionAnimation.tsx,
+    scripts/regolith_texture.py + public/textures/regolith_*.jpg (procedural, generated).
+Changed contract: no (uses existing /api/ephemeris and /api/horizon)
+Commits: see PR aero -> main

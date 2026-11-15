@@ -5,6 +5,7 @@ import { useApiHealth, useAreaSearch, useEvaluation, useLiveMatrix, useLiveScene
 import { DocsPage } from './docs/DocsPage'
 import { useDocTopic } from './docs/useDocTopic'
 import { Viewport } from './scene/Viewport'
+import { SurfaceView } from './surface/SurfaceView'
 import { STRIP_DAYS, landingDay, useApp } from './state/store'
 import { ComparePanel } from './ui/ComparePanel'
 import { InputPanel } from './ui/InputPanel'
@@ -21,7 +22,7 @@ export default function App() {
   const [scene, setScene] = useState<Scene | null>(null)
   const [leftOpen, setLeftOpen] = useState(true)
   const [rightOpen, setRightOpen] = useState(true)
-  const { metric, minuteUtc, mode, setMetric, setDateCount, setStaticDates } = useApp()
+  const { metric, minuteUtc, mode, point, surfaceOpen, setMetric, setDateCount, setStaticDates } = useApp()
   useApiHealth()
   const docTopic = useDocTopic()
 
@@ -75,7 +76,7 @@ export default function App() {
             Settings are locked because the analysis server is not running. Start it with <code>npm run api</code> and reload.
           </p>
         )}
-        {data && matrix && <InputPanel sites={data.sites.sites} matrix={matrix} landingDate={landingDate} siteIds={siteIds} />}
+        {data && matrix && <InputPanel sites={data.sites.sites} matrix={matrix} landingDate={landingDate} />}
       </Pane>
 
       <Viewport sites={data?.sites.sites ?? null} matrix={matrix} area={area.data} subsolar={subsolar} subearth={subearth} skyKm={skyKm} scoreMap={scoreMap} scoreGrid={scoreGrid} updating={live.loading} />
@@ -91,6 +92,7 @@ export default function App() {
       </Pane>
 
       {data && matrix && <ComparePanel matrix={matrix} />}
+      {surfaceOpen && point && mode === 'live' && landingDate && <SurfaceView key={`${point.lat},${point.lon}`} dayUtc={landingDate} />}
       {docTopic && <DocsPage topic={docTopic} />}
     </div>
   )

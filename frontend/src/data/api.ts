@@ -105,6 +105,12 @@ export const Ephemeris = z.object({
 })
 export type Ephemeris = z.infer<typeof Ephemeris>
 
+// /api/horizon: the terrain skyline seen from the place, elevation of the skyline at every azimuth (horizon.schema.json).
+export const Horizon = z.object({
+  contract_version: z.string(), observer_height_m: z.number(), azimuth_deg: nums, horizon_elev_deg: nums,
+})
+export type Horizon = z.infer<typeof Horizon>
+
 // /api/metrics: only the periods with the Sun up and with the Earth in view are used here.
 const win = z.object({ start_utc: z.string(), end_utc: z.string() })
 export const Windows = z.object({ contract_version: z.string(), sun_windows: z.array(win), earth_windows: z.array(win) })

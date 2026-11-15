@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { STRIP_DAYS, useApp, type Pin } from '../state/store'
-import { Area, Ephemeris, Evaluation, ScoreGrid, Windows, apiAvailable, apiGet, areaSpacingKm, limitsQuery, settingsQuery } from './api'
+import { Area, Ephemeris, Evaluation, Horizon, ScoreGrid, Windows, apiAvailable, apiGet, areaSpacingKm, limitsQuery, settingsQuery } from './api'
 import { createLatestRunner } from './latest'
 import { landingAt, parseFile } from './load'
 import { Matrix, Scene } from './schemas'
@@ -80,13 +80,25 @@ export function useEvaluation(startUtc: string | undefined): Result<Evaluation> 
 
 // Colour strip behind the time-of-day slider: one /api/matrix call with a landing every 10 min over the landing
 // day, for the clicked point if there is one, otherwise for the catalogue sites (the strip then shows the best).
-export function useDayStrip(dateUtc: string | undefined, siteIds: string[]): Result<Matrix> {
+export function useDayStrip(dateUtc: string | undefined): Result<Matrix> {
   const { mode, settings, point } = useApp()
   const s = useDebounced(settings, 300)
-  const where = point ? { points: `${point.lat.toFixed(4)},${point.lon.toFixed(4)}` } : { site_ids: siteIds.join(',') }
-  const params = mode === 'live' && dateUtc
-    ? { ...settingsQuery(s), ...where, start_utc: landingAt(dateUtc, 0), n_dates: String((24 * 60) / STRIP_STEP_MIN),
-        date_step_h: String(STRIP_STEP_MIN / 60) }
+  // Only for a chosen place: before a place is chosen there is nothing to colour.
+  const params = mode === 'live' && dateUtc && point
+    ? { ...settingsQuery(s), points: `${point.lat.toFixed(4)},${point.lon.toFixed(4)}`, start_utc: landingAt(dateUtc, 0),
+        n_dates: String((24 * 60) / STRIP_STEP_MIN), date_step_h: String(STRIP_STEP_MIN / 60) }
+    : null
+  return useApiRequest(params && JSON.stringify(params), async (p) =>
+    parseFile(Matrix, await apiGet('matrix', p, Matrix.passthrough()), '/api/matrix'))
+}
+
+// The days of the date strip for the chosen place: one landing per day at the chosen time, with the user's settings.
+export function usePointDays(firstDayUtc: string | undefined): Result<Matrix> {
+  const { mode, settings, point, minuteUtc } = useApp()
+  const s = useDebounced(settings, 300)
+  const params = mode === 'live' && point && firstDayUtc
+    ? { ...settingsQuery(s), points: `${point.lat.toFixed(4)},${point.lon.toFixed(4)}`, start_utc: landingAt(firstDayUtc, minuteUtc),
+        n_dates: String(STRIP_DAYS), date_step_h: '24' }
     : null
   return useApiRequest(params && JSON.stringify(params), async (p) =>
     parseFile(Matrix, await apiGet('matrix', p, Matrix.passthrough()), '/api/matrix'))
@@ -157,6 +169,19 @@ function useSiteWindow(startUtc: string | undefined): Record<string, string> | n
 export function useEphemeris(startUtc: string | undefined): Result<Ephemeris> {
   const site = useSiteWindow(startUtc)
   return useApiRequest(site && JSON.stringify({ ...site, step_s: '600' }), (p) => apiGet('ephemeris', p, Ephemeris))
+}
+
+// Surface view of the chosen place: Sun and Earth every 10 min for `days` days from 00:00 UTC of the landing day,
+// and the terrain skyline around the place (both depend on the observer height).
+export function useSurfaceData(dayUtc: string | undefined, days: number): { eph: Result<Ephemeris>; hor: Result<Horizon> } {
+  const { mode, settings, point } = useApp()
+  const where = mode === 'live' && point
+    ? { lat_deg: point.lat.toFixed(4), lon_deg: point.lon.toFixed(4), obs_height_m: String(settings.obsHeightM) }
+    : null
+  const eph = useApiRequest(where && dayUtc ? JSON.stringify({ ...where, start_utc: landingAt(dayUtc, 0), mission_h: String(days * 24), step_s: '600' }) : null,
+    (p) => apiGet('ephemeris', p, Ephemeris))
+  const hor = useApiRequest(where && JSON.stringify(where), (p) => apiGet('horizon', p, Horizon))
+  return { eph, hor }
 }
 
 // The periods with the Sun up and with the Earth in view during the stay.

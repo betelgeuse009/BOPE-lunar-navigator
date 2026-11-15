@@ -191,3 +191,21 @@ Short dated entries: decision, why, alternatives rejected. This becomes the "met
   (rock abundance, temperature, H-parameter) the page says so.
 - Audit of all 45 pages: every citation points to an existing reference; formulas added where missing (longest night,
   longest blackout, both in view, countdowns, mean Sun elevation, altitude, NASA visibility, rock abundance, temperature).
+
+## 2026-11-15 · Surface view: real directions and skyline, display-only ground and light
+- New "Surface" button in the viewer header (enabled once a place is chosen and the server is live) opens a full-window,
+  street-level view from the place. Sun and Earth azimuth/elevation, angular size, visible fraction and Earth lit fraction
+  all come from the server (/api/ephemeris, every 10 min for 30 days from the landing day); the skyline is /api/horizon
+  (LOLA, 720 azimuths, observer height from Mission setup). The front end only interpolates linearly between samples.
+- Only directions and angular sizes are real: the skyline is a wall at a fixed distance raised to the skyline elevation,
+  Sun and Earth sit beyond it with r = D tan(rho). A body below the skyline is hidden by the wall, consistent with the
+  server's visible fraction.
+- Display only, stated in the documentation: procedural regolith texture (scripts/regolith_texture.py, not the place),
+  decorative stars, ground brightness (sunlight scaled by the visible solar disc, weak earthshine, faint ambient so the
+  night ground stays visible). The Earth's own rotation is not modelled.
+- The view has its own clock (starts at the landing time, does not change it). Rejected: driving the navigator's landing
+  time from the view, which would send a full re-evaluation per animation step.
+- Time animation (play, speed in steps/s, time step) in the surface view and in Mission setup; the latter moves the landing
+  time of the whole navigator (whole days offline).
+- Fix: the date and time strips were coloured at start-up with the best catalogue site before any place was chosen; they
+  now stay neutral until a place is chosen and then show that place's values.
