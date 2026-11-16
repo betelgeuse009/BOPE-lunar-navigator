@@ -1,8 +1,4 @@
 <p align="center">
-  <img src="docs/images/banner.svg" alt="Lunar Landing Site Navigator: Sun, Earth and terrain for any place and any date on the Moon" width="100%">
-</p>
-
-<p align="center">
   <img alt="NASA Space Apps Challenge 2026" src="https://img.shields.io/badge/NASA%20Space%20Apps-2026-000000?style=flat-square&labelColor=000000">
   <img alt="Challenge" src="https://img.shields.io/badge/challenge-Lunar%20Landing%20Site%20Navigator-f0b254?style=flat-square&labelColor=000000">
   <img alt="Ephemeris" src="https://img.shields.io/badge/ephemeris-JPL%20DE440%20%2B%20SPICE-6fb1e6?style=flat-square&labelColor=000000">
