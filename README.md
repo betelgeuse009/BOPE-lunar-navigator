@@ -10,7 +10,7 @@ The navigator shows where the Sun and the Earth are over the real terrain, how l
 and how much that changes if you move a few hundred metres or a day.</p>
 
 <p align="center">
-  <img src="docs/images/overview.jpeg" alt="The navigator: mission setup on the left, the Moon with feature names in the middle, results with the countdown to Earthset on the right" width="100%">
+  <img src="docs/images/overview.png" alt="The navigator: mission setup on the left, the Moon with feature names in the middle, results with the countdown to Earthset on the right" width="100%">
 </p>
 
 ---
